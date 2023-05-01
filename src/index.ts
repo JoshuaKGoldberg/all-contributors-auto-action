@@ -18,5 +18,5 @@ core.debug(`Retrieved contributors: ${JSON.stringify(contributors, null, 4)}`);
 for (const [contributor, contributions] of Object.entries(contributors)) {
 	await $({
 		env: { GITHUB_TOKEN: githubToken },
-	})`npx all-contributors add ${contributor} ${contributions.join(",")}`;
+	})`npx -y all-contributors add ${contributor} ${contributions.join(",")}`;
 }

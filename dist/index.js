@@ -46524,7 +46524,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 					)) {
 						await (0, execa__WEBPACK_IMPORTED_MODULE_3__.$)({
 							env: { GITHUB_TOKEN: githubToken },
-						})`npx all-contributors add ${contributor} ${contributions.join(
+						})`npx -y all-contributors add ${contributor} ${contributions.join(
 							","
 						)}`;
 					}
