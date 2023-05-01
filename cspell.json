@@ -10,6 +10,7 @@
 		"script/*.json"
 	],
 	"words": [
+		"allcontributors",
 		"Codecov",
 		"codespace",
 		"commitlint",
@@ -21,7 +22,6 @@
 		"packagejson",
 		"quickstart",
 		"wontfix",
-		"outro",
-		"execa"
+		"outro"
 	]
 }

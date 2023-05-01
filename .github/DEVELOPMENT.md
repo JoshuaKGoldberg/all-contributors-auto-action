@@ -3,8 +3,8 @@
 After [forking the repo from GitHub](https://help.github.com/articles/fork-a-repo) and [installing pnpm](https://pnpm.io/installation):
 
 ```shell
-git clone https://github.com/<your-name-here>/template-typescript-node-package
-cd template-typescript-node-package
+git clone https://github.com/<your-name-here>/all-contributors-auto-action
+cd all-contributors-auto-action
 pnpm install
 ```
 
@@ -44,20 +44,19 @@ Each should be shown in VS Code, and can be run manually on the command-line:
 - `pnpm lint:spelling` ([cspell](https://cspell.org)): Spell checks across all source files
 - `pnpm lint` ([ESLint](https://eslint.org) with [typescript-eslint](https://typescript-eslint.io)): Lints JavaScript and TypeScript source files
 
-## Testing
+## Testing Locally
 
-[Vitest](https://vitest.dev) is used for tests.
-You can run it locally on the command-line:
+You can run this locally by providing `GITHUB_REPOSITORY` and `GITHUB_TOKEN` environment variables.
+Be sure to `pnpm build` before running.
 
-```shell
-pnpm run test
-```
-
-Add the `--coverage` flag to compute test coverage and place reports in the `coverage/` directory:
+In one (background/secondary) terminal:
 
 ```shell
-pnpm run test --coverage
+pnpm build -w
 ```
 
-Note that [console-fail-test](https://github.com/JoshuaKGoldberg/console-fail-test) is enabled for all test runs.
-Calls to `console.log`, `console.warn`, and other console methods will cause a test to fail.
+In your primary terminal:
+
+```shell
+GITHUB_REPOSITORY=JoshuaKGoldberg/template-typescript-node-package GITHUB_TOKEN=$(gh auth token) node lib/index.js
+```
