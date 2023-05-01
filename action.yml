@@ -2,5 +2,5 @@ author: JoshuaKGoldberg
 description: Fills in missing allcontributors entries for a repository. 👪
 name: All Contributors Auto Action
 runs:
-  main: lib/index.js
+  main: dist/index.js
   using: node16

@@ -21,6 +21,14 @@ pnpm build --watch
 
 You should also see suggestions from TypeScript in your editor.
 
+### Building for Release
+
+We use [`@vercel/ncc`](https://github.com/vercel/ncc) to create an output `dist/` to be used in production.
+
+```shell
+pnpm build:release
+```
+
 ## Formatting
 
 [Prettier](https://prettier.io) is used to format code.
