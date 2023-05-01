@@ -30,14 +30,15 @@ This action will:
 1. Ask [`all-contributors-for-repository`](https://github.com/JoshuaKGoldberg/all-contributors-for-repository) to collect the current repository's contributors
 2. Run [`all-contributors add`](https://allcontributors.org/docs/en/cli/usage#all-contributors-add) to add them to the current repository
 
-For example, this action will run on every push to `main`, then check in changes
+For example, the following job will run on every push to `main`, then check in changes:
 
 ```yml
+# .github/workflows/contributors.yml
 jobs:
   contributors:
     runs-on: ubuntu-latest
     steps:
-      - uses: JoshuaKGoldberg/all-contributors-auto-action
+      - uses: JoshuaKGoldberg/all-contributors-auto-action@latest
       - uses: stefanzweifel/git-auto-commit-action@v4
 
 name: Fill In All Contributors
