@@ -38,10 +38,11 @@ jobs:
   contributors:
     runs-on: ubuntu-latest
     steps:
-      - uses: JoshuaKGoldberg/all-contributors-auto-action@v0.0.3
+      - uses: actions/checkout@v3
+      - uses: JoshuaKGoldberg/all-contributors-auto-action@v0.1.0
       - uses: stefanzweifel/git-auto-commit-action@v4
 
-name: Fill In All Contributors
+name: Contributors
 
 on:
   push:

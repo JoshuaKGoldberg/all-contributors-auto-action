@@ -16,6 +16,8 @@ const contributors = await createAllContributorsForRepository({
 core.debug(`Retrieved contributors: ${JSON.stringify(contributors, null, 4)}`);
 
 for (const [contributor, contributions] of Object.entries(contributors)) {
+	core.debug(`Adding contributor: ${contributor} (${contributions.join(",")})`);
+
 	await $({
 		env: { GITHUB_TOKEN: githubToken },
 	})`npx -y all-contributors add ${contributor} ${contributions.join(",")}`;

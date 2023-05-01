@@ -8,7 +8,7 @@ specifiers:
   '@typescript-eslint/eslint-plugin': ^5.48.2
   '@typescript-eslint/parser': ^5.48.2
   '@vercel/ncc': ^0.36.1
-  all-contributors-for-repository: ^0.0.4
+  all-contributors-for-repository: ^0.0.5
   cspell: ^6.19.2
   eslint: ^8.32.0
   eslint-config-prettier: ^8.6.0
@@ -42,7 +42,7 @@ dependencies:
   '@actions/core': 1.10.0
   '@actions/github': 5.1.1
   '@types/node': 18.16.3
-  all-contributors-for-repository: 0.0.4
+  all-contributors-for-repository: 0.0.5
   execa: 7.1.1
 
 devDependencies:
@@ -1363,8 +1363,8 @@ packages:
       uri-js: 4.4.1
     dev: true
 
-  /all-contributors-for-repository/0.0.4:
-    resolution: {integrity: sha512-4BGNZaPuqgZ3mg/l8GU/K+VDGt+LKyv0pdlNWpFH9H1No1aNxGkKN7eocifL96Gnk2MO59p6kYnUCVaT27r3Ng==}
+  /all-contributors-for-repository/0.0.5:
+    resolution: {integrity: sha512-rqnNqx3Uhiab/tvlr0fXftjB8Y2kAlZlBG8t8QJCs0fGYlkZajL210WtcFSec4f7iCzBIVNHg++3P3eiJ9B7kw==}
     engines: {node: '>=18'}
     dependencies:
       octokit: 2.0.14

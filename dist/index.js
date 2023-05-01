@@ -46498,7 +46498,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 							_actions_github__WEBPACK_IMPORTED_MODULE_1__
 						);
 					/* harmony import */ var all_contributors_for_repository__WEBPACK_IMPORTED_MODULE_2__ =
-						__nccwpck_require__(8917);
+						__nccwpck_require__(6219);
 					/* harmony import */ var execa__WEBPACK_IMPORTED_MODULE_3__ =
 						__nccwpck_require__(5601);
 
@@ -46522,6 +46522,9 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 					for (const [contributor, contributions] of Object.entries(
 						contributors
 					)) {
+						_actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(
+							`Adding contributor: ${contributor} (${contributions.join(",")})`
+						);
 						await (0, execa__WEBPACK_IMPORTED_MODULE_3__.$)({
 							env: { GITHUB_TOKEN: githubToken },
 						})`npx -y all-contributors add ${contributor} ${contributions.join(
@@ -46662,7 +46665,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 8917: /***/ (
+	/***/ 6219: /***/ (
 		__unused_webpack___webpack_module__,
 		__webpack_exports__,
 		__nccwpck_require__
@@ -46670,7 +46673,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		// EXPORTS
 		__nccwpck_require__.d(__webpack_exports__, {
 			J: () => /* binding */ createAllContributorsForRepository,
-		}); // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.4/node_modules/all-contributors-for-repository/lib/ContributorsCollection.js
+		}); // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.5/node_modules/all-contributors-for-repository/lib/ContributorsCollection.js
 
 		var __classPrivateFieldSet =
 			(undefined && undefined.__classPrivateFieldSet) ||
@@ -46766,7 +46769,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 			(_ContributorsCollection_ignoredLogins = new WeakMap());
 		//# sourceMappingURL=ContributorsCollection.js.map
 		// EXTERNAL MODULE: ./node_modules/.pnpm/octokit@2.0.14/node_modules/octokit/dist-node/index.js
-		var dist_node = __nccwpck_require__(5953); // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.4/node_modules/all-contributors-for-repository/lib/collect/api.js
+		var dist_node = __nccwpck_require__(5953); // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.5/node_modules/all-contributors-for-repository/lib/collect/api.js
 		const perPage = 100;
 		function createOctokit(auth) {
 			return new (dist_node /* Octokit.defaults */.vd
@@ -46779,8 +46782,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		}
 		async function paginate(defaults, request) {
 			const items = [];
-			for (let i = 0; i < 5; i += 1) {
-				console.log("pagination", i);
+			for (let i = 0; i < 10; i += 1) {
 				const response = await request({
 					page: i,
 					per_page: perPage,
@@ -46792,12 +46794,10 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 				}
 			}
 			return items;
-		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.4/node_modules/all-contributors-for-repository/lib/collect/collectAcceptedIssues.js
+		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.5/node_modules/all-contributors-for-repository/lib/collect/collectAcceptedIssues.js
 		//# sourceMappingURL=api.js.map
-
 		async function collectAcceptedIssues(defaults, octokit, labelAcceptingPrs) {
 			const issues = await paginate(defaults, async (options) => {
-				console.log("in collectAcceptedIssues", defaults);
 				const response = await octokit.request(
 					"GET /repos/{owner}/{repo}/issues",
 					{
@@ -46809,12 +46809,10 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 				return response.data;
 			});
 			return Object.fromEntries(issues.map((issue) => [issue.number, issue]));
-		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.4/node_modules/all-contributors-for-repository/lib/collect/collectEvents.js
+		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.5/node_modules/all-contributors-for-repository/lib/collect/collectEvents.js
 		//# sourceMappingURL=collectAcceptedIssues.js.map
-
 		async function collectEvents(defaults, octokit) {
 			const events = await paginate(defaults, async (options) => {
-				console.log("in collectEvents", defaults);
 				const eventsResponse = await octokit.request(
 					"GET /repos/{owner}/{repo}/events",
 					{
@@ -46825,9 +46823,8 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 				return eventsResponse.data;
 			});
 			return events;
-		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.4/node_modules/all-contributors-for-repository/lib/collect/collectIssueEvents.js
+		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.5/node_modules/all-contributors-for-repository/lib/collect/collectIssueEvents.js
 		//# sourceMappingURL=collectEvents.js.map
-
 		const relevantIssueEvents = new Set([
 			"assigned",
 			"locked",
@@ -46837,7 +46834,6 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		]);
 		async function collectIssueEvents(defaults, octokit) {
 			const issueEvents = await paginate(defaults, async (options) => {
-				console.log("in collectIssueEvents", defaults);
 				const response = await octokit.request(
 					"GET /repos/{owner}/{repo}/issues/events",
 					{
@@ -46850,33 +46846,29 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 			return issueEvents.filter((issueEvent) =>
 				relevantIssueEvents.has(issueEvent.event)
 			);
-		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.4/node_modules/all-contributors-for-repository/lib/collect/collectMergedPulls.js
+		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.5/node_modules/all-contributors-for-repository/lib/collect/collectMergedPulls.js
 		//# sourceMappingURL=collectIssueEvents.js.map
-
 		async function collectMergedPulls(defaults, octokit) {
 			return await paginate(defaults, async (options) => {
-				console.log("in collectMergedPulls", defaults);
 				const response = await octokit.request("GET /search/issues", {
 					...options,
 					q: "repo:JoshuaKGoldberg/template-typescript-node-package+is:pr+is:merged",
 				});
 				return response.data.items;
 			});
-		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.4/node_modules/all-contributors-for-repository/lib/collect/index.js
+		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.5/node_modules/all-contributors-for-repository/lib/collect/index.js
 		//# sourceMappingURL=collectMergedPulls.js.map
-
 		async function collect(options) {
 			const contributors = new ContributorsCollection(options.ignoredLogins);
 			const defaults = { owner: options.owner, repo: options.repo };
 			const octokit = createOctokit(options.auth);
-			const acceptedIssues = await collectAcceptedIssues(
-				defaults,
-				octokit,
-				options.labelAcceptingPrs
-			);
-			const events = await collectEvents(defaults, octokit);
-			const issueEvents = await collectIssueEvents(defaults, octokit);
-			const mergedPulls = await collectMergedPulls(defaults, octokit);
+			const [acceptedIssues, events, issueEvents, mergedPulls] =
+				await Promise.all([
+					collectAcceptedIssues(defaults, octokit, options.labelAcceptingPrs),
+					collectEvents(defaults, octokit),
+					collectIssueEvents(defaults, octokit),
+					collectMergedPulls(defaults, octokit),
+				]);
 			for (const acceptedIssue of Object.values(acceptedIssues)) {
 				const labels = acceptedIssue.labels.map((label) =>
 					typeof label === "string" ? label : label.name
@@ -46922,9 +46914,8 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 				}
 			}
 			return contributors.collect();
-		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.4/node_modules/all-contributors-for-repository/lib/options.js
+		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.5/node_modules/all-contributors-for-repository/lib/options.js
 		//# sourceMappingURL=index.js.map
-
 		const defaultOptions = {
 			ignoredLogins: [
 				"allcontributors",
@@ -46953,7 +46944,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 				owner: rawOptions.owner,
 				repo: rawOptions.repo,
 			};
-		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.4/node_modules/all-contributors-for-repository/lib/index.js
+		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.5/node_modules/all-contributors-for-repository/lib/index.js
 		//# sourceMappingURL=options.js.map
 		async function createAllContributorsForRepository(rawOptions) {
 			const options = fillInOptions(rawOptions);
