@@ -30,6 +30,10 @@ This action will:
 1. Ask [`all-contributors-for-repository`](https://github.com/JoshuaKGoldberg/all-contributors-for-repository) to collect the current repository's contributors
 2. Run [`all-contributors add`](https://allcontributors.org/docs/en/cli/usage#all-contributors-add) to add them to the current repository
 
+> **Warning**
+> This tool only sees contributions that can be detected from the last 500 events in GitHub's API.
+> Don't forget to manually add in other forms of contributions!
+
 For example, the following job will run on every push to `main`, then check in changes:
 
 ```yml
