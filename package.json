@@ -44,6 +44,7 @@
 		"@typescript-eslint/eslint-plugin": "^5.48.2",
 		"@typescript-eslint/parser": "^5.48.2",
 		"@vercel/ncc": "^0.36.1",
+		"@vitest/coverage-istanbul": "^0.31.0",
 		"console-fail-test": "^0.2.1",
 		"cspell": "^6.19.2",
 		"eslint": "^8.32.0",
