@@ -1,5 +1,7 @@
 import * as github from "@actions/github";
 
+import { commentPrefix } from "./comments.js";
+
 export async function doesPullAlreadyHaveComment(
 	octokit: ReturnType<typeof github.getOctokit>,
 	id: number
@@ -17,6 +19,6 @@ export async function doesPullAlreadyHaveComment(
 	);
 
 	return existingComments.data.find(({ body }) =>
-		body?.includes("@all-contributors please add")
+		body?.includes(commentPrefix)
 	);
 }
