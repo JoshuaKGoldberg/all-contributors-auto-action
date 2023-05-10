@@ -9,10 +9,8 @@ import { getMissingContributions } from "./getMissingContributions.js";
 
 core.debug("About to retrieve contributors...");
 
-const githubToken = process.env.GITHUB_TOKEN;
-if (!githubToken) {
-	throw new Error("Missing process.env.GITHUB_TOKEN :(");
-}
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+const githubToken = process.env.GITHUB_TOKEN!;
 
 const { repo: locator } = github.context;
 const octokit = github.getOctokit(githubToken);

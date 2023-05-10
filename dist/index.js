@@ -50178,10 +50178,8 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 					_actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(
 						"About to retrieve contributors..."
 					);
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 					const githubToken = process.env.GITHUB_TOKEN;
-					if (!githubToken) {
-						throw new Error("Missing process.env.GITHUB_TOKEN :(");
-					}
 					const { repo: locator } =
 						_actions_github__WEBPACK_IMPORTED_MODULE_1__.context;
 					const octokit =
