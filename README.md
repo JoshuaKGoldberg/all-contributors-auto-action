@@ -10,6 +10,9 @@
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 <!-- prettier-ignore-end -->
 	</a>
+	<a href="https://codecov.io/gh/JoshuaKGoldberg/all-contributors-auto-action" target="_blank">
+		<img alt="Codecov Test Coverage" src="https://codecov.io/gh/JoshuaKGoldberg/all-contributors-auto-action/branch/main/graph/badge.svg?token=eVIFY4MhfQ"/>
+	</a>
 	<a href="https://github.com/JoshuaKGoldberg/all-contributors-auto-action/blob/main/.github/CODE_OF_CONDUCT.md" target="_blank">
 		<img alt="Contributor Covenant" src="https://img.shields.io/badge/code_of_conduct-enforced-21bb42" />
 	</a>
@@ -28,13 +31,13 @@
 This action will:
 
 1. Ask [`all-contributors-for-repository`](https://github.com/JoshuaKGoldberg/all-contributors-for-repository) to collect the current repository's contributors
-2. Run [`all-contributors add`](https://allcontributors.org/docs/en/cli/usage#all-contributors-add) to add them to the current repository
+2. Post [`@all-contributors add` bot comments](https://allcontributors.org/docs/en/bot/usage) in the newest issues and PRs for each contributor
 
 > **Warning**
 > This tool only sees contributions that can be detected from the last 500 events in GitHub's API.
 > Don't forget to manually add in other forms of contributions!
 
-For example, the following job will run on every push to `main`, then check in changes:
+For example, the following job will run on every push to `main`:
 
 ```yml
 # .github/workflows/contributors.yml
@@ -44,7 +47,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: JoshuaKGoldberg/all-contributors-auto-action@v0.1.0
-      - uses: stefanzweifel/git-auto-commit-action@v4
 
 name: Contributors
 
