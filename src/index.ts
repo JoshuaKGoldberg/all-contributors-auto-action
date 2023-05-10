@@ -50,7 +50,11 @@ for (const [contributor, contributions] of Object.entries(contributors)) {
 
 		core.debug(`Checking for existing ${contributor} comment: ${latestId}`);
 
-		const existingComment = await doesPullAlreadyHaveComment(octokit, latestId);
+		const existingComment = await doesPullAlreadyHaveComment(
+			octokit,
+			{ owner, repo },
+			latestId
+		);
 		if (existingComment) {
 			core.debug(`${latestId} already has a comment: ${existingComment.id}`);
 			continue;

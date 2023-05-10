@@ -4,13 +4,13 @@ import { commentPrefix } from "./comments.js";
 
 export async function doesPullAlreadyHaveComment(
 	octokit: ReturnType<typeof github.getOctokit>,
+	options: { owner: string; repo: string },
 	id: number
 ) {
 	const existingComments = await octokit.request(
 		"GET /repos/{owner}/{repo}/issues/{issue_number}/comments",
 		{
-			owner: "OWNER",
-			repo: "REPO",
+			...options,
 			issue_number: id,
 			headers: {
 				"X-GitHub-Api-Version": "2022-11-28",
