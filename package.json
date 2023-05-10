@@ -1,6 +1,6 @@
 {
 	"name": "all-contributors-auto-action",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"description": "Fills in missing allcontributors entries for a repository. 👪",
 	"repository": {
 		"type": "git",
