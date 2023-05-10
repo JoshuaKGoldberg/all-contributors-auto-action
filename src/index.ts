@@ -14,19 +14,17 @@ if (!githubToken) {
 	throw new Error("Missing process.env.GITHUB_TOKEN :(");
 }
 
-const { owner, repo } = github.context.repo;
+const { repo: locator } = github.context;
+const octokit = github.getOctokit(githubToken);
 
 const contributors = await createAllContributorsForRepository({
 	auth: githubToken,
-	owner,
-	repo,
+	...locator,
 });
 
-core.debug(`Retrieved contributors: ${stringify(contributors)}`);
+core.debug(`Retrieved contributors: ${JSON.stringify(contributors)}`);
 
-const existingContributors = await getExistingContributors();
-
-const octokit = github.getOctokit(githubToken);
+const existingContributors = await getExistingContributors(octokit, locator);
 
 for (const [contributor, contributions] of Object.entries(contributors)) {
 	core.debug(
@@ -43,7 +41,9 @@ for (const [contributor, contributions] of Object.entries(contributors)) {
 		continue;
 	}
 
-	core.debug(`${contributor} is missing: ${stringify(missingContributions)}`);
+	core.debug(
+		`${contributor} is missing: ${JSON.stringify(missingContributions)}`
+	);
 
 	for (const [type, ids] of Object.entries(missingContributions)) {
 		const latestId = ids[ids.length - 1];
@@ -52,7 +52,7 @@ for (const [contributor, contributions] of Object.entries(contributors)) {
 
 		const existingComment = await doesPullAlreadyHaveComment(
 			octokit,
-			{ owner, repo },
+			locator,
 			latestId
 		);
 		if (existingComment) {
@@ -64,28 +64,30 @@ for (const [contributor, contributions] of Object.entries(contributors)) {
 			`${latestId} doesn't already have a comment; posting a new one.`
 		);
 
-		// TODO: It'd be nice to deduplicate these comments.
-		// PRs that include multiple types will cause multiple comments...
-		const newComment = await octokit.request(
+		const commentRequestArgs = [
 			"POST /repos/{owner}/{repo}/issues/{issue_number}/comments",
 			{
-				owner,
-				repo,
+				...locator,
 				issue_number: latestId,
 				body: [
-					`${commentPrefix} ${contributor} for ${type}.`,
+					`${commentPrefix} @${contributor} for ${type}.`,
 					commentDisclaimer,
 				].join("\n\n"),
 				headers: {
 					"X-GitHub-Api-Version": "2022-11-28",
 				},
-			}
-		);
+			},
+		] as const;
 
-		core.debug(`Posted comment ${newComment.data.id} for ${latestId}.`);
+		if (process.env.LOCAL_TESTING === "true") {
+			core.debug(`LOCAL_TESTING: ${JSON.stringify(commentRequestArgs)}`);
+		} else {
+			// TODO: It'd be nice to deduplicate these comments.
+			// PRs that include multiple types will cause multiple comments...
+			const newComment = await octokit.request(...commentRequestArgs);
+			core.debug(`Posted comment ${newComment.data.id} for ${latestId}.`);
+		}
+
+		console.log("POST /repos/{owner}/{repo}/issues/{issue_number}/comments");
 	}
-}
-
-function stringify(value: unknown) {
-	return JSON.stringify(value, null, 4);
 }

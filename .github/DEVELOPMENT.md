@@ -54,7 +54,7 @@ Each should be shown in VS Code, and can be run manually on the command-line:
 
 ## Testing Locally
 
-You can run this locally by providing `GITHUB_REPOSITORY` and `GITHUB_TOKEN` environment variables.
+You can run this locally by running `lib/index.js`.
 Be sure to `pnpm build` before running.
 
 In one (background/secondary) terminal:
@@ -63,10 +63,16 @@ In one (background/secondary) terminal:
 pnpm build -w
 ```
 
-In your primary terminal:
+In your primary terminal, run `lib/index.js` with the following environment variables:
+
+- `GITHUB_REPOSITORY`: Locator for the repository to run against, in a format like `Owner/repository`.
+- `GITHUB_TOKEN`: Your GitHub auth token, to avoid API throttling
+- `LOCAL_TESTING`: Indicates to log comments that _would_ be creating to the console, instead of actually POSTing them to GitHub
+
+For example:
 
 ```shell
-GITHUB_REPOSITORY=JoshuaKGoldberg/template-typescript-node-package GITHUB_TOKEN=$(gh auth token) node lib/index.js
+GITHUB_REPOSITORY=YourUsername/your-repository-name GITHUB_TOKEN=$(gh auth token) LOCAL_TESTING=true node lib/index.js
 ```
 
 ## Unit Tests
