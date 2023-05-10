@@ -56,6 +56,16 @@ on:
       - main
 ```
 
+...and will post comments like the following automatically:
+
+> @all-contributors please add @JoshuaKGoldberg for code.
+>
+> > 🤖 Beep boop! This comment was added automatically by [all-contributors-auto-action](https://github.com/marketplace/actions/all-contributors-auto-action).
+> >
+> > Not all contributions can be detected from Git & GitHub alone. Please comment any missing contribution types this bot missed.
+> >
+> > ...and of course, thank you for contributing! 💙
+
 ## Development
 
 See [`.github/CONTRIBUTING.md`](./.github/CONTRIBUTING.md), then [`.github/DEVELOPMENT.md`](./.github/DEVELOPMENT.md).
