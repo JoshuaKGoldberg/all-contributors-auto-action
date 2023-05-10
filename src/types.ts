@@ -5,7 +5,7 @@ export interface AllContributorsConfig {
 	contributors?: Contributor[];
 }
 
-export interface Contributor {
+interface Contributor {
 	contributions: string[];
 	login: string;
 }
