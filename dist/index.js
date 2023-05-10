@@ -2512,7 +2512,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		Object.defineProperty(exports, "__esModule", { value: true });
 
 		var core = __nccwpck_require__(2472);
-		var authApp = __nccwpck_require__(1733);
+		var authApp = __nccwpck_require__(6748);
 		var oauthApp = __nccwpck_require__(7960);
 		var authUnauthenticated = __nccwpck_require__(1143);
 		var webhooks$1 = __nccwpck_require__(1215);
@@ -2833,7 +2833,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 1733: /***/ (__unused_webpack_module, exports, __nccwpck_require__) => {
+	/***/ 6748: /***/ (__unused_webpack_module, exports, __nccwpck_require__) => {
 		Object.defineProperty(exports, "__esModule", { value: true });
 
 		function _interopDefault(ex) {
@@ -3189,10 +3189,10 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
       '/orgs/(?:.+?)/invitations',
       '/repos/(?:.+?)/(?:.+?)/collaborators/(?:.+?)'
   ] */
-			const regex = `^(?:${regexes.map((r) => `(?:${r})`).join("|")})$`;
+			const regex = `^(?:${regexes.map((r) => `(?:${r})`).join("|")})[^/]*$`;
 			// 'regex' would contain:
 			/*
-    ^(?:(?:\/orgs\/(?:.+?)\/invitations)|(?:\/repos\/(?:.+?)\/(?:.+?)\/collaborators\/(?:.+?)))$
+    ^(?:(?:\/orgs\/(?:.+?)\/invitations)|(?:\/repos\/(?:.+?)\/(?:.+?)\/collaborators\/(?:.+?)))[^\/]*$
        It may look scary, but paste it into https://www.debuggex.com/
     and it will make a lot more sense!
   */
@@ -3200,7 +3200,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		}
 		const REGEX = routeMatcher(PATHS);
 		function requiresAppAuth(url) {
-			return !!url && REGEX.test(url.split("?")[0]);
+			return !!url && REGEX.test(url);
 		}
 
 		const FIVE_SECONDS_IN_MS = 5 * 1000;
@@ -3319,7 +3319,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 			}
 		}
 
-		const VERSION = "4.0.10";
+		const VERSION = "4.0.9";
 
 		function createAppAuth(options) {
 			if (!options.appId) {
@@ -12152,7 +12152,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 7681: /***/ (__unused_webpack_module, exports, __nccwpck_require__) => {
+	/***/ 3865: /***/ (__unused_webpack_module, exports, __nccwpck_require__) => {
 		Object.defineProperty(exports, "__esModule", { value: true });
 
 		function _interopDefault(ex) {
@@ -12163,7 +12163,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 
 		var BottleneckLight = _interopDefault(__nccwpck_require__(7324));
 
-		const VERSION = "5.2.0";
+		const VERSION = "5.1.1";
 
 		const noop = () => Promise.resolve();
 		// @ts-expect-error
@@ -16017,532 +16017,340 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 5228: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const parser = __nccwpck_require__(1172);
-		const regex = __nccwpck_require__(8774);
-		const through = __nccwpck_require__(291);
-		const _ = __nccwpck_require__(3801);
+	/***/ 9859: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const cp = __nccwpck_require__(2081);
+		const parse = __nccwpck_require__(3069);
+		const enoent = __nccwpck_require__(6775);
 
-		function assignOpts(options) {
-			options = _.extend(
-				{
-					headerPattern: /^(\w*)(?:\(([\w$.\-*/ ]*)\))?: (.*)$/,
-					headerCorrespondence: ["type", "scope", "subject"],
-					referenceActions: [
-						"close",
-						"closes",
-						"closed",
-						"fix",
-						"fixes",
-						"fixed",
-						"resolve",
-						"resolves",
-						"resolved",
-					],
-					issuePrefixes: ["#"],
-					noteKeywords: ["BREAKING CHANGE", "BREAKING-CHANGE"],
-					fieldPattern: /^-(.*?)-$/,
-					revertPattern: /^Revert\s"([\s\S]*)"\s*This reverts commit (\w*)\./,
-					revertCorrespondence: ["header", "hash"],
-					warn: function () {},
-					mergePattern: null,
-					mergeCorrespondence: null,
-				},
-				options
-			);
+		function spawn(command, args, options) {
+			// Parse the arguments
+			const parsed = parse(command, args, options);
 
-			if (typeof options.headerPattern === "string") {
-				options.headerPattern = new RegExp(options.headerPattern);
-			}
+			// Spawn the child process
+			const spawned = cp.spawn(parsed.command, parsed.args, parsed.options);
 
-			if (typeof options.headerCorrespondence === "string") {
-				options.headerCorrespondence = options.headerCorrespondence.split(",");
-			}
+			// Hook into child process "exit" event to emit an error if the command
+			// does not exists, see: https://github.com/IndigoUnited/node-cross-spawn/issues/16
+			enoent.hookChildProcess(spawned, parsed);
 
-			if (typeof options.referenceActions === "string") {
-				options.referenceActions = options.referenceActions.split(",");
-			}
-
-			if (typeof options.issuePrefixes === "string") {
-				options.issuePrefixes = options.issuePrefixes.split(",");
-			}
-
-			if (typeof options.noteKeywords === "string") {
-				options.noteKeywords = options.noteKeywords.split(",");
-			}
-
-			if (typeof options.fieldPattern === "string") {
-				options.fieldPattern = new RegExp(options.fieldPattern);
-			}
-
-			if (typeof options.revertPattern === "string") {
-				options.revertPattern = new RegExp(options.revertPattern);
-			}
-
-			if (typeof options.revertCorrespondence === "string") {
-				options.revertCorrespondence = options.revertCorrespondence.split(",");
-			}
-
-			if (typeof options.mergePattern === "string") {
-				options.mergePattern = new RegExp(options.mergePattern);
-			}
-
-			return options;
+			return spawned;
 		}
 
-		function conventionalCommitsParser(options) {
-			options = assignOpts(options);
-			const reg = regex(options);
+		function spawnSync(command, args, options) {
+			// Parse the arguments
+			const parsed = parse(command, args, options);
 
-			return through.obj(function (data, enc, cb) {
-				let commit;
+			// Spawn the child process
+			const result = cp.spawnSync(parsed.command, parsed.args, parsed.options);
 
-				try {
-					commit = parser(data.toString(), options, reg);
-					cb(null, commit);
-				} catch (err) {
-					if (options.warn === true) {
-						cb(err);
-					} else {
-						options.warn(err.toString());
-						cb(null, "");
-					}
-				}
-			});
+			// Analyze if the command does not exist, see: https://github.com/IndigoUnited/node-cross-spawn/issues/16
+			result.error =
+				result.error || enoent.verifyENOENTSync(result.status, parsed);
+
+			return result;
 		}
 
-		function sync(commit, options) {
-			options = assignOpts(options);
-			const reg = regex(options);
+		module.exports = spawn;
+		module.exports.spawn = spawn;
+		module.exports.sync = spawnSync;
 
-			return parser(commit, options, reg);
-		}
-
-		module.exports = conventionalCommitsParser;
-		module.exports.sync = sync;
+		module.exports._parse = parse;
+		module.exports._enoent = enoent;
 
 		/***/
 	},
 
-	/***/ 1172: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const _ = __nccwpck_require__(3801);
+	/***/ 6775: /***/ (module) => {
+		const isWin = process.platform === "win32";
 
-		const CATCH_ALL = /()(.+)/gi;
-		const SCISSOR = "# ------------------------ >8 ------------------------";
-
-		function trimOffNewlines(input) {
-			const result = input.match(/[^\r\n]/);
-			if (!result) {
-				return "";
-			}
-			const firstIndex = result.index;
-			let lastIndex = input.length - 1;
-			while (input[lastIndex] === "\r" || input[lastIndex] === "\n") {
-				lastIndex--;
-			}
-			return input.substring(firstIndex, lastIndex + 1);
+		function notFoundError(original, syscall) {
+			return Object.assign(new Error(`${syscall} ${original.command} ENOENT`), {
+				code: "ENOENT",
+				errno: "ENOENT",
+				syscall: `${syscall} ${original.command}`,
+				path: original.command,
+				spawnargs: original.args,
+			});
 		}
 
-		function append(src, line) {
-			if (src) {
-				src += "\n" + line;
-			} else {
-				src = line;
+		function hookChildProcess(cp, parsed) {
+			if (!isWin) {
+				return;
 			}
 
-			return src;
-		}
+			const originalEmit = cp.emit;
 
-		function getCommentFilter(char) {
-			return function (line) {
-				return line.charAt(0) !== char;
+			cp.emit = function (name, arg1) {
+				// If emitting "exit" event and exit code is 1, we need to check if
+				// the command exists and emit an "error" instead
+				// See https://github.com/IndigoUnited/node-cross-spawn/issues/16
+				if (name === "exit") {
+					const err = verifyENOENT(arg1, parsed, "spawn");
+
+					if (err) {
+						return originalEmit.call(cp, "error", err);
+					}
+				}
+
+				return originalEmit.apply(cp, arguments); // eslint-disable-line prefer-rest-params
 			};
 		}
 
-		function truncateToScissor(lines) {
-			const scissorIndex = lines.indexOf(SCISSOR);
-
-			if (scissorIndex === -1) {
-				return lines;
+		function verifyENOENT(status, parsed) {
+			if (isWin && status === 1 && !parsed.file) {
+				return notFoundError(parsed.original, "spawn");
 			}
 
-			return lines.slice(0, scissorIndex);
+			return null;
 		}
 
-		function getReferences(input, regex) {
-			const references = [];
-			let referenceSentences;
-			let referenceMatch;
-
-			const reApplicable =
-				input.match(regex.references) !== null ? regex.references : CATCH_ALL;
-
-			while ((referenceSentences = reApplicable.exec(input))) {
-				const action = referenceSentences[1] || null;
-				const sentence = referenceSentences[2];
-
-				while ((referenceMatch = regex.referenceParts.exec(sentence))) {
-					let owner = null;
-					let repository = referenceMatch[1] || "";
-					const ownerRepo = repository.split("/");
-
-					if (ownerRepo.length > 1) {
-						owner = ownerRepo.shift();
-						repository = ownerRepo.join("/");
-					}
-
-					const reference = {
-						action: action,
-						owner: owner,
-						repository: repository || null,
-						issue: referenceMatch[3],
-						raw: referenceMatch[0],
-						prefix: referenceMatch[2],
-					};
-
-					references.push(reference);
-				}
+		function verifyENOENTSync(status, parsed) {
+			if (isWin && status === 1 && !parsed.file) {
+				return notFoundError(parsed.original, "spawnSync");
 			}
 
-			return references;
+			return null;
 		}
 
-		function passTrough() {
-			return true;
-		}
-
-		function parser(raw, options, regex) {
-			if (!raw || !raw.trim()) {
-				throw new TypeError("Expected a raw commit");
-			}
-
-			if (_.isEmpty(options)) {
-				throw new TypeError("Expected options");
-			}
-
-			if (_.isEmpty(regex)) {
-				throw new TypeError("Expected regex");
-			}
-
-			let currentProcessedField;
-			let mentionsMatch;
-			const otherFields = {};
-			const commentFilter =
-				typeof options.commentChar === "string"
-					? getCommentFilter(options.commentChar)
-					: passTrough;
-			const gpgFilter = (line) => !line.match(/^\s*gpg:/);
-
-			const rawLines = trimOffNewlines(raw).split(/\r?\n/);
-			const lines = truncateToScissor(rawLines)
-				.filter(commentFilter)
-				.filter(gpgFilter);
-
-			let continueNote = false;
-			let isBody = true;
-			const headerCorrespondence = _.map(
-				options.headerCorrespondence,
-				function (part) {
-					return part.trim();
-				}
-			);
-			const revertCorrespondence = _.map(
-				options.revertCorrespondence,
-				function (field) {
-					return field.trim();
-				}
-			);
-			const mergeCorrespondence = _.map(
-				options.mergeCorrespondence,
-				function (field) {
-					return field.trim();
-				}
-			);
-
-			let body = null;
-			let footer = null;
-			let header = null;
-			const mentions = [];
-			let merge = null;
-			const notes = [];
-			const references = [];
-			let revert = null;
-
-			if (lines.length === 0) {
-				return {
-					body: body,
-					footer: footer,
-					header: header,
-					mentions: mentions,
-					merge: merge,
-					notes: notes,
-					references: references,
-					revert: revert,
-					scope: null,
-					subject: null,
-					type: null,
-				};
-			}
-
-			// msg parts
-			merge = lines.shift();
-			const mergeParts = {};
-			const headerParts = {};
-			body = "";
-			footer = "";
-
-			const mergeMatch = merge.match(options.mergePattern);
-			if (mergeMatch && options.mergePattern) {
-				merge = mergeMatch[0];
-
-				header = lines.shift();
-				while (header !== undefined && !header.trim()) {
-					header = lines.shift();
-				}
-				if (!header) {
-					header = "";
-				}
-
-				_.forEach(mergeCorrespondence, function (partName, index) {
-					const partValue = mergeMatch[index + 1] || null;
-					mergeParts[partName] = partValue;
-				});
-			} else {
-				header = merge;
-				merge = null;
-
-				_.forEach(mergeCorrespondence, function (partName) {
-					mergeParts[partName] = null;
-				});
-			}
-
-			const headerMatch = header.match(options.headerPattern);
-			if (headerMatch) {
-				_.forEach(headerCorrespondence, function (partName, index) {
-					const partValue = headerMatch[index + 1] || null;
-					headerParts[partName] = partValue;
-				});
-			} else {
-				_.forEach(headerCorrespondence, function (partName) {
-					headerParts[partName] = null;
-				});
-			}
-
-			Array.prototype.push.apply(
-				references,
-				getReferences(header, {
-					references: regex.references,
-					referenceParts: regex.referenceParts,
-				})
-			);
-
-			// body or footer
-			_.forEach(lines, function (line) {
-				if (options.fieldPattern) {
-					const fieldMatch = options.fieldPattern.exec(line);
-
-					if (fieldMatch) {
-						currentProcessedField = fieldMatch[1];
-
-						return;
-					}
-
-					if (currentProcessedField) {
-						otherFields[currentProcessedField] = append(
-							otherFields[currentProcessedField],
-							line
-						);
-
-						return;
-					}
-				}
-
-				let referenceMatched;
-
-				// this is a new important note
-				const notesMatch = line.match(regex.notes);
-				if (notesMatch) {
-					continueNote = true;
-					isBody = false;
-					footer = append(footer, line);
-
-					const note = {
-						title: notesMatch[1],
-						text: notesMatch[2],
-					};
-
-					notes.push(note);
-
-					return;
-				}
-
-				const lineReferences = getReferences(line, {
-					references: regex.references,
-					referenceParts: regex.referenceParts,
-				});
-
-				if (lineReferences.length > 0) {
-					isBody = false;
-					referenceMatched = true;
-					continueNote = false;
-				}
-
-				Array.prototype.push.apply(references, lineReferences);
-
-				if (referenceMatched) {
-					footer = append(footer, line);
-
-					return;
-				}
-
-				if (continueNote) {
-					notes[notes.length - 1].text = append(
-						notes[notes.length - 1].text,
-						line
-					);
-					footer = append(footer, line);
-
-					return;
-				}
-
-				if (isBody) {
-					body = append(body, line);
-				} else {
-					footer = append(footer, line);
-				}
-			});
-
-			if (options.breakingHeaderPattern && notes.length === 0) {
-				const breakingHeader = header.match(options.breakingHeaderPattern);
-				if (breakingHeader) {
-					const noteText = breakingHeader[3]; // the description of the change.
-					notes.push({
-						title: "BREAKING CHANGE",
-						text: noteText,
-					});
-				}
-			}
-
-			while ((mentionsMatch = regex.mentions.exec(raw))) {
-				mentions.push(mentionsMatch[1]);
-			}
-
-			// does this commit revert any other commit?
-			const revertMatch = raw.match(options.revertPattern);
-			if (revertMatch) {
-				revert = {};
-				_.forEach(revertCorrespondence, function (partName, index) {
-					const partValue = revertMatch[index + 1] || null;
-					revert[partName] = partValue;
-				});
-			} else {
-				revert = null;
-			}
-
-			_.map(notes, function (note) {
-				note.text = trimOffNewlines(note.text);
-
-				return note;
-			});
-
-			const msg = _.merge(
-				headerParts,
-				mergeParts,
-				{
-					merge: merge,
-					header: header,
-					body: body ? trimOffNewlines(body) : null,
-					footer: footer ? trimOffNewlines(footer) : null,
-					notes: notes,
-					references: references,
-					mentions: mentions,
-					revert: revert,
-				},
-				otherFields
-			);
-
-			return msg;
-		}
-
-		module.exports = parser;
+		module.exports = {
+			hookChildProcess,
+			verifyENOENT,
+			verifyENOENTSync,
+			notFoundError,
+		};
 
 		/***/
 	},
 
-	/***/ 8774: /***/ (module) => {
-		const reNomatch = /(?!.*)/;
+	/***/ 3069: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const path = __nccwpck_require__(1017);
+		const resolveCommand = __nccwpck_require__(6841);
+		const escape = __nccwpck_require__(1445);
+		const readShebang = __nccwpck_require__(9574);
 
-		function join(array, joiner) {
-			return array
-				.map(function (val) {
-					return val.trim();
-				})
-				.filter(function (val) {
-					return val.length;
-				})
-				.join(joiner);
-		}
+		const isWin = process.platform === "win32";
+		const isExecutableRegExp = /\.(?:com|exe)$/i;
+		const isCmdShimRegExp = /node_modules[\\/].bin[\\/][^\\/]+\.cmd$/i;
 
-		function getNotesRegex(noteKeywords, notesPattern) {
-			if (!noteKeywords) {
-				return reNomatch;
+		function detectShebang(parsed) {
+			parsed.file = resolveCommand(parsed);
+
+			const shebang = parsed.file && readShebang(parsed.file);
+
+			if (shebang) {
+				parsed.args.unshift(parsed.file);
+				parsed.command = shebang;
+
+				return resolveCommand(parsed);
 			}
 
-			const noteKeywordsSelection = join(noteKeywords, "|");
+			return parsed.file;
+		}
 
-			if (!notesPattern) {
-				return new RegExp(
-					"^[\\s|*]*(" + noteKeywordsSelection + ")[:\\s]+(.*)",
-					"i"
+		function parseNonShell(parsed) {
+			if (!isWin) {
+				return parsed;
+			}
+
+			// Detect & add support for shebangs
+			const commandFile = detectShebang(parsed);
+
+			// We don't need a shell if the command filename is an executable
+			const needsShell = !isExecutableRegExp.test(commandFile);
+
+			// If a shell is required, use cmd.exe and take care of escaping everything correctly
+			// Note that `forceShell` is an hidden option used only in tests
+			if (parsed.options.forceShell || needsShell) {
+				// Need to double escape meta chars if the command is a cmd-shim located in `node_modules/.bin/`
+				// The cmd-shim simply calls execute the package bin file with NodeJS, proxying any argument
+				// Because the escape of metachars with ^ gets interpreted when the cmd.exe is first called,
+				// we need to double escape them
+				const needsDoubleEscapeMetaChars = isCmdShimRegExp.test(commandFile);
+
+				// Normalize posix paths into OS compatible paths (e.g.: foo/bar -> foo\bar)
+				// This is necessary otherwise it will always fail with ENOENT in those cases
+				parsed.command = path.normalize(parsed.command);
+
+				// Escape command & arguments
+				parsed.command = escape.command(parsed.command);
+				parsed.args = parsed.args.map((arg) =>
+					escape.argument(arg, needsDoubleEscapeMetaChars)
+				);
+
+				const shellCommand = [parsed.command].concat(parsed.args).join(" ");
+
+				parsed.args = ["/d", "/s", "/c", `"${shellCommand}"`];
+				parsed.command = process.env.comspec || "cmd.exe";
+				parsed.options.windowsVerbatimArguments = true; // Tell node's spawn that the arguments are already escaped
+			}
+
+			return parsed;
+		}
+
+		function parse(command, args, options) {
+			// Normalize arguments, similar to nodejs
+			if (args && !Array.isArray(args)) {
+				options = args;
+				args = null;
+			}
+
+			args = args ? args.slice(0) : []; // Clone array to avoid changing the original
+			options = Object.assign({}, options); // Clone object to avoid changing the original
+
+			// Build our parsed object
+			const parsed = {
+				command,
+				args,
+				options,
+				file: undefined,
+				original: {
+					command,
+					args,
+				},
+			};
+
+			// Delegate further parsing to shell or non-shell
+			return options.shell ? parsed : parseNonShell(parsed);
+		}
+
+		module.exports = parse;
+
+		/***/
+	},
+
+	/***/ 1445: /***/ (module) => {
+		// See http://www.robvanderwoude.com/escapechars.php
+		const metaCharsRegExp = /([()\][%!^"`<>&|;, *?])/g;
+
+		function escapeCommand(arg) {
+			// Escape meta chars
+			arg = arg.replace(metaCharsRegExp, "^$1");
+
+			return arg;
+		}
+
+		function escapeArgument(arg, doubleEscapeMetaChars) {
+			// Convert to string
+			arg = `${arg}`;
+
+			// Algorithm below is based on https://qntm.org/cmd
+
+			// Sequence of backslashes followed by a double quote:
+			// double up all the backslashes and escape the double quote
+			arg = arg.replace(/(\\*)"/g, '$1$1\\"');
+
+			// Sequence of backslashes followed by the end of the string
+			// (which will become a double quote later):
+			// double up all the backslashes
+			arg = arg.replace(/(\\*)$/, "$1$1");
+
+			// All other backslashes occur literally
+
+			// Quote the whole thing:
+			arg = `"${arg}"`;
+
+			// Escape meta chars
+			arg = arg.replace(metaCharsRegExp, "^$1");
+
+			// Double escape meta chars if necessary
+			if (doubleEscapeMetaChars) {
+				arg = arg.replace(metaCharsRegExp, "^$1");
+			}
+
+			return arg;
+		}
+
+		module.exports.command = escapeCommand;
+		module.exports.argument = escapeArgument;
+
+		/***/
+	},
+
+	/***/ 9574: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const fs = __nccwpck_require__(7147);
+		const shebangCommand = __nccwpck_require__(5382);
+
+		function readShebang(command) {
+			// Read the first 150 bytes from the file
+			const size = 150;
+			const buffer = Buffer.alloc(size);
+
+			let fd;
+
+			try {
+				fd = fs.openSync(command, "r");
+				fs.readSync(fd, buffer, 0, size, 0);
+				fs.closeSync(fd);
+			} catch (e) {
+				/* Empty */
+			}
+
+			// Attempt to extract shebang (null is returned if not a shebang)
+			return shebangCommand(buffer.toString());
+		}
+
+		module.exports = readShebang;
+
+		/***/
+	},
+
+	/***/ 6841: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const path = __nccwpck_require__(1017);
+		const which = __nccwpck_require__(6189);
+		const getPathKey = __nccwpck_require__(851);
+
+		function resolveCommandAttempt(parsed, withoutPathExt) {
+			const env = parsed.options.env || process.env;
+			const cwd = process.cwd();
+			const hasCustomCwd = parsed.options.cwd != null;
+			// Worker threads do not have process.chdir()
+			const shouldSwitchCwd =
+				hasCustomCwd && process.chdir !== undefined && !process.chdir.disabled;
+
+			// If a custom `cwd` was specified, we need to change the process cwd
+			// because `which` will do stat calls but does not support a custom cwd
+			if (shouldSwitchCwd) {
+				try {
+					process.chdir(parsed.options.cwd);
+				} catch (err) {
+					/* Empty */
+				}
+			}
+
+			let resolved;
+
+			try {
+				resolved = which.sync(parsed.command, {
+					path: env[getPathKey({ env })],
+					pathExt: withoutPathExt ? path.delimiter : undefined,
+				});
+			} catch (e) {
+				/* Empty */
+			} finally {
+				if (shouldSwitchCwd) {
+					process.chdir(cwd);
+				}
+			}
+
+			// If we successfully resolved, ensure that an absolute path is returned
+			// Note that when a custom `cwd` was used, we need to resolve to an absolute path based on it
+			if (resolved) {
+				resolved = path.resolve(
+					hasCustomCwd ? parsed.options.cwd : "",
+					resolved
 				);
 			}
 
-			return notesPattern(noteKeywordsSelection);
+			return resolved;
 		}
 
-		function getReferencePartsRegex(issuePrefixes, issuePrefixesCaseSensitive) {
-			if (!issuePrefixes) {
-				return reNomatch;
-			}
-
-			const flags = issuePrefixesCaseSensitive ? "g" : "gi";
-			return new RegExp(
-				"(?:.*?)??\\s*([\\w-\\.\\/]*?)??(" +
-					join(issuePrefixes, "|") +
-					")([\\w-]*\\d+)",
-				flags
+		function resolveCommand(parsed) {
+			return (
+				resolveCommandAttempt(parsed) || resolveCommandAttempt(parsed, true)
 			);
 		}
 
-		function getReferencesRegex(referenceActions) {
-			if (!referenceActions) {
-				// matches everything
-				return /()(.+)/gi;
-			}
-
-			const joinedKeywords = join(referenceActions, "|");
-			return new RegExp(
-				"(" + joinedKeywords + ")(?:\\s+(.*?))(?=(?:" + joinedKeywords + ")|$)",
-				"gi"
-			);
-		}
-
-		module.exports = function (options) {
-			options = options || {};
-			const reNotes = getNotesRegex(options.noteKeywords, options.notesPattern);
-			const reReferenceParts = getReferencePartsRegex(
-				options.issuePrefixes,
-				options.issuePrefixesCaseSensitive
-			);
-			const reReferences = getReferencesRegex(options.referenceActions);
-
-			return {
-				notes: reNotes,
-				referenceParts: reReferenceParts,
-				references: reReferences,
-				mentions: /@([\w-]+)/g,
-			};
-		};
+		module.exports = resolveCommand;
 
 		/***/
 	},
@@ -16848,6 +16656,132 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
+	/***/ 5162: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const { PassThrough: PassThroughStream } = __nccwpck_require__(2781);
+
+		module.exports = (options) => {
+			options = { ...options };
+
+			const { array } = options;
+			let { encoding } = options;
+			const isBuffer = encoding === "buffer";
+			let objectMode = false;
+
+			if (array) {
+				objectMode = !(encoding || isBuffer);
+			} else {
+				encoding = encoding || "utf8";
+			}
+
+			if (isBuffer) {
+				encoding = null;
+			}
+
+			const stream = new PassThroughStream({ objectMode });
+
+			if (encoding) {
+				stream.setEncoding(encoding);
+			}
+
+			let length = 0;
+			const chunks = [];
+
+			stream.on("data", (chunk) => {
+				chunks.push(chunk);
+
+				if (objectMode) {
+					length = chunks.length;
+				} else {
+					length += chunk.length;
+				}
+			});
+
+			stream.getBufferedValue = () => {
+				if (array) {
+					return chunks;
+				}
+
+				return isBuffer ? Buffer.concat(chunks, length) : chunks.join("");
+			};
+
+			stream.getBufferedLength = () => length;
+
+			return stream;
+		};
+
+		/***/
+	},
+
+	/***/ 1049: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const { constants: BufferConstants } = __nccwpck_require__(4300);
+		const stream = __nccwpck_require__(2781);
+		const { promisify } = __nccwpck_require__(3837);
+		const bufferStream = __nccwpck_require__(5162);
+
+		const streamPipelinePromisified = promisify(stream.pipeline);
+
+		class MaxBufferError extends Error {
+			constructor() {
+				super("maxBuffer exceeded");
+				this.name = "MaxBufferError";
+			}
+		}
+
+		async function getStream(inputStream, options) {
+			if (!inputStream) {
+				throw new Error("Expected a stream");
+			}
+
+			options = {
+				maxBuffer: Infinity,
+				...options,
+			};
+
+			const { maxBuffer } = options;
+			const stream = bufferStream(options);
+
+			await new Promise((resolve, reject) => {
+				const rejectPromise = (error) => {
+					// Don't retrieve an oversized buffer.
+					if (
+						error &&
+						stream.getBufferedLength() <= BufferConstants.MAX_LENGTH
+					) {
+						error.bufferedData = stream.getBufferedValue();
+					}
+
+					reject(error);
+				};
+
+				(async () => {
+					try {
+						await streamPipelinePromisified(inputStream, stream);
+						resolve();
+					} catch (error) {
+						rejectPromise(error);
+					}
+				})();
+
+				stream.on("data", () => {
+					if (stream.getBufferedLength() > maxBuffer) {
+						rejectPromise(new MaxBufferError());
+					}
+				});
+			});
+
+			return stream.getBufferedValue();
+		}
+
+		module.exports = getStream;
+		module.exports.buffer = (stream, options) =>
+			getStream(stream, { ...options, encoding: "buffer" });
+		module.exports.array = (stream, options) =>
+			getStream(stream, { ...options, array: true });
+		module.exports.MaxBufferError = MaxBufferError;
+
+		/***/
+	},
+
 	/***/ 3132: /***/ (module) => {
 		module.exports = (string, count = 1, options) => {
 			options = {
@@ -16882,52 +16816,6 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 
 			return string.replace(regex, options.indent.repeat(count));
 		};
-
-		/***/
-	},
-
-	/***/ 4626: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		try {
-			var util = __nccwpck_require__(3837);
-			/* istanbul ignore next */
-			if (typeof util.inherits !== "function") throw "";
-			module.exports = util.inherits;
-		} catch (e) {
-			/* istanbul ignore next */
-			module.exports = __nccwpck_require__(6034);
-		}
-
-		/***/
-	},
-
-	/***/ 6034: /***/ (module) => {
-		if (typeof Object.create === "function") {
-			// implementation from standard node.js 'util' module
-			module.exports = function inherits(ctor, superCtor) {
-				if (superCtor) {
-					ctor.super_ = superCtor;
-					ctor.prototype = Object.create(superCtor.prototype, {
-						constructor: {
-							value: ctor,
-							enumerable: false,
-							writable: true,
-							configurable: true,
-						},
-					});
-				}
-			};
-		} else {
-			// old school shim for old browsers
-			module.exports = function inherits(ctor, superCtor) {
-				if (superCtor) {
-					ctor.super_ = superCtor;
-					var TempCtor = function () {};
-					TempCtor.prototype = superCtor.prototype;
-					ctor.prototype = new TempCtor();
-					ctor.prototype.constructor = ctor;
-				}
-			};
-		}
 
 		/***/
 	},
@@ -16969,6 +16857,166 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		}
 
 		exports.isPlainObject = isPlainObject;
+
+		/***/
+	},
+
+	/***/ 4555: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		var fs = __nccwpck_require__(7147);
+		var core;
+		if (process.platform === "win32" || global.TESTING_WINDOWS) {
+			core = __nccwpck_require__(9367);
+		} else {
+			core = __nccwpck_require__(2010);
+		}
+
+		module.exports = isexe;
+		isexe.sync = sync;
+
+		function isexe(path, options, cb) {
+			if (typeof options === "function") {
+				cb = options;
+				options = {};
+			}
+
+			if (!cb) {
+				if (typeof Promise !== "function") {
+					throw new TypeError("callback not provided");
+				}
+
+				return new Promise(function (resolve, reject) {
+					isexe(path, options || {}, function (er, is) {
+						if (er) {
+							reject(er);
+						} else {
+							resolve(is);
+						}
+					});
+				});
+			}
+
+			core(path, options || {}, function (er, is) {
+				// ignore EACCES because that just means we aren't allowed to run it
+				if (er) {
+					if (er.code === "EACCES" || (options && options.ignoreErrors)) {
+						er = null;
+						is = false;
+					}
+				}
+				cb(er, is);
+			});
+		}
+
+		function sync(path, options) {
+			// my kingdom for a filtered catch
+			try {
+				return core.sync(path, options || {});
+			} catch (er) {
+				if ((options && options.ignoreErrors) || er.code === "EACCES") {
+					return false;
+				} else {
+					throw er;
+				}
+			}
+		}
+
+		/***/
+	},
+
+	/***/ 2010: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		module.exports = isexe;
+		isexe.sync = sync;
+
+		var fs = __nccwpck_require__(7147);
+
+		function isexe(path, options, cb) {
+			fs.stat(path, function (er, stat) {
+				cb(er, er ? false : checkStat(stat, options));
+			});
+		}
+
+		function sync(path, options) {
+			return checkStat(fs.statSync(path), options);
+		}
+
+		function checkStat(stat, options) {
+			return stat.isFile() && checkMode(stat, options);
+		}
+
+		function checkMode(stat, options) {
+			var mod = stat.mode;
+			var uid = stat.uid;
+			var gid = stat.gid;
+
+			var myUid =
+				options.uid !== undefined
+					? options.uid
+					: process.getuid && process.getuid();
+			var myGid =
+				options.gid !== undefined
+					? options.gid
+					: process.getgid && process.getgid();
+
+			var u = parseInt("100", 8);
+			var g = parseInt("010", 8);
+			var o = parseInt("001", 8);
+			var ug = u | g;
+
+			var ret =
+				mod & o ||
+				(mod & g && gid === myGid) ||
+				(mod & u && uid === myUid) ||
+				(mod & ug && myUid === 0);
+
+			return ret;
+		}
+
+		/***/
+	},
+
+	/***/ 9367: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		module.exports = isexe;
+		isexe.sync = sync;
+
+		var fs = __nccwpck_require__(7147);
+
+		function checkPathExt(path, options) {
+			var pathext =
+				options.pathExt !== undefined ? options.pathExt : process.env.PATHEXT;
+
+			if (!pathext) {
+				return true;
+			}
+
+			pathext = pathext.split(";");
+			if (pathext.indexOf("") !== -1) {
+				return true;
+			}
+			for (var i = 0; i < pathext.length; i++) {
+				var p = pathext[i].toLowerCase();
+				if (p && path.substr(-p.length).toLowerCase() === p) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		function checkStat(stat, path, options) {
+			if (!stat.isSymbolicLink() && !stat.isFile()) {
+				return false;
+			}
+			return checkPathExt(path, options);
+		}
+
+		function isexe(path, options, cb) {
+			fs.stat(path, function (er, stat) {
+				cb(er, er ? false : checkStat(stat, path, options));
+			});
+		}
+
+		function sync(path, options) {
+			return checkStat(fs.statSync(path), path, options);
+		}
 
 		/***/
 	},
@@ -17083,7 +17131,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 	},
 
 	/***/ 3523: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const semver = __nccwpck_require__(815);
+		const semver = __nccwpck_require__(9290);
 
 		module.exports = semver.satisfies(process.version, ">=15.7.0");
 
@@ -17091,7 +17139,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 	},
 
 	/***/ 6673: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		var semver = __nccwpck_require__(815);
+		var semver = __nccwpck_require__(9290);
 
 		module.exports = semver.satisfies(process.version, "^6.12.0 || >=8.0.0");
 
@@ -17099,7 +17147,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 	},
 
 	/***/ 5752: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const semver = __nccwpck_require__(815);
+		const semver = __nccwpck_require__(9290);
 
 		module.exports = semver.satisfies(process.version, ">=16.9.0");
 
@@ -37328,6 +37376,54 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
+	/***/ 237: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const { PassThrough } = __nccwpck_require__(2781);
+
+		module.exports = function (/*streams...*/) {
+			var sources = [];
+			var output = new PassThrough({ objectMode: true });
+
+			output.setMaxListeners(0);
+
+			output.add = add;
+			output.isEmpty = isEmpty;
+
+			output.on("unpipe", remove);
+
+			Array.prototype.slice.call(arguments).forEach(add);
+
+			return output;
+
+			function add(source) {
+				if (Array.isArray(source)) {
+					source.forEach(add);
+					return this;
+				}
+
+				sources.push(source);
+				source.once("end", remove.bind(null, source));
+				source.once("error", output.emit.bind(output, "error"));
+				source.pipe(output, { end: false });
+				return this;
+			}
+
+			function isEmpty() {
+				return sources.length == 0;
+			}
+
+			function remove(source) {
+				sources = sources.filter(function (it) {
+					return it !== source;
+				});
+				if (!sources.length && output.readable) {
+					output.end();
+				}
+			}
+		};
+
+		/***/
+	},
+
 	/***/ 5913: /***/ (module) => {
 		/**
 		 * Helpers.
@@ -39539,7 +39635,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		var pluginPaginateRest = __nccwpck_require__(7153);
 		var pluginRestEndpointMethods = __nccwpck_require__(9673);
 		var pluginRetry = __nccwpck_require__(5861);
-		var pluginThrottling = __nccwpck_require__(7681);
+		var pluginThrottling = __nccwpck_require__(3865);
 		var app = __nccwpck_require__(2547);
 		var oauthApp = __nccwpck_require__(7960);
 
@@ -39647,3570 +39743,25 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 9859: /***/ (module) => {
-		const codes = {};
+	/***/ 851: /***/ (module) => {
+		const pathKey = (options = {}) => {
+			const environment = options.env || process.env;
+			const platform = options.platform || process.platform;
 
-		function createErrorType(code, message, Base) {
-			if (!Base) {
-				Base = Error;
+			if (platform !== "win32") {
+				return "PATH";
 			}
-
-			function getMessage(arg1, arg2, arg3) {
-				if (typeof message === "string") {
-					return message;
-				} else {
-					return message(arg1, arg2, arg3);
-				}
-			}
-
-			class NodeError extends Base {
-				constructor(arg1, arg2, arg3) {
-					super(getMessage(arg1, arg2, arg3));
-				}
-			}
-
-			NodeError.prototype.name = Base.name;
-			NodeError.prototype.code = code;
-
-			codes[code] = NodeError;
-		}
-
-		// https://github.com/nodejs/node/blob/v10.8.0/lib/internal/errors.js
-		function oneOf(expected, thing) {
-			if (Array.isArray(expected)) {
-				const len = expected.length;
-				expected = expected.map((i) => String(i));
-				if (len > 2) {
-					return (
-						`one of ${thing} ${expected.slice(0, len - 1).join(", ")}, or ` +
-						expected[len - 1]
-					);
-				} else if (len === 2) {
-					return `one of ${thing} ${expected[0]} or ${expected[1]}`;
-				} else {
-					return `of ${thing} ${expected[0]}`;
-				}
-			} else {
-				return `of ${thing} ${String(expected)}`;
-			}
-		}
-
-		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith
-		function startsWith(str, search, pos) {
-			return str.substr(!pos || pos < 0 ? 0 : +pos, search.length) === search;
-		}
-
-		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/endsWith
-		function endsWith(str, search, this_len) {
-			if (this_len === undefined || this_len > str.length) {
-				this_len = str.length;
-			}
-			return str.substring(this_len - search.length, this_len) === search;
-		}
-
-		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/includes
-		function includes(str, search, start) {
-			if (typeof start !== "number") {
-				start = 0;
-			}
-
-			if (start + search.length > str.length) {
-				return false;
-			} else {
-				return str.indexOf(search, start) !== -1;
-			}
-		}
-
-		createErrorType(
-			"ERR_INVALID_OPT_VALUE",
-			function (name, value) {
-				return 'The value "' + value + '" is invalid for option "' + name + '"';
-			},
-			TypeError
-		);
-		createErrorType(
-			"ERR_INVALID_ARG_TYPE",
-			function (name, expected, actual) {
-				// determiner: 'must be' or 'must not be'
-				let determiner;
-				if (typeof expected === "string" && startsWith(expected, "not ")) {
-					determiner = "must not be";
-					expected = expected.replace(/^not /, "");
-				} else {
-					determiner = "must be";
-				}
-
-				let msg;
-				if (endsWith(name, " argument")) {
-					// For cases like 'first argument'
-					msg = `The ${name} ${determiner} ${oneOf(expected, "type")}`;
-				} else {
-					const type = includes(name, ".") ? "property" : "argument";
-					msg = `The "${name}" ${type} ${determiner} ${oneOf(
-						expected,
-						"type"
-					)}`;
-				}
-
-				msg += `. Received type ${typeof actual}`;
-				return msg;
-			},
-			TypeError
-		);
-		createErrorType("ERR_STREAM_PUSH_AFTER_EOF", "stream.push() after EOF");
-		createErrorType("ERR_METHOD_NOT_IMPLEMENTED", function (name) {
-			return "The " + name + " method is not implemented";
-		});
-		createErrorType("ERR_STREAM_PREMATURE_CLOSE", "Premature close");
-		createErrorType("ERR_STREAM_DESTROYED", function (name) {
-			return "Cannot call " + name + " after a stream was destroyed";
-		});
-		createErrorType("ERR_MULTIPLE_CALLBACK", "Callback called multiple times");
-		createErrorType("ERR_STREAM_CANNOT_PIPE", "Cannot pipe, not readable");
-		createErrorType("ERR_STREAM_WRITE_AFTER_END", "write after end");
-		createErrorType(
-			"ERR_STREAM_NULL_VALUES",
-			"May not write null values to stream",
-			TypeError
-		);
-		createErrorType(
-			"ERR_UNKNOWN_ENCODING",
-			function (arg) {
-				return "Unknown encoding: " + arg;
-			},
-			TypeError
-		);
-		createErrorType(
-			"ERR_STREAM_UNSHIFT_AFTER_END_EVENT",
-			"stream.unshift() after end event"
-		);
-
-		module.exports.q = codes;
-
-		/***/
-	},
-
-	/***/ 8349: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		// Copyright Joyent, Inc. and other Node contributors.
-		//
-		// Permission is hereby granted, free of charge, to any person obtaining a
-		// copy of this software and associated documentation files (the
-		// "Software"), to deal in the Software without restriction, including
-		// without limitation the rights to use, copy, modify, merge, publish,
-		// distribute, sublicense, and/or sell copies of the Software, and to permit
-		// persons to whom the Software is furnished to do so, subject to the
-		// following conditions:
-		//
-		// The above copyright notice and this permission notice shall be included
-		// in all copies or substantial portions of the Software.
-		//
-		// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-		// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-		// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-		// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-		// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-		// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-		// USE OR OTHER DEALINGS IN THE SOFTWARE.
-		// a duplex stream is just a stream that is both readable and writable.
-		// Since JS doesn't have multiple prototypal inheritance, this class
-		// prototypally inherits from Readable, and then parasitically from
-		// Writable.
-
-		/*<replacement>*/
-
-		var objectKeys =
-			Object.keys ||
-			function (obj) {
-				var keys = [];
-
-				for (var key in obj) {
-					keys.push(key);
-				}
-
-				return keys;
-			};
-		/*</replacement>*/
-
-		module.exports = Duplex;
-
-		var Readable = __nccwpck_require__(3522);
-
-		var Writable = __nccwpck_require__(268);
-
-		__nccwpck_require__(4626)(Duplex, Readable);
-
-		{
-			// Allow the keys array to be GC'ed.
-			var keys = objectKeys(Writable.prototype);
-
-			for (var v = 0; v < keys.length; v++) {
-				var method = keys[v];
-				if (!Duplex.prototype[method])
-					Duplex.prototype[method] = Writable.prototype[method];
-			}
-		}
-
-		function Duplex(options) {
-			if (!(this instanceof Duplex)) return new Duplex(options);
-			Readable.call(this, options);
-			Writable.call(this, options);
-			this.allowHalfOpen = true;
-
-			if (options) {
-				if (options.readable === false) this.readable = false;
-				if (options.writable === false) this.writable = false;
-
-				if (options.allowHalfOpen === false) {
-					this.allowHalfOpen = false;
-					this.once("end", onend);
-				}
-			}
-		}
-
-		Object.defineProperty(Duplex.prototype, "writableHighWaterMark", {
-			// making it explicit this property is not enumerable
-			// because otherwise some prototype manipulation in
-			// userland will fail
-			enumerable: false,
-			get: function get() {
-				return this._writableState.highWaterMark;
-			},
-		});
-		Object.defineProperty(Duplex.prototype, "writableBuffer", {
-			// making it explicit this property is not enumerable
-			// because otherwise some prototype manipulation in
-			// userland will fail
-			enumerable: false,
-			get: function get() {
-				return this._writableState && this._writableState.getBuffer();
-			},
-		});
-		Object.defineProperty(Duplex.prototype, "writableLength", {
-			// making it explicit this property is not enumerable
-			// because otherwise some prototype manipulation in
-			// userland will fail
-			enumerable: false,
-			get: function get() {
-				return this._writableState.length;
-			},
-		}); // the no-half-open enforcer
-
-		function onend() {
-			// If the writable side ended, then we're ok.
-			if (this._writableState.ended) return; // no more data can be written.
-			// But allow more writes to happen in this tick.
-
-			process.nextTick(onEndNT, this);
-		}
-
-		function onEndNT(self) {
-			self.end();
-		}
-
-		Object.defineProperty(Duplex.prototype, "destroyed", {
-			// making it explicit this property is not enumerable
-			// because otherwise some prototype manipulation in
-			// userland will fail
-			enumerable: false,
-			get: function get() {
-				if (
-					this._readableState === undefined ||
-					this._writableState === undefined
-				) {
-					return false;
-				}
-
-				return this._readableState.destroyed && this._writableState.destroyed;
-			},
-			set: function set(value) {
-				// we ignore the value if the stream
-				// has not been initialized yet
-				if (
-					this._readableState === undefined ||
-					this._writableState === undefined
-				) {
-					return;
-				} // backward compatibility, the user is explicitly
-				// managing destroyed
-
-				this._readableState.destroyed = value;
-				this._writableState.destroyed = value;
-			},
-		});
-
-		/***/
-	},
-
-	/***/ 9165: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		// Copyright Joyent, Inc. and other Node contributors.
-		//
-		// Permission is hereby granted, free of charge, to any person obtaining a
-		// copy of this software and associated documentation files (the
-		// "Software"), to deal in the Software without restriction, including
-		// without limitation the rights to use, copy, modify, merge, publish,
-		// distribute, sublicense, and/or sell copies of the Software, and to permit
-		// persons to whom the Software is furnished to do so, subject to the
-		// following conditions:
-		//
-		// The above copyright notice and this permission notice shall be included
-		// in all copies or substantial portions of the Software.
-		//
-		// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-		// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-		// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-		// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-		// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-		// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-		// USE OR OTHER DEALINGS IN THE SOFTWARE.
-		// a passthrough stream.
-		// basically just the most minimal sort of Transform stream.
-		// Every written chunk gets output as-is.
-
-		module.exports = PassThrough;
-
-		var Transform = __nccwpck_require__(5152);
-
-		__nccwpck_require__(4626)(PassThrough, Transform);
-
-		function PassThrough(options) {
-			if (!(this instanceof PassThrough)) return new PassThrough(options);
-			Transform.call(this, options);
-		}
-
-		PassThrough.prototype._transform = function (chunk, encoding, cb) {
-			cb(null, chunk);
-		};
-
-		/***/
-	},
-
-	/***/ 3522: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		// Copyright Joyent, Inc. and other Node contributors.
-		//
-		// Permission is hereby granted, free of charge, to any person obtaining a
-		// copy of this software and associated documentation files (the
-		// "Software"), to deal in the Software without restriction, including
-		// without limitation the rights to use, copy, modify, merge, publish,
-		// distribute, sublicense, and/or sell copies of the Software, and to permit
-		// persons to whom the Software is furnished to do so, subject to the
-		// following conditions:
-		//
-		// The above copyright notice and this permission notice shall be included
-		// in all copies or substantial portions of the Software.
-		//
-		// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-		// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-		// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-		// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-		// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-		// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-		// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-		module.exports = Readable;
-		/*<replacement>*/
-
-		var Duplex;
-		/*</replacement>*/
-
-		Readable.ReadableState = ReadableState;
-		/*<replacement>*/
-
-		var EE = __nccwpck_require__(2361).EventEmitter;
-
-		var EElistenerCount = function EElistenerCount(emitter, type) {
-			return emitter.listeners(type).length;
-		};
-		/*</replacement>*/
-
-		/*<replacement>*/
-
-		var Stream = __nccwpck_require__(4001);
-		/*</replacement>*/
-
-		var Buffer = __nccwpck_require__(4300).Buffer;
-
-		var OurUint8Array = global.Uint8Array || function () {};
-
-		function _uint8ArrayToBuffer(chunk) {
-			return Buffer.from(chunk);
-		}
-
-		function _isUint8Array(obj) {
-			return Buffer.isBuffer(obj) || obj instanceof OurUint8Array;
-		}
-		/*<replacement>*/
-
-		var debugUtil = __nccwpck_require__(3837);
-
-		var debug;
-
-		if (debugUtil && debugUtil.debuglog) {
-			debug = debugUtil.debuglog("stream");
-		} else {
-			debug = function debug() {};
-		}
-		/*</replacement>*/
-
-		var BufferList = __nccwpck_require__(747);
-
-		var destroyImpl = __nccwpck_require__(4837);
-
-		var _require = __nccwpck_require__(5267),
-			getHighWaterMark = _require.getHighWaterMark;
-
-		var _require$codes = __nccwpck_require__(9859) /* .codes */.q,
-			ERR_INVALID_ARG_TYPE = _require$codes.ERR_INVALID_ARG_TYPE,
-			ERR_STREAM_PUSH_AFTER_EOF = _require$codes.ERR_STREAM_PUSH_AFTER_EOF,
-			ERR_METHOD_NOT_IMPLEMENTED = _require$codes.ERR_METHOD_NOT_IMPLEMENTED,
-			ERR_STREAM_UNSHIFT_AFTER_END_EVENT =
-				_require$codes.ERR_STREAM_UNSHIFT_AFTER_END_EVENT; // Lazy loaded to improve the startup performance.
-
-		var StringDecoder;
-		var createReadableStreamAsyncIterator;
-		var from;
-
-		__nccwpck_require__(4626)(Readable, Stream);
-
-		var errorOrDestroy = destroyImpl.errorOrDestroy;
-		var kProxyEvents = ["error", "close", "destroy", "pause", "resume"];
-
-		function prependListener(emitter, event, fn) {
-			// Sadly this is not cacheable as some libraries bundle their own
-			// event emitter implementation with them.
-			if (typeof emitter.prependListener === "function")
-				return emitter.prependListener(event, fn); // This is a hack to make sure that our error handler is attached before any
-			// userland ones.  NEVER DO THIS. This is here only because this code needs
-			// to continue to work with older versions of Node.js that do not include
-			// the prependListener() method. The goal is to eventually remove this hack.
-
-			if (!emitter._events || !emitter._events[event]) emitter.on(event, fn);
-			else if (Array.isArray(emitter._events[event]))
-				emitter._events[event].unshift(fn);
-			else emitter._events[event] = [fn, emitter._events[event]];
-		}
-
-		function ReadableState(options, stream, isDuplex) {
-			Duplex = Duplex || __nccwpck_require__(8349);
-			options = options || {}; // Duplex streams are both readable and writable, but share
-			// the same options object.
-			// However, some cases require setting options to different
-			// values for the readable and the writable sides of the duplex stream.
-			// These options can be provided separately as readableXXX and writableXXX.
-
-			if (typeof isDuplex !== "boolean") isDuplex = stream instanceof Duplex; // object stream flag. Used to make read(n) ignore n and to
-			// make all the buffer merging and length checks go away
-
-			this.objectMode = !!options.objectMode;
-			if (isDuplex)
-				this.objectMode = this.objectMode || !!options.readableObjectMode; // the point at which it stops calling _read() to fill the buffer
-			// Note: 0 is a valid value, means "don't call _read preemptively ever"
-
-			this.highWaterMark = getHighWaterMark(
-				this,
-				options,
-				"readableHighWaterMark",
-				isDuplex
-			); // A linked list is used to store data chunks instead of an array because the
-			// linked list can remove elements from the beginning faster than
-			// array.shift()
-
-			this.buffer = new BufferList();
-			this.length = 0;
-			this.pipes = null;
-			this.pipesCount = 0;
-			this.flowing = null;
-			this.ended = false;
-			this.endEmitted = false;
-			this.reading = false; // a flag to be able to tell if the event 'readable'/'data' is emitted
-			// immediately, or on a later tick.  We set this to true at first, because
-			// any actions that shouldn't happen until "later" should generally also
-			// not happen before the first read call.
-
-			this.sync = true; // whenever we return null, then we set a flag to say
-			// that we're awaiting a 'readable' event emission.
-
-			this.needReadable = false;
-			this.emittedReadable = false;
-			this.readableListening = false;
-			this.resumeScheduled = false;
-			this.paused = true; // Should close be emitted on destroy. Defaults to true.
-
-			this.emitClose = options.emitClose !== false; // Should .destroy() be called after 'end' (and potentially 'finish')
-
-			this.autoDestroy = !!options.autoDestroy; // has it been destroyed
-
-			this.destroyed = false; // Crypto is kind of old and crusty.  Historically, its default string
-			// encoding is 'binary' so we have to make this configurable.
-			// Everything else in the universe uses 'utf8', though.
-
-			this.defaultEncoding = options.defaultEncoding || "utf8"; // the number of writers that are awaiting a drain event in .pipe()s
-
-			this.awaitDrain = 0; // if true, a maybeReadMore has been scheduled
-
-			this.readingMore = false;
-			this.decoder = null;
-			this.encoding = null;
-
-			if (options.encoding) {
-				if (!StringDecoder)
-					StringDecoder = __nccwpck_require__(515) /* .StringDecoder */.s;
-				this.decoder = new StringDecoder(options.encoding);
-				this.encoding = options.encoding;
-			}
-		}
-
-		function Readable(options) {
-			Duplex = Duplex || __nccwpck_require__(8349);
-			if (!(this instanceof Readable)) return new Readable(options); // Checking for a Stream.Duplex instance is faster here instead of inside
-			// the ReadableState constructor, at least with V8 6.5
-
-			var isDuplex = this instanceof Duplex;
-			this._readableState = new ReadableState(options, this, isDuplex); // legacy
-
-			this.readable = true;
-
-			if (options) {
-				if (typeof options.read === "function") this._read = options.read;
-				if (typeof options.destroy === "function")
-					this._destroy = options.destroy;
-			}
-
-			Stream.call(this);
-		}
-
-		Object.defineProperty(Readable.prototype, "destroyed", {
-			// making it explicit this property is not enumerable
-			// because otherwise some prototype manipulation in
-			// userland will fail
-			enumerable: false,
-			get: function get() {
-				if (this._readableState === undefined) {
-					return false;
-				}
-
-				return this._readableState.destroyed;
-			},
-			set: function set(value) {
-				// we ignore the value if the stream
-				// has not been initialized yet
-				if (!this._readableState) {
-					return;
-				} // backward compatibility, the user is explicitly
-				// managing destroyed
-
-				this._readableState.destroyed = value;
-			},
-		});
-		Readable.prototype.destroy = destroyImpl.destroy;
-		Readable.prototype._undestroy = destroyImpl.undestroy;
-
-		Readable.prototype._destroy = function (err, cb) {
-			cb(err);
-		}; // Manually shove something into the read() buffer.
-		// This returns true if the highWaterMark has not been hit yet,
-		// similar to how Writable.write() returns true if you should
-		// write() some more.
-
-		Readable.prototype.push = function (chunk, encoding) {
-			var state = this._readableState;
-			var skipChunkCheck;
-
-			if (!state.objectMode) {
-				if (typeof chunk === "string") {
-					encoding = encoding || state.defaultEncoding;
-
-					if (encoding !== state.encoding) {
-						chunk = Buffer.from(chunk, encoding);
-						encoding = "";
-					}
-
-					skipChunkCheck = true;
-				}
-			} else {
-				skipChunkCheck = true;
-			}
-
-			return readableAddChunk(this, chunk, encoding, false, skipChunkCheck);
-		}; // Unshift should *always* be something directly out of read()
-
-		Readable.prototype.unshift = function (chunk) {
-			return readableAddChunk(this, chunk, null, true, false);
-		};
-
-		function readableAddChunk(
-			stream,
-			chunk,
-			encoding,
-			addToFront,
-			skipChunkCheck
-		) {
-			debug("readableAddChunk", chunk);
-			var state = stream._readableState;
-
-			if (chunk === null) {
-				state.reading = false;
-				onEofChunk(stream, state);
-			} else {
-				var er;
-				if (!skipChunkCheck) er = chunkInvalid(state, chunk);
-
-				if (er) {
-					errorOrDestroy(stream, er);
-				} else if (state.objectMode || (chunk && chunk.length > 0)) {
-					if (
-						typeof chunk !== "string" &&
-						!state.objectMode &&
-						Object.getPrototypeOf(chunk) !== Buffer.prototype
-					) {
-						chunk = _uint8ArrayToBuffer(chunk);
-					}
-
-					if (addToFront) {
-						if (state.endEmitted)
-							errorOrDestroy(stream, new ERR_STREAM_UNSHIFT_AFTER_END_EVENT());
-						else addChunk(stream, state, chunk, true);
-					} else if (state.ended) {
-						errorOrDestroy(stream, new ERR_STREAM_PUSH_AFTER_EOF());
-					} else if (state.destroyed) {
-						return false;
-					} else {
-						state.reading = false;
-
-						if (state.decoder && !encoding) {
-							chunk = state.decoder.write(chunk);
-							if (state.objectMode || chunk.length !== 0)
-								addChunk(stream, state, chunk, false);
-							else maybeReadMore(stream, state);
-						} else {
-							addChunk(stream, state, chunk, false);
-						}
-					}
-				} else if (!addToFront) {
-					state.reading = false;
-					maybeReadMore(stream, state);
-				}
-			} // We can push more data if we are below the highWaterMark.
-			// Also, if we have no data yet, we can stand some more bytes.
-			// This is to work around cases where hwm=0, such as the repl.
 
 			return (
-				!state.ended &&
-				(state.length < state.highWaterMark || state.length === 0)
+				Object.keys(environment)
+					.reverse()
+					.find((key) => key.toUpperCase() === "PATH") || "Path"
 			);
-		}
-
-		function addChunk(stream, state, chunk, addToFront) {
-			if (state.flowing && state.length === 0 && !state.sync) {
-				state.awaitDrain = 0;
-				stream.emit("data", chunk);
-			} else {
-				// update the buffer info.
-				state.length += state.objectMode ? 1 : chunk.length;
-				if (addToFront) state.buffer.unshift(chunk);
-				else state.buffer.push(chunk);
-				if (state.needReadable) emitReadable(stream);
-			}
-
-			maybeReadMore(stream, state);
-		}
-
-		function chunkInvalid(state, chunk) {
-			var er;
-
-			if (
-				!_isUint8Array(chunk) &&
-				typeof chunk !== "string" &&
-				chunk !== undefined &&
-				!state.objectMode
-			) {
-				er = new ERR_INVALID_ARG_TYPE(
-					"chunk",
-					["string", "Buffer", "Uint8Array"],
-					chunk
-				);
-			}
-
-			return er;
-		}
-
-		Readable.prototype.isPaused = function () {
-			return this._readableState.flowing === false;
-		}; // backwards compatibility.
-
-		Readable.prototype.setEncoding = function (enc) {
-			if (!StringDecoder)
-				StringDecoder = __nccwpck_require__(515) /* .StringDecoder */.s;
-			var decoder = new StringDecoder(enc);
-			this._readableState.decoder = decoder; // If setEncoding(null), decoder.encoding equals utf8
-
-			this._readableState.encoding = this._readableState.decoder.encoding; // Iterate over current buffer to convert already stored Buffers:
-
-			var p = this._readableState.buffer.head;
-			var content = "";
-
-			while (p !== null) {
-				content += decoder.write(p.data);
-				p = p.next;
-			}
-
-			this._readableState.buffer.clear();
-
-			if (content !== "") this._readableState.buffer.push(content);
-			this._readableState.length = content.length;
-			return this;
-		}; // Don't raise the hwm > 1GB
-
-		var MAX_HWM = 0x40000000;
-
-		function computeNewHighWaterMark(n) {
-			if (n >= MAX_HWM) {
-				// TODO(ronag): Throw ERR_VALUE_OUT_OF_RANGE.
-				n = MAX_HWM;
-			} else {
-				// Get the next highest power of 2 to prevent increasing hwm excessively in
-				// tiny amounts
-				n--;
-				n |= n >>> 1;
-				n |= n >>> 2;
-				n |= n >>> 4;
-				n |= n >>> 8;
-				n |= n >>> 16;
-				n++;
-			}
-
-			return n;
-		} // This function is designed to be inlinable, so please take care when making
-		// changes to the function body.
-
-		function howMuchToRead(n, state) {
-			if (n <= 0 || (state.length === 0 && state.ended)) return 0;
-			if (state.objectMode) return 1;
-
-			if (n !== n) {
-				// Only flow one buffer at a time
-				if (state.flowing && state.length) return state.buffer.head.data.length;
-				else return state.length;
-			} // If we're asking for more than the current hwm, then raise the hwm.
-
-			if (n > state.highWaterMark)
-				state.highWaterMark = computeNewHighWaterMark(n);
-			if (n <= state.length) return n; // Don't have enough
-
-			if (!state.ended) {
-				state.needReadable = true;
-				return 0;
-			}
-
-			return state.length;
-		} // you can override either this method, or the async _read(n) below.
-
-		Readable.prototype.read = function (n) {
-			debug("read", n);
-			n = parseInt(n, 10);
-			var state = this._readableState;
-			var nOrig = n;
-			if (n !== 0) state.emittedReadable = false; // if we're doing read(0) to trigger a readable event, but we
-			// already have a bunch of data in the buffer, then just trigger
-			// the 'readable' event and move on.
-
-			if (
-				n === 0 &&
-				state.needReadable &&
-				((state.highWaterMark !== 0
-					? state.length >= state.highWaterMark
-					: state.length > 0) ||
-					state.ended)
-			) {
-				debug("read: emitReadable", state.length, state.ended);
-				if (state.length === 0 && state.ended) endReadable(this);
-				else emitReadable(this);
-				return null;
-			}
-
-			n = howMuchToRead(n, state); // if we've ended, and we're now clear, then finish it up.
-
-			if (n === 0 && state.ended) {
-				if (state.length === 0) endReadable(this);
-				return null;
-			} // All the actual chunk generation logic needs to be
-			// *below* the call to _read.  The reason is that in certain
-			// synthetic stream cases, such as passthrough streams, _read
-			// may be a completely synchronous operation which may change
-			// the state of the read buffer, providing enough data when
-			// before there was *not* enough.
-			//
-			// So, the steps are:
-			// 1. Figure out what the state of things will be after we do
-			// a read from the buffer.
-			//
-			// 2. If that resulting state will trigger a _read, then call _read.
-			// Note that this may be asynchronous, or synchronous.  Yes, it is
-			// deeply ugly to write APIs this way, but that still doesn't mean
-			// that the Readable class should behave improperly, as streams are
-			// designed to be sync/async agnostic.
-			// Take note if the _read call is sync or async (ie, if the read call
-			// has returned yet), so that we know whether or not it's safe to emit
-			// 'readable' etc.
-			//
-			// 3. Actually pull the requested chunks out of the buffer and return.
-			// if we need a readable event, then we need to do some reading.
-
-			var doRead = state.needReadable;
-			debug("need readable", doRead); // if we currently have less than the highWaterMark, then also read some
-
-			if (state.length === 0 || state.length - n < state.highWaterMark) {
-				doRead = true;
-				debug("length less than watermark", doRead);
-			} // however, if we've ended, then there's no point, and if we're already
-			// reading, then it's unnecessary.
-
-			if (state.ended || state.reading) {
-				doRead = false;
-				debug("reading or ended", doRead);
-			} else if (doRead) {
-				debug("do read");
-				state.reading = true;
-				state.sync = true; // if the length is currently zero, then we *need* a readable event.
-
-				if (state.length === 0) state.needReadable = true; // call internal read method
-
-				this._read(state.highWaterMark);
-
-				state.sync = false; // If _read pushed data synchronously, then `reading` will be false,
-				// and we need to re-evaluate how much data we can return to the user.
-
-				if (!state.reading) n = howMuchToRead(nOrig, state);
-			}
-
-			var ret;
-			if (n > 0) ret = fromList(n, state);
-			else ret = null;
-
-			if (ret === null) {
-				state.needReadable = state.length <= state.highWaterMark;
-				n = 0;
-			} else {
-				state.length -= n;
-				state.awaitDrain = 0;
-			}
-
-			if (state.length === 0) {
-				// If we have nothing in the buffer, then we want to know
-				// as soon as we *do* get something into the buffer.
-				if (!state.ended) state.needReadable = true; // If we tried to read() past the EOF, then emit end on the next tick.
-
-				if (nOrig !== n && state.ended) endReadable(this);
-			}
-
-			if (ret !== null) this.emit("data", ret);
-			return ret;
 		};
 
-		function onEofChunk(stream, state) {
-			debug("onEofChunk");
-			if (state.ended) return;
-
-			if (state.decoder) {
-				var chunk = state.decoder.end();
-
-				if (chunk && chunk.length) {
-					state.buffer.push(chunk);
-					state.length += state.objectMode ? 1 : chunk.length;
-				}
-			}
-
-			state.ended = true;
-
-			if (state.sync) {
-				// if we are sync, wait until next tick to emit the data.
-				// Otherwise we risk emitting data in the flow()
-				// the readable code triggers during a read() call
-				emitReadable(stream);
-			} else {
-				// emit 'readable' now to make sure it gets picked up.
-				state.needReadable = false;
-
-				if (!state.emittedReadable) {
-					state.emittedReadable = true;
-					emitReadable_(stream);
-				}
-			}
-		} // Don't emit readable right away in sync mode, because this can trigger
-		// another read() call => stack overflow.  This way, it might trigger
-		// a nextTick recursion warning, but that's not so bad.
-
-		function emitReadable(stream) {
-			var state = stream._readableState;
-			debug("emitReadable", state.needReadable, state.emittedReadable);
-			state.needReadable = false;
-
-			if (!state.emittedReadable) {
-				debug("emitReadable", state.flowing);
-				state.emittedReadable = true;
-				process.nextTick(emitReadable_, stream);
-			}
-		}
-
-		function emitReadable_(stream) {
-			var state = stream._readableState;
-			debug("emitReadable_", state.destroyed, state.length, state.ended);
-
-			if (!state.destroyed && (state.length || state.ended)) {
-				stream.emit("readable");
-				state.emittedReadable = false;
-			} // The stream needs another readable event if
-			// 1. It is not flowing, as the flow mechanism will take
-			//    care of it.
-			// 2. It is not ended.
-			// 3. It is below the highWaterMark, so we can schedule
-			//    another readable later.
-
-			state.needReadable =
-				!state.flowing && !state.ended && state.length <= state.highWaterMark;
-			flow(stream);
-		} // at this point, the user has presumably seen the 'readable' event,
-		// and called read() to consume some data.  that may have triggered
-		// in turn another _read(n) call, in which case reading = true if
-		// it's in progress.
-		// However, if we're not ended, or reading, and the length < hwm,
-		// then go ahead and try to read some more preemptively.
-
-		function maybeReadMore(stream, state) {
-			if (!state.readingMore) {
-				state.readingMore = true;
-				process.nextTick(maybeReadMore_, stream, state);
-			}
-		}
-
-		function maybeReadMore_(stream, state) {
-			// Attempt to read more data if we should.
-			//
-			// The conditions for reading more data are (one of):
-			// - Not enough data buffered (state.length < state.highWaterMark). The loop
-			//   is responsible for filling the buffer with enough data if such data
-			//   is available. If highWaterMark is 0 and we are not in the flowing mode
-			//   we should _not_ attempt to buffer any extra data. We'll get more data
-			//   when the stream consumer calls read() instead.
-			// - No data in the buffer, and the stream is in flowing mode. In this mode
-			//   the loop below is responsible for ensuring read() is called. Failing to
-			//   call read here would abort the flow and there's no other mechanism for
-			//   continuing the flow if the stream consumer has just subscribed to the
-			//   'data' event.
-			//
-			// In addition to the above conditions to keep reading data, the following
-			// conditions prevent the data from being read:
-			// - The stream has ended (state.ended).
-			// - There is already a pending 'read' operation (state.reading). This is a
-			//   case where the the stream has called the implementation defined _read()
-			//   method, but they are processing the call asynchronously and have _not_
-			//   called push() with new data. In this case we skip performing more
-			//   read()s. The execution ends in this method again after the _read() ends
-			//   up calling push() with more data.
-			while (
-				!state.reading &&
-				!state.ended &&
-				(state.length < state.highWaterMark ||
-					(state.flowing && state.length === 0))
-			) {
-				var len = state.length;
-				debug("maybeReadMore read 0");
-				stream.read(0);
-				if (len === state.length)
-					// didn't get any data, stop spinning.
-					break;
-			}
-
-			state.readingMore = false;
-		} // abstract method.  to be overridden in specific implementation classes.
-		// call cb(er, data) where data is <= n in length.
-		// for virtual (non-string, non-buffer) streams, "length" is somewhat
-		// arbitrary, and perhaps not very meaningful.
-
-		Readable.prototype._read = function (n) {
-			errorOrDestroy(this, new ERR_METHOD_NOT_IMPLEMENTED("_read()"));
-		};
-
-		Readable.prototype.pipe = function (dest, pipeOpts) {
-			var src = this;
-			var state = this._readableState;
-
-			switch (state.pipesCount) {
-				case 0:
-					state.pipes = dest;
-					break;
-
-				case 1:
-					state.pipes = [state.pipes, dest];
-					break;
-
-				default:
-					state.pipes.push(dest);
-					break;
-			}
-
-			state.pipesCount += 1;
-			debug("pipe count=%d opts=%j", state.pipesCount, pipeOpts);
-			var doEnd =
-				(!pipeOpts || pipeOpts.end !== false) &&
-				dest !== process.stdout &&
-				dest !== process.stderr;
-			var endFn = doEnd ? onend : unpipe;
-			if (state.endEmitted) process.nextTick(endFn);
-			else src.once("end", endFn);
-			dest.on("unpipe", onunpipe);
-
-			function onunpipe(readable, unpipeInfo) {
-				debug("onunpipe");
-
-				if (readable === src) {
-					if (unpipeInfo && unpipeInfo.hasUnpiped === false) {
-						unpipeInfo.hasUnpiped = true;
-						cleanup();
-					}
-				}
-			}
-
-			function onend() {
-				debug("onend");
-				dest.end();
-			} // when the dest drains, it reduces the awaitDrain counter
-			// on the source.  This would be more elegant with a .once()
-			// handler in flow(), but adding and removing repeatedly is
-			// too slow.
-
-			var ondrain = pipeOnDrain(src);
-			dest.on("drain", ondrain);
-			var cleanedUp = false;
-
-			function cleanup() {
-				debug("cleanup"); // cleanup event handlers once the pipe is broken
-
-				dest.removeListener("close", onclose);
-				dest.removeListener("finish", onfinish);
-				dest.removeListener("drain", ondrain);
-				dest.removeListener("error", onerror);
-				dest.removeListener("unpipe", onunpipe);
-				src.removeListener("end", onend);
-				src.removeListener("end", unpipe);
-				src.removeListener("data", ondata);
-				cleanedUp = true; // if the reader is waiting for a drain event from this
-				// specific writer, then it would cause it to never start
-				// flowing again.
-				// So, if this is awaiting a drain, then we just call it now.
-				// If we don't know, then assume that we are waiting for one.
-
-				if (
-					state.awaitDrain &&
-					(!dest._writableState || dest._writableState.needDrain)
-				)
-					ondrain();
-			}
-
-			src.on("data", ondata);
-
-			function ondata(chunk) {
-				debug("ondata");
-				var ret = dest.write(chunk);
-				debug("dest.write", ret);
-
-				if (ret === false) {
-					// If the user unpiped during `dest.write()`, it is possible
-					// to get stuck in a permanently paused state if that write
-					// also returned false.
-					// => Check whether `dest` is still a piping destination.
-					if (
-						((state.pipesCount === 1 && state.pipes === dest) ||
-							(state.pipesCount > 1 && indexOf(state.pipes, dest) !== -1)) &&
-						!cleanedUp
-					) {
-						debug("false write response, pause", state.awaitDrain);
-						state.awaitDrain++;
-					}
-
-					src.pause();
-				}
-			} // if the dest has an error, then stop piping into it.
-			// however, don't suppress the throwing behavior for this.
-
-			function onerror(er) {
-				debug("onerror", er);
-				unpipe();
-				dest.removeListener("error", onerror);
-				if (EElistenerCount(dest, "error") === 0) errorOrDestroy(dest, er);
-			} // Make sure our error handler is attached before userland ones.
-
-			prependListener(dest, "error", onerror); // Both close and finish should trigger unpipe, but only once.
-
-			function onclose() {
-				dest.removeListener("finish", onfinish);
-				unpipe();
-			}
-
-			dest.once("close", onclose);
-
-			function onfinish() {
-				debug("onfinish");
-				dest.removeListener("close", onclose);
-				unpipe();
-			}
-
-			dest.once("finish", onfinish);
-
-			function unpipe() {
-				debug("unpipe");
-				src.unpipe(dest);
-			} // tell the dest that it's being piped to
-
-			dest.emit("pipe", src); // start the flow if it hasn't been started already.
-
-			if (!state.flowing) {
-				debug("pipe resume");
-				src.resume();
-			}
-
-			return dest;
-		};
-
-		function pipeOnDrain(src) {
-			return function pipeOnDrainFunctionResult() {
-				var state = src._readableState;
-				debug("pipeOnDrain", state.awaitDrain);
-				if (state.awaitDrain) state.awaitDrain--;
-
-				if (state.awaitDrain === 0 && EElistenerCount(src, "data")) {
-					state.flowing = true;
-					flow(src);
-				}
-			};
-		}
-
-		Readable.prototype.unpipe = function (dest) {
-			var state = this._readableState;
-			var unpipeInfo = {
-				hasUnpiped: false,
-			}; // if we're not piping anywhere, then do nothing.
-
-			if (state.pipesCount === 0) return this; // just one destination.  most common case.
-
-			if (state.pipesCount === 1) {
-				// passed in one, but it's not the right one.
-				if (dest && dest !== state.pipes) return this;
-				if (!dest) dest = state.pipes; // got a match.
-
-				state.pipes = null;
-				state.pipesCount = 0;
-				state.flowing = false;
-				if (dest) dest.emit("unpipe", this, unpipeInfo);
-				return this;
-			} // slow case. multiple pipe destinations.
-
-			if (!dest) {
-				// remove all.
-				var dests = state.pipes;
-				var len = state.pipesCount;
-				state.pipes = null;
-				state.pipesCount = 0;
-				state.flowing = false;
-
-				for (var i = 0; i < len; i++) {
-					dests[i].emit("unpipe", this, {
-						hasUnpiped: false,
-					});
-				}
-
-				return this;
-			} // try to find the right one.
-
-			var index = indexOf(state.pipes, dest);
-			if (index === -1) return this;
-			state.pipes.splice(index, 1);
-			state.pipesCount -= 1;
-			if (state.pipesCount === 1) state.pipes = state.pipes[0];
-			dest.emit("unpipe", this, unpipeInfo);
-			return this;
-		}; // set up data events if they are asked for
-		// Ensure readable listeners eventually get something
-
-		Readable.prototype.on = function (ev, fn) {
-			var res = Stream.prototype.on.call(this, ev, fn);
-			var state = this._readableState;
-
-			if (ev === "data") {
-				// update readableListening so that resume() may be a no-op
-				// a few lines down. This is needed to support once('readable').
-				state.readableListening = this.listenerCount("readable") > 0; // Try start flowing on next tick if stream isn't explicitly paused
-
-				if (state.flowing !== false) this.resume();
-			} else if (ev === "readable") {
-				if (!state.endEmitted && !state.readableListening) {
-					state.readableListening = state.needReadable = true;
-					state.flowing = false;
-					state.emittedReadable = false;
-					debug("on readable", state.length, state.reading);
-
-					if (state.length) {
-						emitReadable(this);
-					} else if (!state.reading) {
-						process.nextTick(nReadingNextTick, this);
-					}
-				}
-			}
-
-			return res;
-		};
-
-		Readable.prototype.addListener = Readable.prototype.on;
-
-		Readable.prototype.removeListener = function (ev, fn) {
-			var res = Stream.prototype.removeListener.call(this, ev, fn);
-
-			if (ev === "readable") {
-				// We need to check if there is someone still listening to
-				// readable and reset the state. However this needs to happen
-				// after readable has been emitted but before I/O (nextTick) to
-				// support once('readable', fn) cycles. This means that calling
-				// resume within the same tick will have no
-				// effect.
-				process.nextTick(updateReadableListening, this);
-			}
-
-			return res;
-		};
-
-		Readable.prototype.removeAllListeners = function (ev) {
-			var res = Stream.prototype.removeAllListeners.apply(this, arguments);
-
-			if (ev === "readable" || ev === undefined) {
-				// We need to check if there is someone still listening to
-				// readable and reset the state. However this needs to happen
-				// after readable has been emitted but before I/O (nextTick) to
-				// support once('readable', fn) cycles. This means that calling
-				// resume within the same tick will have no
-				// effect.
-				process.nextTick(updateReadableListening, this);
-			}
-
-			return res;
-		};
-
-		function updateReadableListening(self) {
-			var state = self._readableState;
-			state.readableListening = self.listenerCount("readable") > 0;
-
-			if (state.resumeScheduled && !state.paused) {
-				// flowing needs to be set to true now, otherwise
-				// the upcoming resume will not flow.
-				state.flowing = true; // crude way to check if we should resume
-			} else if (self.listenerCount("data") > 0) {
-				self.resume();
-			}
-		}
-
-		function nReadingNextTick(self) {
-			debug("readable nexttick read 0");
-			self.read(0);
-		} // pause() and resume() are remnants of the legacy readable stream API
-		// If the user uses them, then switch into old mode.
-
-		Readable.prototype.resume = function () {
-			var state = this._readableState;
-
-			if (!state.flowing) {
-				debug("resume"); // we flow only if there is no one listening
-				// for readable, but we still have to call
-				// resume()
-
-				state.flowing = !state.readableListening;
-				resume(this, state);
-			}
-
-			state.paused = false;
-			return this;
-		};
-
-		function resume(stream, state) {
-			if (!state.resumeScheduled) {
-				state.resumeScheduled = true;
-				process.nextTick(resume_, stream, state);
-			}
-		}
-
-		function resume_(stream, state) {
-			debug("resume", state.reading);
-
-			if (!state.reading) {
-				stream.read(0);
-			}
-
-			state.resumeScheduled = false;
-			stream.emit("resume");
-			flow(stream);
-			if (state.flowing && !state.reading) stream.read(0);
-		}
-
-		Readable.prototype.pause = function () {
-			debug("call pause flowing=%j", this._readableState.flowing);
-
-			if (this._readableState.flowing !== false) {
-				debug("pause");
-				this._readableState.flowing = false;
-				this.emit("pause");
-			}
-
-			this._readableState.paused = true;
-			return this;
-		};
-
-		function flow(stream) {
-			var state = stream._readableState;
-			debug("flow", state.flowing);
-
-			while (state.flowing && stream.read() !== null) {}
-		} // wrap an old-style stream as the async data source.
-		// This is *not* part of the readable stream interface.
-		// It is an ugly unfortunate mess of history.
-
-		Readable.prototype.wrap = function (stream) {
-			var _this = this;
-
-			var state = this._readableState;
-			var paused = false;
-			stream.on("end", function () {
-				debug("wrapped end");
-
-				if (state.decoder && !state.ended) {
-					var chunk = state.decoder.end();
-					if (chunk && chunk.length) _this.push(chunk);
-				}
-
-				_this.push(null);
-			});
-			stream.on("data", function (chunk) {
-				debug("wrapped data");
-				if (state.decoder) chunk = state.decoder.write(chunk); // don't skip over falsy values in objectMode
-
-				if (state.objectMode && (chunk === null || chunk === undefined)) return;
-				else if (!state.objectMode && (!chunk || !chunk.length)) return;
-
-				var ret = _this.push(chunk);
-
-				if (!ret) {
-					paused = true;
-					stream.pause();
-				}
-			}); // proxy all the other methods.
-			// important when wrapping filters and duplexes.
-
-			for (var i in stream) {
-				if (this[i] === undefined && typeof stream[i] === "function") {
-					this[i] = (function methodWrap(method) {
-						return function methodWrapReturnFunction() {
-							return stream[method].apply(stream, arguments);
-						};
-					})(i);
-				}
-			} // proxy certain important events.
-
-			for (var n = 0; n < kProxyEvents.length; n++) {
-				stream.on(kProxyEvents[n], this.emit.bind(this, kProxyEvents[n]));
-			} // when we try to consume some more bytes, simply unpause the
-			// underlying stream.
-
-			this._read = function (n) {
-				debug("wrapped _read", n);
-
-				if (paused) {
-					paused = false;
-					stream.resume();
-				}
-			};
-
-			return this;
-		};
-
-		if (typeof Symbol === "function") {
-			Readable.prototype[Symbol.asyncIterator] = function () {
-				if (createReadableStreamAsyncIterator === undefined) {
-					createReadableStreamAsyncIterator = __nccwpck_require__(6852);
-				}
-
-				return createReadableStreamAsyncIterator(this);
-			};
-		}
-
-		Object.defineProperty(Readable.prototype, "readableHighWaterMark", {
-			// making it explicit this property is not enumerable
-			// because otherwise some prototype manipulation in
-			// userland will fail
-			enumerable: false,
-			get: function get() {
-				return this._readableState.highWaterMark;
-			},
-		});
-		Object.defineProperty(Readable.prototype, "readableBuffer", {
-			// making it explicit this property is not enumerable
-			// because otherwise some prototype manipulation in
-			// userland will fail
-			enumerable: false,
-			get: function get() {
-				return this._readableState && this._readableState.buffer;
-			},
-		});
-		Object.defineProperty(Readable.prototype, "readableFlowing", {
-			// making it explicit this property is not enumerable
-			// because otherwise some prototype manipulation in
-			// userland will fail
-			enumerable: false,
-			get: function get() {
-				return this._readableState.flowing;
-			},
-			set: function set(state) {
-				if (this._readableState) {
-					this._readableState.flowing = state;
-				}
-			},
-		}); // exposed for testing purposes only.
-
-		Readable._fromList = fromList;
-		Object.defineProperty(Readable.prototype, "readableLength", {
-			// making it explicit this property is not enumerable
-			// because otherwise some prototype manipulation in
-			// userland will fail
-			enumerable: false,
-			get: function get() {
-				return this._readableState.length;
-			},
-		}); // Pluck off n bytes from an array of buffers.
-		// Length is the combined lengths of all the buffers in the list.
-		// This function is designed to be inlinable, so please take care when making
-		// changes to the function body.
-
-		function fromList(n, state) {
-			// nothing buffered
-			if (state.length === 0) return null;
-			var ret;
-			if (state.objectMode) ret = state.buffer.shift();
-			else if (!n || n >= state.length) {
-				// read it all, truncate the list
-				if (state.decoder) ret = state.buffer.join("");
-				else if (state.buffer.length === 1) ret = state.buffer.first();
-				else ret = state.buffer.concat(state.length);
-				state.buffer.clear();
-			} else {
-				// read part of list
-				ret = state.buffer.consume(n, state.decoder);
-			}
-			return ret;
-		}
-
-		function endReadable(stream) {
-			var state = stream._readableState;
-			debug("endReadable", state.endEmitted);
-
-			if (!state.endEmitted) {
-				state.ended = true;
-				process.nextTick(endReadableNT, state, stream);
-			}
-		}
-
-		function endReadableNT(state, stream) {
-			debug("endReadableNT", state.endEmitted, state.length); // Check that we didn't get one last unshift.
-
-			if (!state.endEmitted && state.length === 0) {
-				state.endEmitted = true;
-				stream.readable = false;
-				stream.emit("end");
-
-				if (state.autoDestroy) {
-					// In case of duplex streams we need a way to detect
-					// if the writable side is ready for autoDestroy as well
-					var wState = stream._writableState;
-
-					if (!wState || (wState.autoDestroy && wState.finished)) {
-						stream.destroy();
-					}
-				}
-			}
-		}
-
-		if (typeof Symbol === "function") {
-			Readable.from = function (iterable, opts) {
-				if (from === undefined) {
-					from = __nccwpck_require__(2290);
-				}
-
-				return from(Readable, iterable, opts);
-			};
-		}
-
-		function indexOf(xs, x) {
-			for (var i = 0, l = xs.length; i < l; i++) {
-				if (xs[i] === x) return i;
-			}
-
-			return -1;
-		}
-
-		/***/
-	},
-
-	/***/ 5152: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		// Copyright Joyent, Inc. and other Node contributors.
-		//
-		// Permission is hereby granted, free of charge, to any person obtaining a
-		// copy of this software and associated documentation files (the
-		// "Software"), to deal in the Software without restriction, including
-		// without limitation the rights to use, copy, modify, merge, publish,
-		// distribute, sublicense, and/or sell copies of the Software, and to permit
-		// persons to whom the Software is furnished to do so, subject to the
-		// following conditions:
-		//
-		// The above copyright notice and this permission notice shall be included
-		// in all copies or substantial portions of the Software.
-		//
-		// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-		// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-		// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-		// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-		// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-		// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-		// USE OR OTHER DEALINGS IN THE SOFTWARE.
-		// a transform stream is a readable/writable stream where you do
-		// something with the data.  Sometimes it's called a "filter",
-		// but that's not a great name for it, since that implies a thing where
-		// some bits pass through, and others are simply ignored.  (That would
-		// be a valid example of a transform, of course.)
-		//
-		// While the output is causally related to the input, it's not a
-		// necessarily symmetric or synchronous transformation.  For example,
-		// a zlib stream might take multiple plain-text writes(), and then
-		// emit a single compressed chunk some time in the future.
-		//
-		// Here's how this works:
-		//
-		// The Transform stream has all the aspects of the readable and writable
-		// stream classes.  When you write(chunk), that calls _write(chunk,cb)
-		// internally, and returns false if there's a lot of pending writes
-		// buffered up.  When you call read(), that calls _read(n) until
-		// there's enough pending readable data buffered up.
-		//
-		// In a transform stream, the written data is placed in a buffer.  When
-		// _read(n) is called, it transforms the queued up data, calling the
-		// buffered _write cb's as it consumes chunks.  If consuming a single
-		// written chunk would result in multiple output chunks, then the first
-		// outputted bit calls the readcb, and subsequent chunks just go into
-		// the read buffer, and will cause it to emit 'readable' if necessary.
-		//
-		// This way, back-pressure is actually determined by the reading side,
-		// since _read has to be called to start processing a new chunk.  However,
-		// a pathological inflate type of transform can cause excessive buffering
-		// here.  For example, imagine a stream where every byte of input is
-		// interpreted as an integer from 0-255, and then results in that many
-		// bytes of output.  Writing the 4 bytes {ff,ff,ff,ff} would result in
-		// 1kb of data being output.  In this case, you could write a very small
-		// amount of input, and end up with a very large amount of output.  In
-		// such a pathological inflating mechanism, there'd be no way to tell
-		// the system to stop doing the transform.  A single 4MB write could
-		// cause the system to run out of memory.
-		//
-		// However, even in such a pathological case, only a single written chunk
-		// would be consumed, and then the rest would wait (un-transformed) until
-		// the results of the previous transformed chunk were consumed.
-
-		module.exports = Transform;
-
-		var _require$codes = __nccwpck_require__(9859) /* .codes */.q,
-			ERR_METHOD_NOT_IMPLEMENTED = _require$codes.ERR_METHOD_NOT_IMPLEMENTED,
-			ERR_MULTIPLE_CALLBACK = _require$codes.ERR_MULTIPLE_CALLBACK,
-			ERR_TRANSFORM_ALREADY_TRANSFORMING =
-				_require$codes.ERR_TRANSFORM_ALREADY_TRANSFORMING,
-			ERR_TRANSFORM_WITH_LENGTH_0 = _require$codes.ERR_TRANSFORM_WITH_LENGTH_0;
-
-		var Duplex = __nccwpck_require__(8349);
-
-		__nccwpck_require__(4626)(Transform, Duplex);
-
-		function afterTransform(er, data) {
-			var ts = this._transformState;
-			ts.transforming = false;
-			var cb = ts.writecb;
-
-			if (cb === null) {
-				return this.emit("error", new ERR_MULTIPLE_CALLBACK());
-			}
-
-			ts.writechunk = null;
-			ts.writecb = null;
-			if (data != null)
-				// single equals check for both `null` and `undefined`
-				this.push(data);
-			cb(er);
-			var rs = this._readableState;
-			rs.reading = false;
-
-			if (rs.needReadable || rs.length < rs.highWaterMark) {
-				this._read(rs.highWaterMark);
-			}
-		}
-
-		function Transform(options) {
-			if (!(this instanceof Transform)) return new Transform(options);
-			Duplex.call(this, options);
-			this._transformState = {
-				afterTransform: afterTransform.bind(this),
-				needTransform: false,
-				transforming: false,
-				writecb: null,
-				writechunk: null,
-				writeencoding: null,
-			}; // start out asking for a readable event once data is transformed.
-
-			this._readableState.needReadable = true; // we have implemented the _read method, and done the other things
-			// that Readable wants before the first _read call, so unset the
-			// sync guard flag.
-
-			this._readableState.sync = false;
-
-			if (options) {
-				if (typeof options.transform === "function")
-					this._transform = options.transform;
-				if (typeof options.flush === "function") this._flush = options.flush;
-			} // When the writable side finishes, then flush out anything remaining.
-
-			this.on("prefinish", prefinish);
-		}
-
-		function prefinish() {
-			var _this = this;
-
-			if (typeof this._flush === "function" && !this._readableState.destroyed) {
-				this._flush(function (er, data) {
-					done(_this, er, data);
-				});
-			} else {
-				done(this, null, null);
-			}
-		}
-
-		Transform.prototype.push = function (chunk, encoding) {
-			this._transformState.needTransform = false;
-			return Duplex.prototype.push.call(this, chunk, encoding);
-		}; // This is the part where you do stuff!
-		// override this function in implementation classes.
-		// 'chunk' is an input chunk.
-		//
-		// Call `push(newChunk)` to pass along transformed output
-		// to the readable side.  You may call 'push' zero or more times.
-		//
-		// Call `cb(err)` when you are done with this chunk.  If you pass
-		// an error, then that'll put the hurt on the whole operation.  If you
-		// never call cb(), then you'll never get another chunk.
-
-		Transform.prototype._transform = function (chunk, encoding, cb) {
-			cb(new ERR_METHOD_NOT_IMPLEMENTED("_transform()"));
-		};
-
-		Transform.prototype._write = function (chunk, encoding, cb) {
-			var ts = this._transformState;
-			ts.writecb = cb;
-			ts.writechunk = chunk;
-			ts.writeencoding = encoding;
-
-			if (!ts.transforming) {
-				var rs = this._readableState;
-				if (ts.needTransform || rs.needReadable || rs.length < rs.highWaterMark)
-					this._read(rs.highWaterMark);
-			}
-		}; // Doesn't matter what the args are here.
-		// _transform does all the work.
-		// That we got here means that the readable side wants more data.
-
-		Transform.prototype._read = function (n) {
-			var ts = this._transformState;
-
-			if (ts.writechunk !== null && !ts.transforming) {
-				ts.transforming = true;
-
-				this._transform(ts.writechunk, ts.writeencoding, ts.afterTransform);
-			} else {
-				// mark that we need a transform, so that any data that comes in
-				// will get processed, now that we've asked for it.
-				ts.needTransform = true;
-			}
-		};
-
-		Transform.prototype._destroy = function (err, cb) {
-			Duplex.prototype._destroy.call(this, err, function (err2) {
-				cb(err2);
-			});
-		};
-
-		function done(stream, er, data) {
-			if (er) return stream.emit("error", er);
-			if (data != null)
-				// single equals check for both `null` and `undefined`
-				stream.push(data); // TODO(BridgeAR): Write a test for these two error cases
-			// if there's nothing in the write buffer, then that means
-			// that nothing more will ever be provided
-
-			if (stream._writableState.length) throw new ERR_TRANSFORM_WITH_LENGTH_0();
-			if (stream._transformState.transforming)
-				throw new ERR_TRANSFORM_ALREADY_TRANSFORMING();
-			return stream.push(null);
-		}
-
-		/***/
-	},
-
-	/***/ 268: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		// Copyright Joyent, Inc. and other Node contributors.
-		//
-		// Permission is hereby granted, free of charge, to any person obtaining a
-		// copy of this software and associated documentation files (the
-		// "Software"), to deal in the Software without restriction, including
-		// without limitation the rights to use, copy, modify, merge, publish,
-		// distribute, sublicense, and/or sell copies of the Software, and to permit
-		// persons to whom the Software is furnished to do so, subject to the
-		// following conditions:
-		//
-		// The above copyright notice and this permission notice shall be included
-		// in all copies or substantial portions of the Software.
-		//
-		// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-		// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-		// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-		// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-		// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-		// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-		// USE OR OTHER DEALINGS IN THE SOFTWARE.
-		// A bit simpler than readable streams.
-		// Implement an async ._write(chunk, encoding, cb), and it'll handle all
-		// the drain event emission and buffering.
-
-		module.exports = Writable;
-		/* <replacement> */
-
-		function WriteReq(chunk, encoding, cb) {
-			this.chunk = chunk;
-			this.encoding = encoding;
-			this.callback = cb;
-			this.next = null;
-		} // It seems a linked list but it is not
-		// there will be only 2 of these for each stream
-
-		function CorkedRequest(state) {
-			var _this = this;
-
-			this.next = null;
-			this.entry = null;
-
-			this.finish = function () {
-				onCorkedFinish(_this, state);
-			};
-		}
-		/* </replacement> */
-
-		/*<replacement>*/
-
-		var Duplex;
-		/*</replacement>*/
-
-		Writable.WritableState = WritableState;
-		/*<replacement>*/
-
-		var internalUtil = {
-			deprecate: __nccwpck_require__(1174),
-		};
-		/*</replacement>*/
-
-		/*<replacement>*/
-
-		var Stream = __nccwpck_require__(4001);
-		/*</replacement>*/
-
-		var Buffer = __nccwpck_require__(4300).Buffer;
-
-		var OurUint8Array = global.Uint8Array || function () {};
-
-		function _uint8ArrayToBuffer(chunk) {
-			return Buffer.from(chunk);
-		}
-
-		function _isUint8Array(obj) {
-			return Buffer.isBuffer(obj) || obj instanceof OurUint8Array;
-		}
-
-		var destroyImpl = __nccwpck_require__(4837);
-
-		var _require = __nccwpck_require__(5267),
-			getHighWaterMark = _require.getHighWaterMark;
-
-		var _require$codes = __nccwpck_require__(9859) /* .codes */.q,
-			ERR_INVALID_ARG_TYPE = _require$codes.ERR_INVALID_ARG_TYPE,
-			ERR_METHOD_NOT_IMPLEMENTED = _require$codes.ERR_METHOD_NOT_IMPLEMENTED,
-			ERR_MULTIPLE_CALLBACK = _require$codes.ERR_MULTIPLE_CALLBACK,
-			ERR_STREAM_CANNOT_PIPE = _require$codes.ERR_STREAM_CANNOT_PIPE,
-			ERR_STREAM_DESTROYED = _require$codes.ERR_STREAM_DESTROYED,
-			ERR_STREAM_NULL_VALUES = _require$codes.ERR_STREAM_NULL_VALUES,
-			ERR_STREAM_WRITE_AFTER_END = _require$codes.ERR_STREAM_WRITE_AFTER_END,
-			ERR_UNKNOWN_ENCODING = _require$codes.ERR_UNKNOWN_ENCODING;
-
-		var errorOrDestroy = destroyImpl.errorOrDestroy;
-
-		__nccwpck_require__(4626)(Writable, Stream);
-
-		function nop() {}
-
-		function WritableState(options, stream, isDuplex) {
-			Duplex = Duplex || __nccwpck_require__(8349);
-			options = options || {}; // Duplex streams are both readable and writable, but share
-			// the same options object.
-			// However, some cases require setting options to different
-			// values for the readable and the writable sides of the duplex stream,
-			// e.g. options.readableObjectMode vs. options.writableObjectMode, etc.
-
-			if (typeof isDuplex !== "boolean") isDuplex = stream instanceof Duplex; // object stream flag to indicate whether or not this stream
-			// contains buffers or objects.
-
-			this.objectMode = !!options.objectMode;
-			if (isDuplex)
-				this.objectMode = this.objectMode || !!options.writableObjectMode; // the point at which write() starts returning false
-			// Note: 0 is a valid value, means that we always return false if
-			// the entire buffer is not flushed immediately on write()
-
-			this.highWaterMark = getHighWaterMark(
-				this,
-				options,
-				"writableHighWaterMark",
-				isDuplex
-			); // if _final has been called
-
-			this.finalCalled = false; // drain event flag.
-
-			this.needDrain = false; // at the start of calling end()
-
-			this.ending = false; // when end() has been called, and returned
-
-			this.ended = false; // when 'finish' is emitted
-
-			this.finished = false; // has it been destroyed
-
-			this.destroyed = false; // should we decode strings into buffers before passing to _write?
-			// this is here so that some node-core streams can optimize string
-			// handling at a lower level.
-
-			var noDecode = options.decodeStrings === false;
-			this.decodeStrings = !noDecode; // Crypto is kind of old and crusty.  Historically, its default string
-			// encoding is 'binary' so we have to make this configurable.
-			// Everything else in the universe uses 'utf8', though.
-
-			this.defaultEncoding = options.defaultEncoding || "utf8"; // not an actual buffer we keep track of, but a measurement
-			// of how much we're waiting to get pushed to some underlying
-			// socket or file.
-
-			this.length = 0; // a flag to see when we're in the middle of a write.
-
-			this.writing = false; // when true all writes will be buffered until .uncork() call
-
-			this.corked = 0; // a flag to be able to tell if the onwrite cb is called immediately,
-			// or on a later tick.  We set this to true at first, because any
-			// actions that shouldn't happen until "later" should generally also
-			// not happen before the first write call.
-
-			this.sync = true; // a flag to know if we're processing previously buffered items, which
-			// may call the _write() callback in the same tick, so that we don't
-			// end up in an overlapped onwrite situation.
-
-			this.bufferProcessing = false; // the callback that's passed to _write(chunk,cb)
-
-			this.onwrite = function (er) {
-				onwrite(stream, er);
-			}; // the callback that the user supplies to write(chunk,encoding,cb)
-
-			this.writecb = null; // the amount that is being written when _write is called.
-
-			this.writelen = 0;
-			this.bufferedRequest = null;
-			this.lastBufferedRequest = null; // number of pending user-supplied write callbacks
-			// this must be 0 before 'finish' can be emitted
-
-			this.pendingcb = 0; // emit prefinish if the only thing we're waiting for is _write cbs
-			// This is relevant for synchronous Transform streams
-
-			this.prefinished = false; // True if the error was already emitted and should not be thrown again
-
-			this.errorEmitted = false; // Should close be emitted on destroy. Defaults to true.
-
-			this.emitClose = options.emitClose !== false; // Should .destroy() be called after 'finish' (and potentially 'end')
-
-			this.autoDestroy = !!options.autoDestroy; // count buffered requests
-
-			this.bufferedRequestCount = 0; // allocate the first CorkedRequest, there is always
-			// one allocated and free to use, and we maintain at most two
-
-			this.corkedRequestsFree = new CorkedRequest(this);
-		}
-
-		WritableState.prototype.getBuffer = function getBuffer() {
-			var current = this.bufferedRequest;
-			var out = [];
-
-			while (current) {
-				out.push(current);
-				current = current.next;
-			}
-
-			return out;
-		};
-
-		(function () {
-			try {
-				Object.defineProperty(WritableState.prototype, "buffer", {
-					get: internalUtil.deprecate(
-						function writableStateBufferGetter() {
-							return this.getBuffer();
-						},
-						"_writableState.buffer is deprecated. Use _writableState.getBuffer " +
-							"instead.",
-						"DEP0003"
-					),
-				});
-			} catch (_) {}
-		})(); // Test _writableState for inheritance to account for Duplex streams,
-		// whose prototype chain only points to Readable.
-
-		var realHasInstance;
-
-		if (
-			typeof Symbol === "function" &&
-			Symbol.hasInstance &&
-			typeof Function.prototype[Symbol.hasInstance] === "function"
-		) {
-			realHasInstance = Function.prototype[Symbol.hasInstance];
-			Object.defineProperty(Writable, Symbol.hasInstance, {
-				value: function value(object) {
-					if (realHasInstance.call(this, object)) return true;
-					if (this !== Writable) return false;
-					return object && object._writableState instanceof WritableState;
-				},
-			});
-		} else {
-			realHasInstance = function realHasInstance(object) {
-				return object instanceof this;
-			};
-		}
-
-		function Writable(options) {
-			Duplex = Duplex || __nccwpck_require__(8349); // Writable ctor is applied to Duplexes, too.
-			// `realHasInstance` is necessary because using plain `instanceof`
-			// would return false, as no `_writableState` property is attached.
-			// Trying to use the custom `instanceof` for Writable here will also break the
-			// Node.js LazyTransform implementation, which has a non-trivial getter for
-			// `_writableState` that would lead to infinite recursion.
-			// Checking for a Stream.Duplex instance is faster here instead of inside
-			// the WritableState constructor, at least with V8 6.5
-
-			var isDuplex = this instanceof Duplex;
-			if (!isDuplex && !realHasInstance.call(Writable, this))
-				return new Writable(options);
-			this._writableState = new WritableState(options, this, isDuplex); // legacy.
-
-			this.writable = true;
-
-			if (options) {
-				if (typeof options.write === "function") this._write = options.write;
-				if (typeof options.writev === "function") this._writev = options.writev;
-				if (typeof options.destroy === "function")
-					this._destroy = options.destroy;
-				if (typeof options.final === "function") this._final = options.final;
-			}
-
-			Stream.call(this);
-		} // Otherwise people can pipe Writable streams, which is just wrong.
-
-		Writable.prototype.pipe = function () {
-			errorOrDestroy(this, new ERR_STREAM_CANNOT_PIPE());
-		};
-
-		function writeAfterEnd(stream, cb) {
-			var er = new ERR_STREAM_WRITE_AFTER_END(); // TODO: defer error events consistently everywhere, not just the cb
-
-			errorOrDestroy(stream, er);
-			process.nextTick(cb, er);
-		} // Checks that a user-supplied chunk is valid, especially for the particular
-		// mode the stream is in. Currently this means that `null` is never accepted
-		// and undefined/non-string values are only allowed in object mode.
-
-		function validChunk(stream, state, chunk, cb) {
-			var er;
-
-			if (chunk === null) {
-				er = new ERR_STREAM_NULL_VALUES();
-			} else if (typeof chunk !== "string" && !state.objectMode) {
-				er = new ERR_INVALID_ARG_TYPE("chunk", ["string", "Buffer"], chunk);
-			}
-
-			if (er) {
-				errorOrDestroy(stream, er);
-				process.nextTick(cb, er);
-				return false;
-			}
-
-			return true;
-		}
-
-		Writable.prototype.write = function (chunk, encoding, cb) {
-			var state = this._writableState;
-			var ret = false;
-
-			var isBuf = !state.objectMode && _isUint8Array(chunk);
-
-			if (isBuf && !Buffer.isBuffer(chunk)) {
-				chunk = _uint8ArrayToBuffer(chunk);
-			}
-
-			if (typeof encoding === "function") {
-				cb = encoding;
-				encoding = null;
-			}
-
-			if (isBuf) encoding = "buffer";
-			else if (!encoding) encoding = state.defaultEncoding;
-			if (typeof cb !== "function") cb = nop;
-			if (state.ending) writeAfterEnd(this, cb);
-			else if (isBuf || validChunk(this, state, chunk, cb)) {
-				state.pendingcb++;
-				ret = writeOrBuffer(this, state, isBuf, chunk, encoding, cb);
-			}
-			return ret;
-		};
-
-		Writable.prototype.cork = function () {
-			this._writableState.corked++;
-		};
-
-		Writable.prototype.uncork = function () {
-			var state = this._writableState;
-
-			if (state.corked) {
-				state.corked--;
-				if (
-					!state.writing &&
-					!state.corked &&
-					!state.bufferProcessing &&
-					state.bufferedRequest
-				)
-					clearBuffer(this, state);
-			}
-		};
-
-		Writable.prototype.setDefaultEncoding = function setDefaultEncoding(
-			encoding
-		) {
-			// node::ParseEncoding() requires lower case.
-			if (typeof encoding === "string") encoding = encoding.toLowerCase();
-			if (
-				!(
-					[
-						"hex",
-						"utf8",
-						"utf-8",
-						"ascii",
-						"binary",
-						"base64",
-						"ucs2",
-						"ucs-2",
-						"utf16le",
-						"utf-16le",
-						"raw",
-					].indexOf((encoding + "").toLowerCase()) > -1
-				)
-			)
-				throw new ERR_UNKNOWN_ENCODING(encoding);
-			this._writableState.defaultEncoding = encoding;
-			return this;
-		};
-
-		Object.defineProperty(Writable.prototype, "writableBuffer", {
-			// making it explicit this property is not enumerable
-			// because otherwise some prototype manipulation in
-			// userland will fail
-			enumerable: false,
-			get: function get() {
-				return this._writableState && this._writableState.getBuffer();
-			},
-		});
-
-		function decodeChunk(state, chunk, encoding) {
-			if (
-				!state.objectMode &&
-				state.decodeStrings !== false &&
-				typeof chunk === "string"
-			) {
-				chunk = Buffer.from(chunk, encoding);
-			}
-
-			return chunk;
-		}
-
-		Object.defineProperty(Writable.prototype, "writableHighWaterMark", {
-			// making it explicit this property is not enumerable
-			// because otherwise some prototype manipulation in
-			// userland will fail
-			enumerable: false,
-			get: function get() {
-				return this._writableState.highWaterMark;
-			},
-		}); // if we're already writing something, then just put this
-		// in the queue, and wait our turn.  Otherwise, call _write
-		// If we return false, then we need a drain event, so set that flag.
-
-		function writeOrBuffer(stream, state, isBuf, chunk, encoding, cb) {
-			if (!isBuf) {
-				var newChunk = decodeChunk(state, chunk, encoding);
-
-				if (chunk !== newChunk) {
-					isBuf = true;
-					encoding = "buffer";
-					chunk = newChunk;
-				}
-			}
-
-			var len = state.objectMode ? 1 : chunk.length;
-			state.length += len;
-			var ret = state.length < state.highWaterMark; // we must ensure that previous needDrain will not be reset to false.
-
-			if (!ret) state.needDrain = true;
-
-			if (state.writing || state.corked) {
-				var last = state.lastBufferedRequest;
-				state.lastBufferedRequest = {
-					chunk: chunk,
-					encoding: encoding,
-					isBuf: isBuf,
-					callback: cb,
-					next: null,
-				};
-
-				if (last) {
-					last.next = state.lastBufferedRequest;
-				} else {
-					state.bufferedRequest = state.lastBufferedRequest;
-				}
-
-				state.bufferedRequestCount += 1;
-			} else {
-				doWrite(stream, state, false, len, chunk, encoding, cb);
-			}
-
-			return ret;
-		}
-
-		function doWrite(stream, state, writev, len, chunk, encoding, cb) {
-			state.writelen = len;
-			state.writecb = cb;
-			state.writing = true;
-			state.sync = true;
-			if (state.destroyed) state.onwrite(new ERR_STREAM_DESTROYED("write"));
-			else if (writev) stream._writev(chunk, state.onwrite);
-			else stream._write(chunk, encoding, state.onwrite);
-			state.sync = false;
-		}
-
-		function onwriteError(stream, state, sync, er, cb) {
-			--state.pendingcb;
-
-			if (sync) {
-				// defer the callback if we are being called synchronously
-				// to avoid piling up things on the stack
-				process.nextTick(cb, er); // this can emit finish, and it will always happen
-				// after error
-
-				process.nextTick(finishMaybe, stream, state);
-				stream._writableState.errorEmitted = true;
-				errorOrDestroy(stream, er);
-			} else {
-				// the caller expect this to happen before if
-				// it is async
-				cb(er);
-				stream._writableState.errorEmitted = true;
-				errorOrDestroy(stream, er); // this can emit finish, but finish must
-				// always follow error
-
-				finishMaybe(stream, state);
-			}
-		}
-
-		function onwriteStateUpdate(state) {
-			state.writing = false;
-			state.writecb = null;
-			state.length -= state.writelen;
-			state.writelen = 0;
-		}
-
-		function onwrite(stream, er) {
-			var state = stream._writableState;
-			var sync = state.sync;
-			var cb = state.writecb;
-			if (typeof cb !== "function") throw new ERR_MULTIPLE_CALLBACK();
-			onwriteStateUpdate(state);
-			if (er) onwriteError(stream, state, sync, er, cb);
-			else {
-				// Check if we're actually ready to finish, but don't emit yet
-				var finished = needFinish(state) || stream.destroyed;
-
-				if (
-					!finished &&
-					!state.corked &&
-					!state.bufferProcessing &&
-					state.bufferedRequest
-				) {
-					clearBuffer(stream, state);
-				}
-
-				if (sync) {
-					process.nextTick(afterWrite, stream, state, finished, cb);
-				} else {
-					afterWrite(stream, state, finished, cb);
-				}
-			}
-		}
-
-		function afterWrite(stream, state, finished, cb) {
-			if (!finished) onwriteDrain(stream, state);
-			state.pendingcb--;
-			cb();
-			finishMaybe(stream, state);
-		} // Must force callback to be called on nextTick, so that we don't
-		// emit 'drain' before the write() consumer gets the 'false' return
-		// value, and has a chance to attach a 'drain' listener.
-
-		function onwriteDrain(stream, state) {
-			if (state.length === 0 && state.needDrain) {
-				state.needDrain = false;
-				stream.emit("drain");
-			}
-		} // if there's something in the buffer waiting, then process it
-
-		function clearBuffer(stream, state) {
-			state.bufferProcessing = true;
-			var entry = state.bufferedRequest;
-
-			if (stream._writev && entry && entry.next) {
-				// Fast case, write everything using _writev()
-				var l = state.bufferedRequestCount;
-				var buffer = new Array(l);
-				var holder = state.corkedRequestsFree;
-				holder.entry = entry;
-				var count = 0;
-				var allBuffers = true;
-
-				while (entry) {
-					buffer[count] = entry;
-					if (!entry.isBuf) allBuffers = false;
-					entry = entry.next;
-					count += 1;
-				}
-
-				buffer.allBuffers = allBuffers;
-				doWrite(stream, state, true, state.length, buffer, "", holder.finish); // doWrite is almost always async, defer these to save a bit of time
-				// as the hot path ends with doWrite
-
-				state.pendingcb++;
-				state.lastBufferedRequest = null;
-
-				if (holder.next) {
-					state.corkedRequestsFree = holder.next;
-					holder.next = null;
-				} else {
-					state.corkedRequestsFree = new CorkedRequest(state);
-				}
-
-				state.bufferedRequestCount = 0;
-			} else {
-				// Slow case, write chunks one-by-one
-				while (entry) {
-					var chunk = entry.chunk;
-					var encoding = entry.encoding;
-					var cb = entry.callback;
-					var len = state.objectMode ? 1 : chunk.length;
-					doWrite(stream, state, false, len, chunk, encoding, cb);
-					entry = entry.next;
-					state.bufferedRequestCount--; // if we didn't call the onwrite immediately, then
-					// it means that we need to wait until it does.
-					// also, that means that the chunk and cb are currently
-					// being processed, so move the buffer counter past them.
-
-					if (state.writing) {
-						break;
-					}
-				}
-
-				if (entry === null) state.lastBufferedRequest = null;
-			}
-
-			state.bufferedRequest = entry;
-			state.bufferProcessing = false;
-		}
-
-		Writable.prototype._write = function (chunk, encoding, cb) {
-			cb(new ERR_METHOD_NOT_IMPLEMENTED("_write()"));
-		};
-
-		Writable.prototype._writev = null;
-
-		Writable.prototype.end = function (chunk, encoding, cb) {
-			var state = this._writableState;
-
-			if (typeof chunk === "function") {
-				cb = chunk;
-				chunk = null;
-				encoding = null;
-			} else if (typeof encoding === "function") {
-				cb = encoding;
-				encoding = null;
-			}
-
-			if (chunk !== null && chunk !== undefined) this.write(chunk, encoding); // .end() fully uncorks
-
-			if (state.corked) {
-				state.corked = 1;
-				this.uncork();
-			} // ignore unnecessary end() calls.
-
-			if (!state.ending) endWritable(this, state, cb);
-			return this;
-		};
-
-		Object.defineProperty(Writable.prototype, "writableLength", {
-			// making it explicit this property is not enumerable
-			// because otherwise some prototype manipulation in
-			// userland will fail
-			enumerable: false,
-			get: function get() {
-				return this._writableState.length;
-			},
-		});
-
-		function needFinish(state) {
-			return (
-				state.ending &&
-				state.length === 0 &&
-				state.bufferedRequest === null &&
-				!state.finished &&
-				!state.writing
-			);
-		}
-
-		function callFinal(stream, state) {
-			stream._final(function (err) {
-				state.pendingcb--;
-
-				if (err) {
-					errorOrDestroy(stream, err);
-				}
-
-				state.prefinished = true;
-				stream.emit("prefinish");
-				finishMaybe(stream, state);
-			});
-		}
-
-		function prefinish(stream, state) {
-			if (!state.prefinished && !state.finalCalled) {
-				if (typeof stream._final === "function" && !state.destroyed) {
-					state.pendingcb++;
-					state.finalCalled = true;
-					process.nextTick(callFinal, stream, state);
-				} else {
-					state.prefinished = true;
-					stream.emit("prefinish");
-				}
-			}
-		}
-
-		function finishMaybe(stream, state) {
-			var need = needFinish(state);
-
-			if (need) {
-				prefinish(stream, state);
-
-				if (state.pendingcb === 0) {
-					state.finished = true;
-					stream.emit("finish");
-
-					if (state.autoDestroy) {
-						// In case of duplex streams we need a way to detect
-						// if the readable side is ready for autoDestroy as well
-						var rState = stream._readableState;
-
-						if (!rState || (rState.autoDestroy && rState.endEmitted)) {
-							stream.destroy();
-						}
-					}
-				}
-			}
-
-			return need;
-		}
-
-		function endWritable(stream, state, cb) {
-			state.ending = true;
-			finishMaybe(stream, state);
-
-			if (cb) {
-				if (state.finished) process.nextTick(cb);
-				else stream.once("finish", cb);
-			}
-
-			state.ended = true;
-			stream.writable = false;
-		}
-
-		function onCorkedFinish(corkReq, state, err) {
-			var entry = corkReq.entry;
-			corkReq.entry = null;
-
-			while (entry) {
-				var cb = entry.callback;
-				state.pendingcb--;
-				cb(err);
-				entry = entry.next;
-			} // reuse the free corkReq.
-
-			state.corkedRequestsFree.next = corkReq;
-		}
-
-		Object.defineProperty(Writable.prototype, "destroyed", {
-			// making it explicit this property is not enumerable
-			// because otherwise some prototype manipulation in
-			// userland will fail
-			enumerable: false,
-			get: function get() {
-				if (this._writableState === undefined) {
-					return false;
-				}
-
-				return this._writableState.destroyed;
-			},
-			set: function set(value) {
-				// we ignore the value if the stream
-				// has not been initialized yet
-				if (!this._writableState) {
-					return;
-				} // backward compatibility, the user is explicitly
-				// managing destroyed
-
-				this._writableState.destroyed = value;
-			},
-		});
-		Writable.prototype.destroy = destroyImpl.destroy;
-		Writable.prototype._undestroy = destroyImpl.undestroy;
-
-		Writable.prototype._destroy = function (err, cb) {
-			cb(err);
-		};
-
-		/***/
-	},
-
-	/***/ 6852: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		var _Object$setPrototypeO;
-
-		function _defineProperty(obj, key, value) {
-			if (key in obj) {
-				Object.defineProperty(obj, key, {
-					value: value,
-					enumerable: true,
-					configurable: true,
-					writable: true,
-				});
-			} else {
-				obj[key] = value;
-			}
-			return obj;
-		}
-
-		var finished = __nccwpck_require__(5535);
-
-		var kLastResolve = Symbol("lastResolve");
-		var kLastReject = Symbol("lastReject");
-		var kError = Symbol("error");
-		var kEnded = Symbol("ended");
-		var kLastPromise = Symbol("lastPromise");
-		var kHandlePromise = Symbol("handlePromise");
-		var kStream = Symbol("stream");
-
-		function createIterResult(value, done) {
-			return {
-				value: value,
-				done: done,
-			};
-		}
-
-		function readAndResolve(iter) {
-			var resolve = iter[kLastResolve];
-
-			if (resolve !== null) {
-				var data = iter[kStream].read(); // we defer if data is null
-				// we can be expecting either 'end' or
-				// 'error'
-
-				if (data !== null) {
-					iter[kLastPromise] = null;
-					iter[kLastResolve] = null;
-					iter[kLastReject] = null;
-					resolve(createIterResult(data, false));
-				}
-			}
-		}
-
-		function onReadable(iter) {
-			// we wait for the next tick, because it might
-			// emit an error with process.nextTick
-			process.nextTick(readAndResolve, iter);
-		}
-
-		function wrapForNext(lastPromise, iter) {
-			return function (resolve, reject) {
-				lastPromise.then(function () {
-					if (iter[kEnded]) {
-						resolve(createIterResult(undefined, true));
-						return;
-					}
-
-					iter[kHandlePromise](resolve, reject);
-				}, reject);
-			};
-		}
-
-		var AsyncIteratorPrototype = Object.getPrototypeOf(function () {});
-		var ReadableStreamAsyncIteratorPrototype = Object.setPrototypeOf(
-			((_Object$setPrototypeO = {
-				get stream() {
-					return this[kStream];
-				},
-
-				next: function next() {
-					var _this = this;
-
-					// if we have detected an error in the meanwhile
-					// reject straight away
-					var error = this[kError];
-
-					if (error !== null) {
-						return Promise.reject(error);
-					}
-
-					if (this[kEnded]) {
-						return Promise.resolve(createIterResult(undefined, true));
-					}
-
-					if (this[kStream].destroyed) {
-						// We need to defer via nextTick because if .destroy(err) is
-						// called, the error will be emitted via nextTick, and
-						// we cannot guarantee that there is no error lingering around
-						// waiting to be emitted.
-						return new Promise(function (resolve, reject) {
-							process.nextTick(function () {
-								if (_this[kError]) {
-									reject(_this[kError]);
-								} else {
-									resolve(createIterResult(undefined, true));
-								}
-							});
-						});
-					} // if we have multiple next() calls
-					// we will wait for the previous Promise to finish
-					// this logic is optimized to support for await loops,
-					// where next() is only called once at a time
-
-					var lastPromise = this[kLastPromise];
-					var promise;
-
-					if (lastPromise) {
-						promise = new Promise(wrapForNext(lastPromise, this));
-					} else {
-						// fast path needed to support multiple this.push()
-						// without triggering the next() queue
-						var data = this[kStream].read();
-
-						if (data !== null) {
-							return Promise.resolve(createIterResult(data, false));
-						}
-
-						promise = new Promise(this[kHandlePromise]);
-					}
-
-					this[kLastPromise] = promise;
-					return promise;
-				},
-			}),
-			_defineProperty(_Object$setPrototypeO, Symbol.asyncIterator, function () {
-				return this;
-			}),
-			_defineProperty(_Object$setPrototypeO, "return", function _return() {
-				var _this2 = this;
-
-				// destroy(err, cb) is a private API
-				// we can guarantee we have that here, because we control the
-				// Readable class this is attached to
-				return new Promise(function (resolve, reject) {
-					_this2[kStream].destroy(null, function (err) {
-						if (err) {
-							reject(err);
-							return;
-						}
-
-						resolve(createIterResult(undefined, true));
-					});
-				});
-			}),
-			_Object$setPrototypeO),
-			AsyncIteratorPrototype
-		);
-
-		var createReadableStreamAsyncIterator =
-			function createReadableStreamAsyncIterator(stream) {
-				var _Object$create;
-
-				var iterator = Object.create(
-					ReadableStreamAsyncIteratorPrototype,
-					((_Object$create = {}),
-					_defineProperty(_Object$create, kStream, {
-						value: stream,
-						writable: true,
-					}),
-					_defineProperty(_Object$create, kLastResolve, {
-						value: null,
-						writable: true,
-					}),
-					_defineProperty(_Object$create, kLastReject, {
-						value: null,
-						writable: true,
-					}),
-					_defineProperty(_Object$create, kError, {
-						value: null,
-						writable: true,
-					}),
-					_defineProperty(_Object$create, kEnded, {
-						value: stream._readableState.endEmitted,
-						writable: true,
-					}),
-					_defineProperty(_Object$create, kHandlePromise, {
-						value: function value(resolve, reject) {
-							var data = iterator[kStream].read();
-
-							if (data) {
-								iterator[kLastPromise] = null;
-								iterator[kLastResolve] = null;
-								iterator[kLastReject] = null;
-								resolve(createIterResult(data, false));
-							} else {
-								iterator[kLastResolve] = resolve;
-								iterator[kLastReject] = reject;
-							}
-						},
-						writable: true,
-					}),
-					_Object$create)
-				);
-				iterator[kLastPromise] = null;
-				finished(stream, function (err) {
-					if (err && err.code !== "ERR_STREAM_PREMATURE_CLOSE") {
-						var reject = iterator[kLastReject]; // reject if we are waiting for data in the Promise
-						// returned by next() and store the error
-
-						if (reject !== null) {
-							iterator[kLastPromise] = null;
-							iterator[kLastResolve] = null;
-							iterator[kLastReject] = null;
-							reject(err);
-						}
-
-						iterator[kError] = err;
-						return;
-					}
-
-					var resolve = iterator[kLastResolve];
-
-					if (resolve !== null) {
-						iterator[kLastPromise] = null;
-						iterator[kLastResolve] = null;
-						iterator[kLastReject] = null;
-						resolve(createIterResult(undefined, true));
-					}
-
-					iterator[kEnded] = true;
-				});
-				stream.on("readable", onReadable.bind(null, iterator));
-				return iterator;
-			};
-
-		module.exports = createReadableStreamAsyncIterator;
-
-		/***/
-	},
-
-	/***/ 747: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		function ownKeys(object, enumerableOnly) {
-			var keys = Object.keys(object);
-			if (Object.getOwnPropertySymbols) {
-				var symbols = Object.getOwnPropertySymbols(object);
-				if (enumerableOnly)
-					symbols = symbols.filter(function (sym) {
-						return Object.getOwnPropertyDescriptor(object, sym).enumerable;
-					});
-				keys.push.apply(keys, symbols);
-			}
-			return keys;
-		}
-
-		function _objectSpread(target) {
-			for (var i = 1; i < arguments.length; i++) {
-				var source = arguments[i] != null ? arguments[i] : {};
-				if (i % 2) {
-					ownKeys(Object(source), true).forEach(function (key) {
-						_defineProperty(target, key, source[key]);
-					});
-				} else if (Object.getOwnPropertyDescriptors) {
-					Object.defineProperties(
-						target,
-						Object.getOwnPropertyDescriptors(source)
-					);
-				} else {
-					ownKeys(Object(source)).forEach(function (key) {
-						Object.defineProperty(
-							target,
-							key,
-							Object.getOwnPropertyDescriptor(source, key)
-						);
-					});
-				}
-			}
-			return target;
-		}
-
-		function _defineProperty(obj, key, value) {
-			if (key in obj) {
-				Object.defineProperty(obj, key, {
-					value: value,
-					enumerable: true,
-					configurable: true,
-					writable: true,
-				});
-			} else {
-				obj[key] = value;
-			}
-			return obj;
-		}
-
-		function _classCallCheck(instance, Constructor) {
-			if (!(instance instanceof Constructor)) {
-				throw new TypeError("Cannot call a class as a function");
-			}
-		}
-
-		function _defineProperties(target, props) {
-			for (var i = 0; i < props.length; i++) {
-				var descriptor = props[i];
-				descriptor.enumerable = descriptor.enumerable || false;
-				descriptor.configurable = true;
-				if ("value" in descriptor) descriptor.writable = true;
-				Object.defineProperty(target, descriptor.key, descriptor);
-			}
-		}
-
-		function _createClass(Constructor, protoProps, staticProps) {
-			if (protoProps) _defineProperties(Constructor.prototype, protoProps);
-			if (staticProps) _defineProperties(Constructor, staticProps);
-			return Constructor;
-		}
-
-		var _require = __nccwpck_require__(4300),
-			Buffer = _require.Buffer;
-
-		var _require2 = __nccwpck_require__(3837),
-			inspect = _require2.inspect;
-
-		var custom = (inspect && inspect.custom) || "inspect";
-
-		function copyBuffer(src, target, offset) {
-			Buffer.prototype.copy.call(src, target, offset);
-		}
-
-		module.exports =
-			/*#__PURE__*/
-			(function () {
-				function BufferList() {
-					_classCallCheck(this, BufferList);
-
-					this.head = null;
-					this.tail = null;
-					this.length = 0;
-				}
-
-				_createClass(BufferList, [
-					{
-						key: "push",
-						value: function push(v) {
-							var entry = {
-								data: v,
-								next: null,
-							};
-							if (this.length > 0) this.tail.next = entry;
-							else this.head = entry;
-							this.tail = entry;
-							++this.length;
-						},
-					},
-					{
-						key: "unshift",
-						value: function unshift(v) {
-							var entry = {
-								data: v,
-								next: this.head,
-							};
-							if (this.length === 0) this.tail = entry;
-							this.head = entry;
-							++this.length;
-						},
-					},
-					{
-						key: "shift",
-						value: function shift() {
-							if (this.length === 0) return;
-							var ret = this.head.data;
-							if (this.length === 1) this.head = this.tail = null;
-							else this.head = this.head.next;
-							--this.length;
-							return ret;
-						},
-					},
-					{
-						key: "clear",
-						value: function clear() {
-							this.head = this.tail = null;
-							this.length = 0;
-						},
-					},
-					{
-						key: "join",
-						value: function join(s) {
-							if (this.length === 0) return "";
-							var p = this.head;
-							var ret = "" + p.data;
-
-							while ((p = p.next)) {
-								ret += s + p.data;
-							}
-
-							return ret;
-						},
-					},
-					{
-						key: "concat",
-						value: function concat(n) {
-							if (this.length === 0) return Buffer.alloc(0);
-							var ret = Buffer.allocUnsafe(n >>> 0);
-							var p = this.head;
-							var i = 0;
-
-							while (p) {
-								copyBuffer(p.data, ret, i);
-								i += p.data.length;
-								p = p.next;
-							}
-
-							return ret;
-						}, // Consumes a specified amount of bytes or characters from the buffered data.
-					},
-					{
-						key: "consume",
-						value: function consume(n, hasStrings) {
-							var ret;
-
-							if (n < this.head.data.length) {
-								// `slice` is the same for buffers and strings.
-								ret = this.head.data.slice(0, n);
-								this.head.data = this.head.data.slice(n);
-							} else if (n === this.head.data.length) {
-								// First chunk is a perfect match.
-								ret = this.shift();
-							} else {
-								// Result spans more than one buffer.
-								ret = hasStrings ? this._getString(n) : this._getBuffer(n);
-							}
-
-							return ret;
-						},
-					},
-					{
-						key: "first",
-						value: function first() {
-							return this.head.data;
-						}, // Consumes a specified amount of characters from the buffered data.
-					},
-					{
-						key: "_getString",
-						value: function _getString(n) {
-							var p = this.head;
-							var c = 1;
-							var ret = p.data;
-							n -= ret.length;
-
-							while ((p = p.next)) {
-								var str = p.data;
-								var nb = n > str.length ? str.length : n;
-								if (nb === str.length) ret += str;
-								else ret += str.slice(0, n);
-								n -= nb;
-
-								if (n === 0) {
-									if (nb === str.length) {
-										++c;
-										if (p.next) this.head = p.next;
-										else this.head = this.tail = null;
-									} else {
-										this.head = p;
-										p.data = str.slice(nb);
-									}
-
-									break;
-								}
-
-								++c;
-							}
-
-							this.length -= c;
-							return ret;
-						}, // Consumes a specified amount of bytes from the buffered data.
-					},
-					{
-						key: "_getBuffer",
-						value: function _getBuffer(n) {
-							var ret = Buffer.allocUnsafe(n);
-							var p = this.head;
-							var c = 1;
-							p.data.copy(ret);
-							n -= p.data.length;
-
-							while ((p = p.next)) {
-								var buf = p.data;
-								var nb = n > buf.length ? buf.length : n;
-								buf.copy(ret, ret.length - n, 0, nb);
-								n -= nb;
-
-								if (n === 0) {
-									if (nb === buf.length) {
-										++c;
-										if (p.next) this.head = p.next;
-										else this.head = this.tail = null;
-									} else {
-										this.head = p;
-										p.data = buf.slice(nb);
-									}
-
-									break;
-								}
-
-								++c;
-							}
-
-							this.length -= c;
-							return ret;
-						}, // Make sure the linked list only shows the minimal necessary information.
-					},
-					{
-						key: custom,
-						value: function value(_, options) {
-							return inspect(
-								this,
-								_objectSpread({}, options, {
-									// Only inspect one level.
-									depth: 0,
-									// It should not recurse.
-									customInspect: false,
-								})
-							);
-						},
-					},
-				]);
-
-				return BufferList;
-			})();
-
-		/***/
-	},
-
-	/***/ 4837: /***/ (module) => {
-		// undocumented cb() API, needed for core, not for public API
-
-		function destroy(err, cb) {
-			var _this = this;
-
-			var readableDestroyed =
-				this._readableState && this._readableState.destroyed;
-			var writableDestroyed =
-				this._writableState && this._writableState.destroyed;
-
-			if (readableDestroyed || writableDestroyed) {
-				if (cb) {
-					cb(err);
-				} else if (err) {
-					if (!this._writableState) {
-						process.nextTick(emitErrorNT, this, err);
-					} else if (!this._writableState.errorEmitted) {
-						this._writableState.errorEmitted = true;
-						process.nextTick(emitErrorNT, this, err);
-					}
-				}
-
-				return this;
-			} // we set destroyed to true before firing error callbacks in order
-			// to make it re-entrance safe in case destroy() is called within callbacks
-
-			if (this._readableState) {
-				this._readableState.destroyed = true;
-			} // if this is a duplex stream mark the writable part as destroyed as well
-
-			if (this._writableState) {
-				this._writableState.destroyed = true;
-			}
-
-			this._destroy(err || null, function (err) {
-				if (!cb && err) {
-					if (!_this._writableState) {
-						process.nextTick(emitErrorAndCloseNT, _this, err);
-					} else if (!_this._writableState.errorEmitted) {
-						_this._writableState.errorEmitted = true;
-						process.nextTick(emitErrorAndCloseNT, _this, err);
-					} else {
-						process.nextTick(emitCloseNT, _this);
-					}
-				} else if (cb) {
-					process.nextTick(emitCloseNT, _this);
-					cb(err);
-				} else {
-					process.nextTick(emitCloseNT, _this);
-				}
-			});
-
-			return this;
-		}
-
-		function emitErrorAndCloseNT(self, err) {
-			emitErrorNT(self, err);
-			emitCloseNT(self);
-		}
-
-		function emitCloseNT(self) {
-			if (self._writableState && !self._writableState.emitClose) return;
-			if (self._readableState && !self._readableState.emitClose) return;
-			self.emit("close");
-		}
-
-		function undestroy() {
-			if (this._readableState) {
-				this._readableState.destroyed = false;
-				this._readableState.reading = false;
-				this._readableState.ended = false;
-				this._readableState.endEmitted = false;
-			}
-
-			if (this._writableState) {
-				this._writableState.destroyed = false;
-				this._writableState.ended = false;
-				this._writableState.ending = false;
-				this._writableState.finalCalled = false;
-				this._writableState.prefinished = false;
-				this._writableState.finished = false;
-				this._writableState.errorEmitted = false;
-			}
-		}
-
-		function emitErrorNT(self, err) {
-			self.emit("error", err);
-		}
-
-		function errorOrDestroy(stream, err) {
-			// We have tests that rely on errors being emitted
-			// in the same tick, so changing this is semver major.
-			// For now when you opt-in to autoDestroy we allow
-			// the error to be emitted nextTick. In a future
-			// semver major update we should change the default to this.
-			var rState = stream._readableState;
-			var wState = stream._writableState;
-			if ((rState && rState.autoDestroy) || (wState && wState.autoDestroy))
-				stream.destroy(err);
-			else stream.emit("error", err);
-		}
-
-		module.exports = {
-			destroy: destroy,
-			undestroy: undestroy,
-			errorOrDestroy: errorOrDestroy,
-		};
-
-		/***/
-	},
-
-	/***/ 5535: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		// Ported from https://github.com/mafintosh/end-of-stream with
-		// permission from the author, Mathias Buus (@mafintosh).
-
-		var ERR_STREAM_PREMATURE_CLOSE =
-			__nccwpck_require__(9859) /* .codes.ERR_STREAM_PREMATURE_CLOSE */.q
-				.ERR_STREAM_PREMATURE_CLOSE;
-
-		function once(callback) {
-			var called = false;
-			return function () {
-				if (called) return;
-				called = true;
-
-				for (
-					var _len = arguments.length, args = new Array(_len), _key = 0;
-					_key < _len;
-					_key++
-				) {
-					args[_key] = arguments[_key];
-				}
-
-				callback.apply(this, args);
-			};
-		}
-
-		function noop() {}
-
-		function isRequest(stream) {
-			return stream.setHeader && typeof stream.abort === "function";
-		}
-
-		function eos(stream, opts, callback) {
-			if (typeof opts === "function") return eos(stream, null, opts);
-			if (!opts) opts = {};
-			callback = once(callback || noop);
-			var readable =
-				opts.readable || (opts.readable !== false && stream.readable);
-			var writable =
-				opts.writable || (opts.writable !== false && stream.writable);
-
-			var onlegacyfinish = function onlegacyfinish() {
-				if (!stream.writable) onfinish();
-			};
-
-			var writableEnded =
-				stream._writableState && stream._writableState.finished;
-
-			var onfinish = function onfinish() {
-				writable = false;
-				writableEnded = true;
-				if (!readable) callback.call(stream);
-			};
-
-			var readableEnded =
-				stream._readableState && stream._readableState.endEmitted;
-
-			var onend = function onend() {
-				readable = false;
-				readableEnded = true;
-				if (!writable) callback.call(stream);
-			};
-
-			var onerror = function onerror(err) {
-				callback.call(stream, err);
-			};
-
-			var onclose = function onclose() {
-				var err;
-
-				if (readable && !readableEnded) {
-					if (!stream._readableState || !stream._readableState.ended)
-						err = new ERR_STREAM_PREMATURE_CLOSE();
-					return callback.call(stream, err);
-				}
-
-				if (writable && !writableEnded) {
-					if (!stream._writableState || !stream._writableState.ended)
-						err = new ERR_STREAM_PREMATURE_CLOSE();
-					return callback.call(stream, err);
-				}
-			};
-
-			var onrequest = function onrequest() {
-				stream.req.on("finish", onfinish);
-			};
-
-			if (isRequest(stream)) {
-				stream.on("complete", onfinish);
-				stream.on("abort", onclose);
-				if (stream.req) onrequest();
-				else stream.on("request", onrequest);
-			} else if (writable && !stream._writableState) {
-				// legacy streams
-				stream.on("end", onlegacyfinish);
-				stream.on("close", onlegacyfinish);
-			}
-
-			stream.on("end", onend);
-			stream.on("finish", onfinish);
-			if (opts.error !== false) stream.on("error", onerror);
-			stream.on("close", onclose);
-			return function () {
-				stream.removeListener("complete", onfinish);
-				stream.removeListener("abort", onclose);
-				stream.removeListener("request", onrequest);
-				if (stream.req) stream.req.removeListener("finish", onfinish);
-				stream.removeListener("end", onlegacyfinish);
-				stream.removeListener("close", onlegacyfinish);
-				stream.removeListener("finish", onfinish);
-				stream.removeListener("end", onend);
-				stream.removeListener("error", onerror);
-				stream.removeListener("close", onclose);
-			};
-		}
-
-		module.exports = eos;
-
-		/***/
-	},
-
-	/***/ 2290: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
-			try {
-				var info = gen[key](arg);
-				var value = info.value;
-			} catch (error) {
-				reject(error);
-				return;
-			}
-			if (info.done) {
-				resolve(value);
-			} else {
-				Promise.resolve(value).then(_next, _throw);
-			}
-		}
-
-		function _asyncToGenerator(fn) {
-			return function () {
-				var self = this,
-					args = arguments;
-				return new Promise(function (resolve, reject) {
-					var gen = fn.apply(self, args);
-					function _next(value) {
-						asyncGeneratorStep(
-							gen,
-							resolve,
-							reject,
-							_next,
-							_throw,
-							"next",
-							value
-						);
-					}
-					function _throw(err) {
-						asyncGeneratorStep(
-							gen,
-							resolve,
-							reject,
-							_next,
-							_throw,
-							"throw",
-							err
-						);
-					}
-					_next(undefined);
-				});
-			};
-		}
-
-		function ownKeys(object, enumerableOnly) {
-			var keys = Object.keys(object);
-			if (Object.getOwnPropertySymbols) {
-				var symbols = Object.getOwnPropertySymbols(object);
-				if (enumerableOnly)
-					symbols = symbols.filter(function (sym) {
-						return Object.getOwnPropertyDescriptor(object, sym).enumerable;
-					});
-				keys.push.apply(keys, symbols);
-			}
-			return keys;
-		}
-
-		function _objectSpread(target) {
-			for (var i = 1; i < arguments.length; i++) {
-				var source = arguments[i] != null ? arguments[i] : {};
-				if (i % 2) {
-					ownKeys(Object(source), true).forEach(function (key) {
-						_defineProperty(target, key, source[key]);
-					});
-				} else if (Object.getOwnPropertyDescriptors) {
-					Object.defineProperties(
-						target,
-						Object.getOwnPropertyDescriptors(source)
-					);
-				} else {
-					ownKeys(Object(source)).forEach(function (key) {
-						Object.defineProperty(
-							target,
-							key,
-							Object.getOwnPropertyDescriptor(source, key)
-						);
-					});
-				}
-			}
-			return target;
-		}
-
-		function _defineProperty(obj, key, value) {
-			if (key in obj) {
-				Object.defineProperty(obj, key, {
-					value: value,
-					enumerable: true,
-					configurable: true,
-					writable: true,
-				});
-			} else {
-				obj[key] = value;
-			}
-			return obj;
-		}
-
-		var ERR_INVALID_ARG_TYPE =
-			__nccwpck_require__(9859) /* .codes.ERR_INVALID_ARG_TYPE */.q
-				.ERR_INVALID_ARG_TYPE;
-
-		function from(Readable, iterable, opts) {
-			var iterator;
-
-			if (iterable && typeof iterable.next === "function") {
-				iterator = iterable;
-			} else if (iterable && iterable[Symbol.asyncIterator])
-				iterator = iterable[Symbol.asyncIterator]();
-			else if (iterable && iterable[Symbol.iterator])
-				iterator = iterable[Symbol.iterator]();
-			else throw new ERR_INVALID_ARG_TYPE("iterable", ["Iterable"], iterable);
-
-			var readable = new Readable(
-				_objectSpread(
-					{
-						objectMode: true,
-					},
-					opts
-				)
-			); // Reading boolean to protect against _read
-			// being called before last iteration completion.
-
-			var reading = false;
-
-			readable._read = function () {
-				if (!reading) {
-					reading = true;
-					next();
-				}
-			};
-
-			function next() {
-				return _next2.apply(this, arguments);
-			}
-
-			function _next2() {
-				_next2 = _asyncToGenerator(function* () {
-					try {
-						var _ref = yield iterator.next(),
-							value = _ref.value,
-							done = _ref.done;
-
-						if (done) {
-							readable.push(null);
-						} else if (readable.push(yield value)) {
-							next();
-						} else {
-							reading = false;
-						}
-					} catch (err) {
-						readable.destroy(err);
-					}
-				});
-				return _next2.apply(this, arguments);
-			}
-
-			return readable;
-		}
-
-		module.exports = from;
-
-		/***/
-	},
-
-	/***/ 3444: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		// Ported from https://github.com/mafintosh/pump with
-		// permission from the author, Mathias Buus (@mafintosh).
-
-		var eos;
-
-		function once(callback) {
-			var called = false;
-			return function () {
-				if (called) return;
-				called = true;
-				callback.apply(void 0, arguments);
-			};
-		}
-
-		var _require$codes = __nccwpck_require__(9859) /* .codes */.q,
-			ERR_MISSING_ARGS = _require$codes.ERR_MISSING_ARGS,
-			ERR_STREAM_DESTROYED = _require$codes.ERR_STREAM_DESTROYED;
-
-		function noop(err) {
-			// Rethrow the error if it exists to avoid swallowing it
-			if (err) throw err;
-		}
-
-		function isRequest(stream) {
-			return stream.setHeader && typeof stream.abort === "function";
-		}
-
-		function destroyer(stream, reading, writing, callback) {
-			callback = once(callback);
-			var closed = false;
-			stream.on("close", function () {
-				closed = true;
-			});
-			if (eos === undefined) eos = __nccwpck_require__(5535);
-			eos(
-				stream,
-				{
-					readable: reading,
-					writable: writing,
-				},
-				function (err) {
-					if (err) return callback(err);
-					closed = true;
-					callback();
-				}
-			);
-			var destroyed = false;
-			return function (err) {
-				if (closed) return;
-				if (destroyed) return;
-				destroyed = true; // request.destroy just do .end - .abort is what we want
-
-				if (isRequest(stream)) return stream.abort();
-				if (typeof stream.destroy === "function") return stream.destroy();
-				callback(err || new ERR_STREAM_DESTROYED("pipe"));
-			};
-		}
-
-		function call(fn) {
-			fn();
-		}
-
-		function pipe(from, to) {
-			return from.pipe(to);
-		}
-
-		function popCallback(streams) {
-			if (!streams.length) return noop;
-			if (typeof streams[streams.length - 1] !== "function") return noop;
-			return streams.pop();
-		}
-
-		function pipeline() {
-			for (
-				var _len = arguments.length, streams = new Array(_len), _key = 0;
-				_key < _len;
-				_key++
-			) {
-				streams[_key] = arguments[_key];
-			}
-
-			var callback = popCallback(streams);
-			if (Array.isArray(streams[0])) streams = streams[0];
-
-			if (streams.length < 2) {
-				throw new ERR_MISSING_ARGS("streams");
-			}
-
-			var error;
-			var destroys = streams.map(function (stream, i) {
-				var reading = i < streams.length - 1;
-				var writing = i > 0;
-				return destroyer(stream, reading, writing, function (err) {
-					if (!error) error = err;
-					if (err) destroys.forEach(call);
-					if (reading) return;
-					destroys.forEach(call);
-					callback(error);
-				});
-			});
-			return streams.reduce(pipe);
-		}
-
-		module.exports = pipeline;
-
-		/***/
-	},
-
-	/***/ 5267: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		var ERR_INVALID_OPT_VALUE =
-			__nccwpck_require__(9859) /* .codes.ERR_INVALID_OPT_VALUE */.q
-				.ERR_INVALID_OPT_VALUE;
-
-		function highWaterMarkFrom(options, isDuplex, duplexKey) {
-			return options.highWaterMark != null
-				? options.highWaterMark
-				: isDuplex
-				? options[duplexKey]
-				: null;
-		}
-
-		function getHighWaterMark(state, options, duplexKey, isDuplex) {
-			var hwm = highWaterMarkFrom(options, isDuplex, duplexKey);
-
-			if (hwm != null) {
-				if (!(isFinite(hwm) && Math.floor(hwm) === hwm) || hwm < 0) {
-					var name = isDuplex ? duplexKey : "highWaterMark";
-					throw new ERR_INVALID_OPT_VALUE(name, hwm);
-				}
-
-				return Math.floor(hwm);
-			} // Default value
-
-			return state.objectMode ? 16 : 16 * 1024;
-		}
-
-		module.exports = {
-			getHighWaterMark: getHighWaterMark,
-		};
-
-		/***/
-	},
-
-	/***/ 4001: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		module.exports = __nccwpck_require__(2781);
-
-		/***/
-	},
-
-	/***/ 5709: /***/ (module, exports, __nccwpck_require__) => {
-		var Stream = __nccwpck_require__(2781);
-		if (process.env.READABLE_STREAM === "disable" && Stream) {
-			module.exports = Stream.Readable;
-			Object.assign(module.exports, Stream);
-			module.exports.Stream = Stream;
-		} else {
-			exports = module.exports = __nccwpck_require__(3522);
-			exports.Stream = Stream || exports;
-			exports.Readable = exports;
-			exports.Writable = __nccwpck_require__(268);
-			exports.Duplex = __nccwpck_require__(8349);
-			exports.Transform = __nccwpck_require__(5152);
-			exports.PassThrough = __nccwpck_require__(9165);
-			exports.finished = __nccwpck_require__(5535);
-			exports.pipeline = __nccwpck_require__(3444);
-		}
+		module.exports = pathKey;
+		// TODO: Remove this for the next major release
+		module.exports["default"] = pathKey;
 
 		/***/
 	},
@@ -43290,7 +39841,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 5955: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+	/***/ 2678: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
 		const ANY = Symbol("SemVer ANY");
 		// hoisted class for cyclic dependency
 		class Comparator {
@@ -43371,6 +39922,13 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 					throw new TypeError("a Comparator is required");
 				}
 
+				if (!options || typeof options !== "object") {
+					options = {
+						loose: !!options,
+						includePrerelease: false,
+					};
+				}
+
 				if (this.operator === "") {
 					if (this.value === "") {
 						return true;
@@ -43383,71 +39941,48 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 					return new Range(this.value, options).test(comp.semver);
 				}
 
-				options = parseOptions(options);
-
-				// Special cases where nothing can possibly be lower
-				if (
-					options.includePrerelease &&
-					(this.value === "<0.0.0-0" || comp.value === "<0.0.0-0")
-				) {
-					return false;
-				}
-				if (
-					!options.includePrerelease &&
-					(this.value.startsWith("<0.0.0") || comp.value.startsWith("<0.0.0"))
-				) {
-					return false;
-				}
-
-				// Same direction increasing (> or >=)
-				if (this.operator.startsWith(">") && comp.operator.startsWith(">")) {
-					return true;
-				}
-				// Same direction decreasing (< or <=)
-				if (this.operator.startsWith("<") && comp.operator.startsWith("<")) {
-					return true;
-				}
-				// same SemVer and both sides are inclusive (<= or >=)
-				if (
-					this.semver.version === comp.semver.version &&
-					this.operator.includes("=") &&
-					comp.operator.includes("=")
-				) {
-					return true;
-				}
-				// opposite directions less than
-				if (
+				const sameDirectionIncreasing =
+					(this.operator === ">=" || this.operator === ">") &&
+					(comp.operator === ">=" || comp.operator === ">");
+				const sameDirectionDecreasing =
+					(this.operator === "<=" || this.operator === "<") &&
+					(comp.operator === "<=" || comp.operator === "<");
+				const sameSemVer = this.semver.version === comp.semver.version;
+				const differentDirectionsInclusive =
+					(this.operator === ">=" || this.operator === "<=") &&
+					(comp.operator === ">=" || comp.operator === "<=");
+				const oppositeDirectionsLessThan =
 					cmp(this.semver, "<", comp.semver, options) &&
-					this.operator.startsWith(">") &&
-					comp.operator.startsWith("<")
-				) {
-					return true;
-				}
-				// opposite directions greater than
-				if (
+					(this.operator === ">=" || this.operator === ">") &&
+					(comp.operator === "<=" || comp.operator === "<");
+				const oppositeDirectionsGreaterThan =
 					cmp(this.semver, ">", comp.semver, options) &&
-					this.operator.startsWith("<") &&
-					comp.operator.startsWith(">")
-				) {
-					return true;
-				}
-				return false;
+					(this.operator === "<=" || this.operator === "<") &&
+					(comp.operator === ">=" || comp.operator === ">");
+
+				return (
+					sameDirectionIncreasing ||
+					sameDirectionDecreasing ||
+					(sameSemVer && differentDirectionsInclusive) ||
+					oppositeDirectionsLessThan ||
+					oppositeDirectionsGreaterThan
+				);
 			}
 		}
 
 		module.exports = Comparator;
 
-		const parseOptions = __nccwpck_require__(9723);
-		const { re, t } = __nccwpck_require__(5041);
-		const cmp = __nccwpck_require__(9401);
-		const debug = __nccwpck_require__(5566);
-		const SemVer = __nccwpck_require__(3215);
-		const Range = __nccwpck_require__(8023);
+		const parseOptions = __nccwpck_require__(6387);
+		const { re, t } = __nccwpck_require__(2471);
+		const cmp = __nccwpck_require__(2685);
+		const debug = __nccwpck_require__(8178);
+		const SemVer = __nccwpck_require__(6907);
+		const Range = __nccwpck_require__(229);
 
 		/***/
 	},
 
-	/***/ 8023: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+	/***/ 229: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
 		// hoisted class for cyclic dependency
 		class Range {
 			constructor(range, options) {
@@ -43531,10 +40066,8 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 
 				// memoize range parsing for performance.
 				// this is a very hot path, and fully deterministic.
-				const memoOpts =
-					(this.options.includePrerelease && FLAG_INCLUDE_PRERELEASE) |
-					(this.options.loose && FLAG_LOOSE);
-				const memoKey = memoOpts + ":" + range;
+				const memoOpts = Object.keys(this.options).join(",");
+				const memoKey = `parseRange:${memoOpts}:${range}`;
 				const cached = cache.get(memoKey);
 				if (cached) {
 					return cached;
@@ -43647,19 +40180,17 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 				return false;
 			}
 		}
-
 		module.exports = Range;
 
 		const LRU = __nccwpck_require__(4965);
 		const cache = new LRU({ max: 1000 });
 
-		const parseOptions = __nccwpck_require__(9723);
-		const Comparator = __nccwpck_require__(5955);
-		const debug = __nccwpck_require__(5566);
-		const SemVer = __nccwpck_require__(3215);
+		const parseOptions = __nccwpck_require__(6387);
+		const Comparator = __nccwpck_require__(2678);
+		const debug = __nccwpck_require__(8178);
+		const SemVer = __nccwpck_require__(6907);
 		const { re, t, comparatorTrimReplace, tildeTrimReplace, caretTrimReplace } =
-			__nccwpck_require__(5041);
-		const { FLAG_INCLUDE_PRERELEASE, FLAG_LOOSE } = __nccwpck_require__(886);
+			__nccwpck_require__(2471);
 
 		const isNullSet = (c) => c.value === "<0.0.0-0";
 		const isAny = (c) => c.value === "";
@@ -43982,13 +40513,13 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 3215: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const debug = __nccwpck_require__(5566);
-		const { MAX_LENGTH, MAX_SAFE_INTEGER } = __nccwpck_require__(886);
-		const { re, t } = __nccwpck_require__(5041);
+	/***/ 6907: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const debug = __nccwpck_require__(8178);
+		const { MAX_LENGTH, MAX_SAFE_INTEGER } = __nccwpck_require__(6243);
+		const { re, t } = __nccwpck_require__(2471);
 
-		const parseOptions = __nccwpck_require__(9723);
-		const { compareIdentifiers } = __nccwpck_require__(2741);
+		const parseOptions = __nccwpck_require__(6387);
+		const { compareIdentifiers } = __nccwpck_require__(7438);
 		class SemVer {
 			constructor(version, options) {
 				options = parseOptions(options);
@@ -44003,9 +40534,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 						version = version.version;
 					}
 				} else if (typeof version !== "string") {
-					throw new TypeError(
-						`Invalid Version: ${__nccwpck_require__(3837).inspect(version)}`
-					);
+					throw new TypeError(`Invalid Version: ${version}`);
 				}
 
 				if (version.length > MAX_LENGTH) {
@@ -44166,36 +40695,36 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 
 			// preminor will bump the version up to the next minor release, and immediately
 			// down to pre-release. premajor and prepatch work the same way.
-			inc(release, identifier, identifierBase) {
+			inc(release, identifier) {
 				switch (release) {
 					case "premajor":
 						this.prerelease.length = 0;
 						this.patch = 0;
 						this.minor = 0;
 						this.major++;
-						this.inc("pre", identifier, identifierBase);
+						this.inc("pre", identifier);
 						break;
 					case "preminor":
 						this.prerelease.length = 0;
 						this.patch = 0;
 						this.minor++;
-						this.inc("pre", identifier, identifierBase);
+						this.inc("pre", identifier);
 						break;
 					case "prepatch":
 						// If this is already a prerelease, it will bump to the next version
 						// drop any prereleases that might already exist, since they are not
 						// relevant at this point.
 						this.prerelease.length = 0;
-						this.inc("patch", identifier, identifierBase);
-						this.inc("pre", identifier, identifierBase);
+						this.inc("patch", identifier);
+						this.inc("pre", identifier);
 						break;
 					// If the input is a non-prerelease version, this acts the same as
 					// prepatch.
 					case "prerelease":
 						if (this.prerelease.length === 0) {
-							this.inc("patch", identifier, identifierBase);
+							this.inc("patch", identifier);
 						}
-						this.inc("pre", identifier, identifierBase);
+						this.inc("pre", identifier);
 						break;
 
 					case "major":
@@ -44237,17 +40766,9 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 						break;
 					// This probably shouldn't be used publicly.
 					// 1.0.0 'pre' would become 1.0.0-0 which is the wrong direction.
-					case "pre": {
-						const base = Number(identifierBase) ? 1 : 0;
-
-						if (!identifier && identifierBase === false) {
-							throw new Error(
-								"invalid increment argument: identifier is empty"
-							);
-						}
-
+					case "pre":
 						if (this.prerelease.length === 0) {
-							this.prerelease = [base];
+							this.prerelease = [0];
 						} else {
 							let i = this.prerelease.length;
 							while (--i >= 0) {
@@ -44258,34 +40779,22 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 							}
 							if (i === -1) {
 								// didn't increment anything
-								if (
-									identifier === this.prerelease.join(".") &&
-									identifierBase === false
-								) {
-									throw new Error(
-										"invalid increment argument: identifier already exists"
-									);
-								}
-								this.prerelease.push(base);
+								this.prerelease.push(0);
 							}
 						}
 						if (identifier) {
 							// 1.2.0-beta.1 bumps to 1.2.0-beta.2,
 							// 1.2.0-beta.fooblz or 1.2.0-beta bumps to 1.2.0-beta.0
-							let prerelease = [identifier, base];
-							if (identifierBase === false) {
-								prerelease = [identifier];
-							}
 							if (compareIdentifiers(this.prerelease[0], identifier) === 0) {
 								if (isNaN(this.prerelease[1])) {
-									this.prerelease = prerelease;
+									this.prerelease = [identifier, 0];
 								}
 							} else {
-								this.prerelease = prerelease;
+								this.prerelease = [identifier, 0];
 							}
 						}
 						break;
-					}
+
 					default:
 						throw new Error(`invalid increment argument: ${release}`);
 				}
@@ -44300,8 +40809,8 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 8773: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const parse = __nccwpck_require__(3818);
+	/***/ 3942: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const parse = __nccwpck_require__(8486);
 		const clean = (version, options) => {
 			const s = parse(version.trim().replace(/^[=v]+/, ""), options);
 			return s ? s.version : null;
@@ -44311,13 +40820,13 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 9401: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const eq = __nccwpck_require__(3315);
-		const neq = __nccwpck_require__(1831);
-		const gt = __nccwpck_require__(562);
-		const gte = __nccwpck_require__(6650);
-		const lt = __nccwpck_require__(1417);
-		const lte = __nccwpck_require__(7545);
+	/***/ 2685: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const eq = __nccwpck_require__(1816);
+		const neq = __nccwpck_require__(1628);
+		const gt = __nccwpck_require__(2848);
+		const gte = __nccwpck_require__(2120);
+		const lt = __nccwpck_require__(9192);
+		const lte = __nccwpck_require__(3003);
 
 		const cmp = (a, op, b, loose) => {
 			switch (op) {
@@ -44368,10 +40877,10 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 2431: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const SemVer = __nccwpck_require__(3215);
-		const parse = __nccwpck_require__(3818);
-		const { re, t } = __nccwpck_require__(5041);
+	/***/ 4519: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const SemVer = __nccwpck_require__(6907);
+		const parse = __nccwpck_require__(8486);
+		const { re, t } = __nccwpck_require__(2471);
 
 		const coerce = (version, options) => {
 			if (version instanceof SemVer) {
@@ -44432,8 +40941,8 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 4562: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const SemVer = __nccwpck_require__(3215);
+	/***/ 9216: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const SemVer = __nccwpck_require__(6907);
 		const compareBuild = (a, b, loose) => {
 			const versionA = new SemVer(a, loose);
 			const versionB = new SemVer(b, loose);
@@ -44444,16 +40953,16 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 1213: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const compare = __nccwpck_require__(2812);
+	/***/ 9233: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const compare = __nccwpck_require__(6437);
 		const compareLoose = (a, b) => compare(a, b, true);
 		module.exports = compareLoose;
 
 		/***/
 	},
 
-	/***/ 2812: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const SemVer = __nccwpck_require__(3215);
+	/***/ 6437: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const SemVer = __nccwpck_require__(6907);
 		const compare = (a, b, loose) =>
 			new SemVer(a, loose).compare(new SemVer(b, loose));
 
@@ -44462,95 +40971,63 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 9385: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const parse = __nccwpck_require__(3818);
+	/***/ 2377: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const parse = __nccwpck_require__(8486);
+		const eq = __nccwpck_require__(1816);
 
 		const diff = (version1, version2) => {
-			const v1 = parse(version1, null, true);
-			const v2 = parse(version2, null, true);
-			const comparison = v1.compare(v2);
-
-			if (comparison === 0) {
+			if (eq(version1, version2)) {
 				return null;
+			} else {
+				const v1 = parse(version1);
+				const v2 = parse(version2);
+				const hasPre = v1.prerelease.length || v2.prerelease.length;
+				const prefix = hasPre ? "pre" : "";
+				const defaultResult = hasPre ? "prerelease" : "";
+				for (const key in v1) {
+					if (key === "major" || key === "minor" || key === "patch") {
+						if (v1[key] !== v2[key]) {
+							return prefix + key;
+						}
+					}
+				}
+				return defaultResult; // may be undefined
 			}
-
-			const v1Higher = comparison > 0;
-			const highVersion = v1Higher ? v1 : v2;
-			const lowVersion = v1Higher ? v2 : v1;
-			const highHasPre = !!highVersion.prerelease.length;
-
-			// add the `pre` prefix if we are going to a prerelease version
-			const prefix = highHasPre ? "pre" : "";
-
-			if (v1.major !== v2.major) {
-				return prefix + "major";
-			}
-
-			if (v1.minor !== v2.minor) {
-				return prefix + "minor";
-			}
-
-			if (v1.patch !== v2.patch) {
-				return prefix + "patch";
-			}
-
-			// at this point we know stable versions match but overall versions are not equal,
-			// so either they are both prereleases, or the lower version is a prerelease
-
-			if (highHasPre) {
-				// high and low are preleases
-				return "prerelease";
-			}
-
-			if (lowVersion.patch) {
-				// anything higher than a patch bump would result in the wrong version
-				return "patch";
-			}
-
-			if (lowVersion.minor) {
-				// anything higher than a minor bump would result in the wrong version
-				return "minor";
-			}
-
-			// bumping major/minor/patch all have same result
-			return "major";
 		};
-
 		module.exports = diff;
 
 		/***/
 	},
 
-	/***/ 3315: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const compare = __nccwpck_require__(2812);
+	/***/ 1816: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const compare = __nccwpck_require__(6437);
 		const eq = (a, b, loose) => compare(a, b, loose) === 0;
 		module.exports = eq;
 
 		/***/
 	},
 
-	/***/ 562: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const compare = __nccwpck_require__(2812);
+	/***/ 2848: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const compare = __nccwpck_require__(6437);
 		const gt = (a, b, loose) => compare(a, b, loose) > 0;
 		module.exports = gt;
 
 		/***/
 	},
 
-	/***/ 6650: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const compare = __nccwpck_require__(2812);
+	/***/ 2120: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const compare = __nccwpck_require__(6437);
 		const gte = (a, b, loose) => compare(a, b, loose) >= 0;
 		module.exports = gte;
 
 		/***/
 	},
 
-	/***/ 2344: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const SemVer = __nccwpck_require__(3215);
+	/***/ 1132: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const SemVer = __nccwpck_require__(6907);
 
-		const inc = (version, release, options, identifier, identifierBase) => {
+		const inc = (version, release, options, identifier) => {
 			if (typeof options === "string") {
-				identifierBase = identifier;
 				identifier = options;
 				options = undefined;
 			}
@@ -44559,7 +41036,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 				return new SemVer(
 					version instanceof SemVer ? version.version : version,
 					options
-				).inc(release, identifier, identifierBase).version;
+				).inc(release, identifier).version;
 			} catch (er) {
 				return null;
 			}
@@ -44569,59 +41046,76 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 1417: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const compare = __nccwpck_require__(2812);
+	/***/ 9192: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const compare = __nccwpck_require__(6437);
 		const lt = (a, b, loose) => compare(a, b, loose) < 0;
 		module.exports = lt;
 
 		/***/
 	},
 
-	/***/ 7545: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const compare = __nccwpck_require__(2812);
+	/***/ 3003: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const compare = __nccwpck_require__(6437);
 		const lte = (a, b, loose) => compare(a, b, loose) <= 0;
 		module.exports = lte;
 
 		/***/
 	},
 
-	/***/ 7867: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const SemVer = __nccwpck_require__(3215);
+	/***/ 4011: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const SemVer = __nccwpck_require__(6907);
 		const major = (a, loose) => new SemVer(a, loose).major;
 		module.exports = major;
 
 		/***/
 	},
 
-	/***/ 6670: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const SemVer = __nccwpck_require__(3215);
+	/***/ 9575: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const SemVer = __nccwpck_require__(6907);
 		const minor = (a, loose) => new SemVer(a, loose).minor;
 		module.exports = minor;
 
 		/***/
 	},
 
-	/***/ 1831: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const compare = __nccwpck_require__(2812);
+	/***/ 1628: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const compare = __nccwpck_require__(6437);
 		const neq = (a, b, loose) => compare(a, b, loose) !== 0;
 		module.exports = neq;
 
 		/***/
 	},
 
-	/***/ 3818: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const SemVer = __nccwpck_require__(3215);
-		const parse = (version, options, throwErrors = false) => {
+	/***/ 8486: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const { MAX_LENGTH } = __nccwpck_require__(6243);
+		const { re, t } = __nccwpck_require__(2471);
+		const SemVer = __nccwpck_require__(6907);
+
+		const parseOptions = __nccwpck_require__(6387);
+		const parse = (version, options) => {
+			options = parseOptions(options);
+
 			if (version instanceof SemVer) {
 				return version;
 			}
+
+			if (typeof version !== "string") {
+				return null;
+			}
+
+			if (version.length > MAX_LENGTH) {
+				return null;
+			}
+
+			const r = options.loose ? re[t.LOOSE] : re[t.FULL];
+			if (!r.test(version)) {
+				return null;
+			}
+
 			try {
 				return new SemVer(version, options);
 			} catch (er) {
-				if (!throwErrors) {
-					return null;
-				}
-				throw er;
+				return null;
 			}
 		};
 
@@ -44630,16 +41124,16 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 4030: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const SemVer = __nccwpck_require__(3215);
+	/***/ 268: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const SemVer = __nccwpck_require__(6907);
 		const patch = (a, loose) => new SemVer(a, loose).patch;
 		module.exports = patch;
 
 		/***/
 	},
 
-	/***/ 7281: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const parse = __nccwpck_require__(3818);
+	/***/ 7795: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const parse = __nccwpck_require__(8486);
 		const prerelease = (version, options) => {
 			const parsed = parse(version, options);
 			return parsed && parsed.prerelease.length ? parsed.prerelease : null;
@@ -44649,16 +41143,16 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 3302: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const compare = __nccwpck_require__(2812);
+	/***/ 7998: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const compare = __nccwpck_require__(6437);
 		const rcompare = (a, b, loose) => compare(b, a, loose);
 		module.exports = rcompare;
 
 		/***/
 	},
 
-	/***/ 7280: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const compareBuild = __nccwpck_require__(4562);
+	/***/ 4536: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const compareBuild = __nccwpck_require__(9216);
 		const rsort = (list, loose) =>
 			list.sort((a, b) => compareBuild(b, a, loose));
 		module.exports = rsort;
@@ -44666,8 +41160,8 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 6495: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const Range = __nccwpck_require__(8023);
+	/***/ 9693: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const Range = __nccwpck_require__(229);
 		const satisfies = (version, range, options) => {
 			try {
 				range = new Range(range, options);
@@ -44681,8 +41175,8 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 1429: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const compareBuild = __nccwpck_require__(4562);
+	/***/ 9742: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const compareBuild = __nccwpck_require__(9216);
 		const sort = (list, loose) =>
 			list.sort((a, b) => compareBuild(a, b, loose));
 		module.exports = sort;
@@ -44690,8 +41184,8 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 7185: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const parse = __nccwpck_require__(3818);
+	/***/ 2355: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const parse = __nccwpck_require__(8486);
 		const valid = (version, options) => {
 			const v = parse(version, options);
 			return v ? v.version : null;
@@ -44701,49 +41195,49 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 815: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+	/***/ 9290: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
 		// just pre-load all the stuff that index.js lazily exports
-		const internalRe = __nccwpck_require__(5041);
-		const constants = __nccwpck_require__(886);
-		const SemVer = __nccwpck_require__(3215);
-		const identifiers = __nccwpck_require__(2741);
-		const parse = __nccwpck_require__(3818);
-		const valid = __nccwpck_require__(7185);
-		const clean = __nccwpck_require__(8773);
-		const inc = __nccwpck_require__(2344);
-		const diff = __nccwpck_require__(9385);
-		const major = __nccwpck_require__(7867);
-		const minor = __nccwpck_require__(6670);
-		const patch = __nccwpck_require__(4030);
-		const prerelease = __nccwpck_require__(7281);
-		const compare = __nccwpck_require__(2812);
-		const rcompare = __nccwpck_require__(3302);
-		const compareLoose = __nccwpck_require__(1213);
-		const compareBuild = __nccwpck_require__(4562);
-		const sort = __nccwpck_require__(1429);
-		const rsort = __nccwpck_require__(7280);
-		const gt = __nccwpck_require__(562);
-		const lt = __nccwpck_require__(1417);
-		const eq = __nccwpck_require__(3315);
-		const neq = __nccwpck_require__(1831);
-		const gte = __nccwpck_require__(6650);
-		const lte = __nccwpck_require__(7545);
-		const cmp = __nccwpck_require__(9401);
-		const coerce = __nccwpck_require__(2431);
-		const Comparator = __nccwpck_require__(5955);
-		const Range = __nccwpck_require__(8023);
-		const satisfies = __nccwpck_require__(6495);
-		const toComparators = __nccwpck_require__(6479);
-		const maxSatisfying = __nccwpck_require__(7024);
-		const minSatisfying = __nccwpck_require__(8252);
-		const minVersion = __nccwpck_require__(7234);
-		const validRange = __nccwpck_require__(4226);
-		const outside = __nccwpck_require__(1581);
-		const gtr = __nccwpck_require__(5774);
-		const ltr = __nccwpck_require__(4955);
-		const intersects = __nccwpck_require__(7916);
-		const simplifyRange = __nccwpck_require__(1144);
-		const subset = __nccwpck_require__(7464);
+		const internalRe = __nccwpck_require__(2471);
+		const constants = __nccwpck_require__(6243);
+		const SemVer = __nccwpck_require__(6907);
+		const identifiers = __nccwpck_require__(7438);
+		const parse = __nccwpck_require__(8486);
+		const valid = __nccwpck_require__(2355);
+		const clean = __nccwpck_require__(3942);
+		const inc = __nccwpck_require__(1132);
+		const diff = __nccwpck_require__(2377);
+		const major = __nccwpck_require__(4011);
+		const minor = __nccwpck_require__(9575);
+		const patch = __nccwpck_require__(268);
+		const prerelease = __nccwpck_require__(7795);
+		const compare = __nccwpck_require__(6437);
+		const rcompare = __nccwpck_require__(7998);
+		const compareLoose = __nccwpck_require__(9233);
+		const compareBuild = __nccwpck_require__(9216);
+		const sort = __nccwpck_require__(9742);
+		const rsort = __nccwpck_require__(4536);
+		const gt = __nccwpck_require__(2848);
+		const lt = __nccwpck_require__(9192);
+		const eq = __nccwpck_require__(1816);
+		const neq = __nccwpck_require__(1628);
+		const gte = __nccwpck_require__(2120);
+		const lte = __nccwpck_require__(3003);
+		const cmp = __nccwpck_require__(2685);
+		const coerce = __nccwpck_require__(4519);
+		const Comparator = __nccwpck_require__(2678);
+		const Range = __nccwpck_require__(229);
+		const satisfies = __nccwpck_require__(9693);
+		const toComparators = __nccwpck_require__(1528);
+		const maxSatisfying = __nccwpck_require__(685);
+		const minSatisfying = __nccwpck_require__(8868);
+		const minVersion = __nccwpck_require__(2729);
+		const validRange = __nccwpck_require__(9273);
+		const outside = __nccwpck_require__(2566);
+		const gtr = __nccwpck_require__(9853);
+		const ltr = __nccwpck_require__(2583);
+		const intersects = __nccwpck_require__(4029);
+		const simplifyRange = __nccwpck_require__(8559);
+		const subset = __nccwpck_require__(4450);
 		module.exports = {
 			parse,
 			valid,
@@ -44787,7 +41281,6 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 			src: internalRe.src,
 			tokens: internalRe.t,
 			SEMVER_SPEC_VERSION: constants.SEMVER_SPEC_VERSION,
-			RELEASE_TYPES: constants.RELEASE_TYPES,
 			compareIdentifiers: identifiers.compareIdentifiers,
 			rcompareIdentifiers: identifiers.rcompareIdentifiers,
 		};
@@ -44795,7 +41288,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 886: /***/ (module) => {
+	/***/ 6243: /***/ (module) => {
 		// Note: this is the semver.org version of the spec that it implements
 		// Not necessarily the package version of this code.
 		const SEMVER_SPEC_VERSION = "2.0.0";
@@ -44807,30 +41300,17 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		// Max safe segment length for coercion.
 		const MAX_SAFE_COMPONENT_LENGTH = 16;
 
-		const RELEASE_TYPES = [
-			"major",
-			"premajor",
-			"minor",
-			"preminor",
-			"patch",
-			"prepatch",
-			"prerelease",
-		];
-
 		module.exports = {
-			MAX_LENGTH,
-			MAX_SAFE_COMPONENT_LENGTH,
-			MAX_SAFE_INTEGER,
-			RELEASE_TYPES,
 			SEMVER_SPEC_VERSION,
-			FLAG_INCLUDE_PRERELEASE: 0b001,
-			FLAG_LOOSE: 0b010,
+			MAX_LENGTH,
+			MAX_SAFE_INTEGER,
+			MAX_SAFE_COMPONENT_LENGTH,
 		};
 
 		/***/
 	},
 
-	/***/ 5566: /***/ (module) => {
+	/***/ 8178: /***/ (module) => {
 		const debug =
 			typeof process === "object" &&
 			process.env &&
@@ -44844,7 +41324,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 2741: /***/ (module) => {
+	/***/ 7438: /***/ (module) => {
 		const numeric = /^[0-9]+$/;
 		const compareIdentifiers = (a, b) => {
 			const anum = numeric.test(a);
@@ -44876,29 +41356,29 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 9723: /***/ (module) => {
-		// parse out just the options we care about
-		const looseOption = Object.freeze({ loose: true });
-		const emptyOpts = Object.freeze({});
-		const parseOptions = (options) => {
-			if (!options) {
-				return emptyOpts;
-			}
-
-			if (typeof options !== "object") {
-				return looseOption;
-			}
-
-			return options;
-		};
+	/***/ 6387: /***/ (module) => {
+		// parse out just the options we care about so we always get a consistent
+		// obj with keys in a consistent order.
+		const opts = ["includePrerelease", "loose", "rtl"];
+		const parseOptions = (options) =>
+			!options
+				? {}
+				: typeof options !== "object"
+				? { loose: true }
+				: opts
+						.filter((k) => options[k])
+						.reduce((o, k) => {
+							o[k] = true;
+							return o;
+						}, {});
 		module.exports = parseOptions;
 
 		/***/
 	},
 
-	/***/ 5041: /***/ (module, exports, __nccwpck_require__) => {
-		const { MAX_SAFE_COMPONENT_LENGTH } = __nccwpck_require__(886);
-		const debug = __nccwpck_require__(5566);
+	/***/ 2471: /***/ (module, exports, __nccwpck_require__) => {
+		const { MAX_SAFE_COMPONENT_LENGTH } = __nccwpck_require__(6243);
+		const debug = __nccwpck_require__(8178);
 		exports = module.exports = {};
 
 		// The actual regexps go on exports.re
@@ -45137,9 +41617,9 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 5774: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+	/***/ 9853: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
 		// Determine if version is greater than all the versions possible in the range.
-		const outside = __nccwpck_require__(1581);
+		const outside = __nccwpck_require__(2566);
 		const gtr = (version, range, options) =>
 			outside(version, range, ">", options);
 		module.exports = gtr;
@@ -45147,20 +41627,20 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 7916: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const Range = __nccwpck_require__(8023);
+	/***/ 4029: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const Range = __nccwpck_require__(229);
 		const intersects = (r1, r2, options) => {
 			r1 = new Range(r1, options);
 			r2 = new Range(r2, options);
-			return r1.intersects(r2, options);
+			return r1.intersects(r2);
 		};
 		module.exports = intersects;
 
 		/***/
 	},
 
-	/***/ 4955: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const outside = __nccwpck_require__(1581);
+	/***/ 2583: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const outside = __nccwpck_require__(2566);
 		// Determine if version is less than all the versions possible in the range
 		const ltr = (version, range, options) =>
 			outside(version, range, "<", options);
@@ -45169,9 +41649,9 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 7024: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const SemVer = __nccwpck_require__(3215);
-		const Range = __nccwpck_require__(8023);
+	/***/ 685: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const SemVer = __nccwpck_require__(6907);
+		const Range = __nccwpck_require__(229);
 
 		const maxSatisfying = (versions, range, options) => {
 			let max = null;
@@ -45199,9 +41679,9 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 8252: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const SemVer = __nccwpck_require__(3215);
-		const Range = __nccwpck_require__(8023);
+	/***/ 8868: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const SemVer = __nccwpck_require__(6907);
+		const Range = __nccwpck_require__(229);
 		const minSatisfying = (versions, range, options) => {
 			let min = null;
 			let minSV = null;
@@ -45228,10 +41708,10 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 7234: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const SemVer = __nccwpck_require__(3215);
-		const Range = __nccwpck_require__(8023);
-		const gt = __nccwpck_require__(562);
+	/***/ 2729: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const SemVer = __nccwpck_require__(6907);
+		const Range = __nccwpck_require__(229);
+		const gt = __nccwpck_require__(2848);
 
 		const minVersion = (range, loose) => {
 			range = new Range(range, loose);
@@ -45294,16 +41774,16 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 1581: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const SemVer = __nccwpck_require__(3215);
-		const Comparator = __nccwpck_require__(5955);
+	/***/ 2566: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const SemVer = __nccwpck_require__(6907);
+		const Comparator = __nccwpck_require__(2678);
 		const { ANY } = Comparator;
-		const Range = __nccwpck_require__(8023);
-		const satisfies = __nccwpck_require__(6495);
-		const gt = __nccwpck_require__(562);
-		const lt = __nccwpck_require__(1417);
-		const lte = __nccwpck_require__(7545);
-		const gte = __nccwpck_require__(6650);
+		const Range = __nccwpck_require__(229);
+		const satisfies = __nccwpck_require__(9693);
+		const gt = __nccwpck_require__(2848);
+		const lt = __nccwpck_require__(9192);
+		const lte = __nccwpck_require__(3003);
+		const gte = __nccwpck_require__(2120);
 
 		const outside = (version, range, hilo, options) => {
 			version = new SemVer(version, options);
@@ -45381,12 +41861,12 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 1144: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+	/***/ 8559: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
 		// given a set of versions and a range, create a "simplified" range
 		// that includes the same versions that the original range does
 		// If the original range is shorter than the simplified one, return that.
-		const satisfies = __nccwpck_require__(6495);
-		const compare = __nccwpck_require__(2812);
+		const satisfies = __nccwpck_require__(9693);
+		const compare = __nccwpck_require__(6437);
 		module.exports = (versions, range, options) => {
 			const set = [];
 			let first = null;
@@ -45434,12 +41914,12 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 7464: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const Range = __nccwpck_require__(8023);
-		const Comparator = __nccwpck_require__(5955);
+	/***/ 4450: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const Range = __nccwpck_require__(229);
+		const Comparator = __nccwpck_require__(2678);
 		const { ANY } = Comparator;
-		const satisfies = __nccwpck_require__(6495);
-		const compare = __nccwpck_require__(2812);
+		const satisfies = __nccwpck_require__(9693);
+		const compare = __nccwpck_require__(6437);
 
 		// Complex range `r1 || r2 || ...` is a subset of `R1 || R2 || ...` iff:
 		// - Every simple range `r1, r2, ...` is a null set, OR
@@ -45505,9 +41985,6 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 			return true;
 		};
 
-		const minimumVersionWithPreRelease = [new Comparator(">=0.0.0-0")];
-		const minimumVersion = [new Comparator(">=0.0.0")];
-
 		const simpleSubset = (sub, dom, options) => {
 			if (sub === dom) {
 				return true;
@@ -45517,9 +41994,9 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 				if (dom.length === 1 && dom[0].semver === ANY) {
 					return true;
 				} else if (options.includePrerelease) {
-					sub = minimumVersionWithPreRelease;
+					sub = [new Comparator(">=0.0.0-0")];
 				} else {
-					sub = minimumVersion;
+					sub = [new Comparator(">=0.0.0")];
 				}
 			}
 
@@ -45527,7 +42004,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 				if (options.includePrerelease) {
 					return true;
 				} else {
-					dom = minimumVersion;
+					dom = [new Comparator(">=0.0.0")];
 				}
 			}
 
@@ -45713,8 +42190,8 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 6479: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const Range = __nccwpck_require__(8023);
+	/***/ 1528: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const Range = __nccwpck_require__(229);
 
 		// Mostly just for testing and legacy API reasons
 		const toComparators = (range, options) =>
@@ -45731,8 +42208,8 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 4226: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const Range = __nccwpck_require__(8023);
+	/***/ 9273: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const Range = __nccwpck_require__(229);
 		const validRange = (range, options) => {
 			try {
 				// Return '*' instead of '' so that truthiness works.
@@ -45747,422 +42224,298 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 515: /***/ (__unused_webpack_module, exports, __nccwpck_require__) => {
-		// Copyright Joyent, Inc. and other Node contributors.
-		//
-		// Permission is hereby granted, free of charge, to any person obtaining a
-		// copy of this software and associated documentation files (the
-		// "Software"), to deal in the Software without restriction, including
-		// without limitation the rights to use, copy, modify, merge, publish,
-		// distribute, sublicense, and/or sell copies of the Software, and to permit
-		// persons to whom the Software is furnished to do so, subject to the
-		// following conditions:
-		//
-		// The above copyright notice and this permission notice shall be included
-		// in all copies or substantial portions of the Software.
-		//
-		// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-		// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-		// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-		// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-		// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-		// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-		// USE OR OTHER DEALINGS IN THE SOFTWARE.
+	/***/ 5382: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const shebangRegex = __nccwpck_require__(11);
 
-		/*<replacement>*/
+		module.exports = (string = "") => {
+			const match = string.match(shebangRegex);
 
-		var Buffer = __nccwpck_require__(6053).Buffer;
-		/*</replacement>*/
+			if (!match) {
+				return null;
+			}
 
-		var isEncoding =
-			Buffer.isEncoding ||
-			function (encoding) {
-				encoding = "" + encoding;
-				switch (encoding && encoding.toLowerCase()) {
-					case "hex":
-					case "utf8":
-					case "utf-8":
-					case "ascii":
-					case "binary":
-					case "base64":
-					case "ucs2":
-					case "ucs-2":
-					case "utf16le":
-					case "utf-16le":
-					case "raw":
-						return true;
-					default:
-						return false;
+			const [path, argument] = match[0].replace(/#! ?/, "").split(" ");
+			const binary = path.split("/").pop();
+
+			if (binary === "env") {
+				return argument;
+			}
+
+			return argument ? `${binary} ${argument}` : binary;
+		};
+
+		/***/
+	},
+
+	/***/ 11: /***/ (module) => {
+		module.exports = /^#!(.*)/;
+
+		/***/
+	},
+
+	/***/ 3289: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		// Note: since nyc uses this module to output coverage, any lines
+		// that are in the direct sync flow of nyc's outputCoverage are
+		// ignored, since we can never get coverage for them.
+		// grab a reference to node's real process object right away
+		var process = global.process;
+
+		const processOk = function (process) {
+			return (
+				process &&
+				typeof process === "object" &&
+				typeof process.removeListener === "function" &&
+				typeof process.emit === "function" &&
+				typeof process.reallyExit === "function" &&
+				typeof process.listeners === "function" &&
+				typeof process.kill === "function" &&
+				typeof process.pid === "number" &&
+				typeof process.on === "function"
+			);
+		};
+
+		// some kind of non-node environment, just no-op
+		/* istanbul ignore if */
+		if (!processOk(process)) {
+			module.exports = function () {
+				return function () {};
+			};
+		} else {
+			var assert = __nccwpck_require__(9491);
+			var signals = __nccwpck_require__(3789);
+			var isWin = /^win/i.test(process.platform);
+
+			var EE = __nccwpck_require__(2361);
+			/* istanbul ignore if */
+			if (typeof EE !== "function") {
+				EE = EE.EventEmitter;
+			}
+
+			var emitter;
+			if (process.__signal_exit_emitter__) {
+				emitter = process.__signal_exit_emitter__;
+			} else {
+				emitter = process.__signal_exit_emitter__ = new EE();
+				emitter.count = 0;
+				emitter.emitted = {};
+			}
+
+			// Because this emitter is a global, we have to check to see if a
+			// previous version of this library failed to enable infinite listeners.
+			// I know what you're about to say.  But literally everything about
+			// signal-exit is a compromise with evil.  Get used to it.
+			if (!emitter.infinite) {
+				emitter.setMaxListeners(Infinity);
+				emitter.infinite = true;
+			}
+
+			module.exports = function (cb, opts) {
+				/* istanbul ignore if */
+				if (!processOk(global.process)) {
+					return function () {};
 				}
+				assert.equal(
+					typeof cb,
+					"function",
+					"a callback must be provided for exit handler"
+				);
+
+				if (loaded === false) {
+					load();
+				}
+
+				var ev = "exit";
+				if (opts && opts.alwaysLast) {
+					ev = "afterexit";
+				}
+
+				var remove = function () {
+					emitter.removeListener(ev, cb);
+					if (
+						emitter.listeners("exit").length === 0 &&
+						emitter.listeners("afterexit").length === 0
+					) {
+						unload();
+					}
+				};
+				emitter.on(ev, cb);
+
+				return remove;
 			};
 
-		function _normalizeEncoding(enc) {
-			if (!enc) return "utf8";
-			var retried;
-			while (true) {
-				switch (enc) {
-					case "utf8":
-					case "utf-8":
-						return "utf8";
-					case "ucs2":
-					case "ucs-2":
-					case "utf16le":
-					case "utf-16le":
-						return "utf16le";
-					case "latin1":
-					case "binary":
-						return "latin1";
-					case "base64":
-					case "ascii":
-					case "hex":
-						return enc;
-					default:
-						if (retried) return; // undefined
-						enc = ("" + enc).toLowerCase();
-						retried = true;
-				}
-			}
-		}
-
-		// Do not cache `Buffer.isEncoding` when checking encoding names as some
-		// modules monkey-patch it to support additional encodings
-		function normalizeEncoding(enc) {
-			var nenc = _normalizeEncoding(enc);
-			if (
-				typeof nenc !== "string" &&
-				(Buffer.isEncoding === isEncoding || !isEncoding(enc))
-			)
-				throw new Error("Unknown encoding: " + enc);
-			return nenc || enc;
-		}
-
-		// StringDecoder provides an interface for efficiently splitting a series of
-		// buffers into a series of JS strings without breaking apart multi-byte
-		// characters.
-		exports.s = StringDecoder;
-		function StringDecoder(encoding) {
-			this.encoding = normalizeEncoding(encoding);
-			var nb;
-			switch (this.encoding) {
-				case "utf16le":
-					this.text = utf16Text;
-					this.end = utf16End;
-					nb = 4;
-					break;
-				case "utf8":
-					this.fillLast = utf8FillLast;
-					nb = 4;
-					break;
-				case "base64":
-					this.text = base64Text;
-					this.end = base64End;
-					nb = 3;
-					break;
-				default:
-					this.write = simpleWrite;
-					this.end = simpleEnd;
+			var unload = function unload() {
+				if (!loaded || !processOk(global.process)) {
 					return;
-			}
-			this.lastNeed = 0;
-			this.lastTotal = 0;
-			this.lastChar = Buffer.allocUnsafe(nb);
-		}
-
-		StringDecoder.prototype.write = function (buf) {
-			if (buf.length === 0) return "";
-			var r;
-			var i;
-			if (this.lastNeed) {
-				r = this.fillLast(buf);
-				if (r === undefined) return "";
-				i = this.lastNeed;
-				this.lastNeed = 0;
-			} else {
-				i = 0;
-			}
-			if (i < buf.length) return r ? r + this.text(buf, i) : this.text(buf, i);
-			return r || "";
-		};
-
-		StringDecoder.prototype.end = utf8End;
-
-		// Returns only complete characters in a Buffer
-		StringDecoder.prototype.text = utf8Text;
-
-		// Attempts to complete a partial non-UTF-8 character using bytes from a Buffer
-		StringDecoder.prototype.fillLast = function (buf) {
-			if (this.lastNeed <= buf.length) {
-				buf.copy(
-					this.lastChar,
-					this.lastTotal - this.lastNeed,
-					0,
-					this.lastNeed
-				);
-				return this.lastChar.toString(this.encoding, 0, this.lastTotal);
-			}
-			buf.copy(this.lastChar, this.lastTotal - this.lastNeed, 0, buf.length);
-			this.lastNeed -= buf.length;
-		};
-
-		// Checks the type of a UTF-8 byte, whether it's ASCII, a leading byte, or a
-		// continuation byte. If an invalid byte is detected, -2 is returned.
-		function utf8CheckByte(byte) {
-			if (byte <= 0x7f) return 0;
-			else if (byte >> 5 === 0x06) return 2;
-			else if (byte >> 4 === 0x0e) return 3;
-			else if (byte >> 3 === 0x1e) return 4;
-			return byte >> 6 === 0x02 ? -1 : -2;
-		}
-
-		// Checks at most 3 bytes at the end of a Buffer in order to detect an
-		// incomplete multi-byte UTF-8 character. The total number of bytes (2, 3, or 4)
-		// needed to complete the UTF-8 character (if applicable) are returned.
-		function utf8CheckIncomplete(self, buf, i) {
-			var j = buf.length - 1;
-			if (j < i) return 0;
-			var nb = utf8CheckByte(buf[j]);
-			if (nb >= 0) {
-				if (nb > 0) self.lastNeed = nb - 1;
-				return nb;
-			}
-			if (--j < i || nb === -2) return 0;
-			nb = utf8CheckByte(buf[j]);
-			if (nb >= 0) {
-				if (nb > 0) self.lastNeed = nb - 2;
-				return nb;
-			}
-			if (--j < i || nb === -2) return 0;
-			nb = utf8CheckByte(buf[j]);
-			if (nb >= 0) {
-				if (nb > 0) {
-					if (nb === 2) nb = 0;
-					else self.lastNeed = nb - 3;
 				}
-				return nb;
-			}
-			return 0;
-		}
+				loaded = false;
 
-		// Validates as many continuation bytes for a multi-byte UTF-8 character as
-		// needed or are available. If we see a non-continuation byte where we expect
-		// one, we "replace" the validated continuation bytes we've seen so far with
-		// a single UTF-8 replacement character ('\ufffd'), to match v8's UTF-8 decoding
-		// behavior. The continuation byte check is included three times in the case
-		// where all of the continuation bytes for a character exist in the same buffer.
-		// It is also done this way as a slight performance increase instead of using a
-		// loop.
-		function utf8CheckExtraBytes(self, buf, p) {
-			if ((buf[0] & 0xc0) !== 0x80) {
-				self.lastNeed = 0;
-				return "\ufffd";
-			}
-			if (self.lastNeed > 1 && buf.length > 1) {
-				if ((buf[1] & 0xc0) !== 0x80) {
-					self.lastNeed = 1;
-					return "\ufffd";
+				signals.forEach(function (sig) {
+					try {
+						process.removeListener(sig, sigListeners[sig]);
+					} catch (er) {}
+				});
+				process.emit = originalProcessEmit;
+				process.reallyExit = originalProcessReallyExit;
+				emitter.count -= 1;
+			};
+			module.exports.unload = unload;
+
+			var emit = function emit(event, code, signal) {
+				/* istanbul ignore if */
+				if (emitter.emitted[event]) {
+					return;
 				}
-				if (self.lastNeed > 2 && buf.length > 2) {
-					if ((buf[2] & 0xc0) !== 0x80) {
-						self.lastNeed = 2;
-						return "\ufffd";
+				emitter.emitted[event] = true;
+				emitter.emit(event, code, signal);
+			};
+
+			// { <signal>: <listener fn>, ... }
+			var sigListeners = {};
+			signals.forEach(function (sig) {
+				sigListeners[sig] = function listener() {
+					/* istanbul ignore if */
+					if (!processOk(global.process)) {
+						return;
 					}
-				}
-			}
-		}
-
-		// Attempts to complete a multi-byte UTF-8 character using bytes from a Buffer.
-		function utf8FillLast(buf) {
-			var p = this.lastTotal - this.lastNeed;
-			var r = utf8CheckExtraBytes(this, buf, p);
-			if (r !== undefined) return r;
-			if (this.lastNeed <= buf.length) {
-				buf.copy(this.lastChar, p, 0, this.lastNeed);
-				return this.lastChar.toString(this.encoding, 0, this.lastTotal);
-			}
-			buf.copy(this.lastChar, p, 0, buf.length);
-			this.lastNeed -= buf.length;
-		}
-
-		// Returns all complete UTF-8 characters in a Buffer. If the Buffer ended on a
-		// partial character, the character's bytes are buffered until the required
-		// number of bytes are available.
-		function utf8Text(buf, i) {
-			var total = utf8CheckIncomplete(this, buf, i);
-			if (!this.lastNeed) return buf.toString("utf8", i);
-			this.lastTotal = total;
-			var end = buf.length - (total - this.lastNeed);
-			buf.copy(this.lastChar, 0, end);
-			return buf.toString("utf8", i, end);
-		}
-
-		// For UTF-8, a replacement character is added when ending on a partial
-		// character.
-		function utf8End(buf) {
-			var r = buf && buf.length ? this.write(buf) : "";
-			if (this.lastNeed) return r + "\ufffd";
-			return r;
-		}
-
-		// UTF-16LE typically needs two bytes per character, but even if we have an even
-		// number of bytes available, we need to check if we end on a leading/high
-		// surrogate. In that case, we need to wait for the next two bytes in order to
-		// decode the last character properly.
-		function utf16Text(buf, i) {
-			if ((buf.length - i) % 2 === 0) {
-				var r = buf.toString("utf16le", i);
-				if (r) {
-					var c = r.charCodeAt(r.length - 1);
-					if (c >= 0xd800 && c <= 0xdbff) {
-						this.lastNeed = 2;
-						this.lastTotal = 4;
-						this.lastChar[0] = buf[buf.length - 2];
-						this.lastChar[1] = buf[buf.length - 1];
-						return r.slice(0, -1);
+					// If there are no other listeners, an exit is coming!
+					// Simplest way: remove us and then re-send the signal.
+					// We know that this will kill the process, so we can
+					// safely emit now.
+					var listeners = process.listeners(sig);
+					if (listeners.length === emitter.count) {
+						unload();
+						emit("exit", null, sig);
+						/* istanbul ignore next */
+						emit("afterexit", null, sig);
+						/* istanbul ignore next */
+						if (isWin && sig === "SIGHUP") {
+							// "SIGHUP" throws an `ENOSYS` error on Windows,
+							// so use a supported signal instead
+							sig = "SIGINT";
+						}
+						/* istanbul ignore next */
+						process.kill(process.pid, sig);
 					}
+				};
+			});
+
+			module.exports.signals = function () {
+				return signals;
+			};
+
+			var loaded = false;
+
+			var load = function load() {
+				if (loaded || !processOk(global.process)) {
+					return;
 				}
-				return r;
-			}
-			this.lastNeed = 1;
-			this.lastTotal = 2;
-			this.lastChar[0] = buf[buf.length - 1];
-			return buf.toString("utf16le", i, buf.length - 1);
-		}
+				loaded = true;
 
-		// For UTF-16LE we do not explicitly append special replacement characters if we
-		// end on a partial character, we simply let v8 handle that.
-		function utf16End(buf) {
-			var r = buf && buf.length ? this.write(buf) : "";
-			if (this.lastNeed) {
-				var end = this.lastTotal - this.lastNeed;
-				return r + this.lastChar.toString("utf16le", 0, end);
-			}
-			return r;
-		}
+				// This is the number of onSignalExit's that are in play.
+				// It's important so that we can count the correct number of
+				// listeners on signals, and don't wait for the other one to
+				// handle it instead of us.
+				emitter.count += 1;
 
-		function base64Text(buf, i) {
-			var n = (buf.length - i) % 3;
-			if (n === 0) return buf.toString("base64", i);
-			this.lastNeed = 3 - n;
-			this.lastTotal = 3;
-			if (n === 1) {
-				this.lastChar[0] = buf[buf.length - 1];
-			} else {
-				this.lastChar[0] = buf[buf.length - 2];
-				this.lastChar[1] = buf[buf.length - 1];
-			}
-			return buf.toString("base64", i, buf.length - n);
-		}
+				signals = signals.filter(function (sig) {
+					try {
+						process.on(sig, sigListeners[sig]);
+						return true;
+					} catch (er) {
+						return false;
+					}
+				});
 
-		function base64End(buf) {
-			var r = buf && buf.length ? this.write(buf) : "";
-			if (this.lastNeed)
-				return r + this.lastChar.toString("base64", 0, 3 - this.lastNeed);
-			return r;
-		}
+				process.emit = processEmit;
+				process.reallyExit = processReallyExit;
+			};
+			module.exports.load = load;
 
-		// Pass bytes on through for single-byte encodings (e.g. ascii, latin1, hex)
-		function simpleWrite(buf) {
-			return buf.toString(this.encoding);
-		}
+			var originalProcessReallyExit = process.reallyExit;
+			var processReallyExit = function processReallyExit(code) {
+				/* istanbul ignore if */
+				if (!processOk(global.process)) {
+					return;
+				}
+				process.exitCode = code || /* istanbul ignore next */ 0;
+				emit("exit", process.exitCode, null);
+				/* istanbul ignore next */
+				emit("afterexit", process.exitCode, null);
+				/* istanbul ignore next */
+				originalProcessReallyExit.call(process, process.exitCode);
+			};
 
-		function simpleEnd(buf) {
-			return buf && buf.length ? this.write(buf) : "";
+			var originalProcessEmit = process.emit;
+			var processEmit = function processEmit(ev, arg) {
+				if (ev === "exit" && processOk(global.process)) {
+					/* istanbul ignore else */
+					if (arg !== undefined) {
+						process.exitCode = arg;
+					}
+					var ret = originalProcessEmit.apply(this, arguments);
+					/* istanbul ignore next */
+					emit("exit", process.exitCode, null);
+					/* istanbul ignore next */
+					emit("afterexit", process.exitCode, null);
+					/* istanbul ignore next */
+					return ret;
+				} else {
+					return originalProcessEmit.apply(this, arguments);
+				}
+			};
 		}
 
 		/***/
 	},
 
-	/***/ 291: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		const { Transform } = __nccwpck_require__(5709);
+	/***/ 3789: /***/ (module) => {
+		// This is not the set of all possible signals.
+		//
+		// It IS, however, the set of all signals that trigger
+		// an exit on either Linux or BSD systems.  Linux is a
+		// superset of the signal names supported on BSD, and
+		// the unknown signals just fail to register, so we can
+		// catch that easily enough.
+		//
+		// Don't bother with SIGKILL.  It's uncatchable, which
+		// means that we can't fire any callbacks anyway.
+		//
+		// If a user does happen to register a handler on a non-
+		// fatal signal like SIGWINCH or something, and then
+		// exit, it'll end up firing `process.emit('exit')`, so
+		// the handler will be fired anyway.
+		//
+		// SIGBUS, SIGFPE, SIGSEGV and SIGILL, when not raised
+		// artificially, inherently leave the process in a
+		// state from which it is not safe to try and enter JS
+		// listeners.
+		module.exports = ["SIGABRT", "SIGALRM", "SIGHUP", "SIGINT", "SIGTERM"];
 
-		function inherits(fn, sup) {
-			fn.super_ = sup;
-			fn.prototype = Object.create(sup.prototype, {
-				constructor: {
-					value: fn,
-					enumerable: false,
-					writable: true,
-					configurable: true,
-				},
-			});
-		}
-
-		// create a new export function, used by both the main export and
-		// the .ctor export, contains common logic for dealing with arguments
-		function through2(construct) {
-			return (options, transform, flush) => {
-				if (typeof options === "function") {
-					flush = transform;
-					transform = options;
-					options = {};
-				}
-
-				if (typeof transform !== "function") {
-					// noop
-					transform = (chunk, enc, cb) => cb(null, chunk);
-				}
-
-				if (typeof flush !== "function") {
-					flush = null;
-				}
-
-				return construct(options, transform, flush);
-			};
-		}
-
-		// main export, just make me a transform stream!
-		const make = through2((options, transform, flush) => {
-			const t2 = new Transform(options);
-
-			t2._transform = transform;
-
-			if (flush) {
-				t2._flush = flush;
-			}
-
-			return t2;
-		});
-
-		// make me a reusable prototype that I can `new`, or implicitly `new`
-		// with a constructor call
-		const ctor = through2((options, transform, flush) => {
-			function Through2(override) {
-				if (!(this instanceof Through2)) {
-					return new Through2(override);
-				}
-
-				this.options = Object.assign({}, options, override);
-
-				Transform.call(this, this.options);
-
-				this._transform = transform;
-				if (flush) {
-					this._flush = flush;
-				}
-			}
-
-			inherits(Through2, Transform);
-
-			return Through2;
-		});
-
-		const obj = through2(function (options, transform, flush) {
-			const t2 = new Transform(
-				Object.assign({ objectMode: true, highWaterMark: 16 }, options)
+		if (process.platform !== "win32") {
+			module.exports.push(
+				"SIGVTALRM",
+				"SIGXCPU",
+				"SIGXFSZ",
+				"SIGUSR2",
+				"SIGTRAP",
+				"SIGSYS",
+				"SIGQUIT",
+				"SIGIOT"
+				// should detect profiler and enable/disable accordingly.
+				// see #21
+				// 'SIGPROF'
 			);
+		}
 
-			t2._transform = transform;
-
-			if (flush) {
-				t2._flush = flush;
-			}
-
-			return t2;
-		});
-
-		module.exports = make;
-		module.exports.ctor = ctor;
-		module.exports.obj = obj;
+		if (process.platform === "linux") {
+			module.exports.push(
+				"SIGIO",
+				"SIGPOLL",
+				"SIGPWR",
+				"SIGSTKFLT",
+				"SIGUNUSED"
+			);
+		}
 
 		/***/
 	},
@@ -46751,16 +43104,6 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 
 		exports.getUserAgent = getUserAgent;
 		//# sourceMappingURL=index.js.map
-
-		/***/
-	},
-
-	/***/ 1174: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
-		/**
-		 * For Node.js, simply re-export the core `util.deprecate` function.
-		 */
-
-		module.exports = __nccwpck_require__(3837).deprecate;
 
 		/***/
 	},
@@ -49517,6 +45860,134 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
+	/***/ 6189: /***/ (module, __unused_webpack_exports, __nccwpck_require__) => {
+		const isWindows =
+			process.platform === "win32" ||
+			process.env.OSTYPE === "cygwin" ||
+			process.env.OSTYPE === "msys";
+
+		const path = __nccwpck_require__(1017);
+		const COLON = isWindows ? ";" : ":";
+		const isexe = __nccwpck_require__(4555);
+
+		const getNotFoundError = (cmd) =>
+			Object.assign(new Error(`not found: ${cmd}`), { code: "ENOENT" });
+
+		const getPathInfo = (cmd, opt) => {
+			const colon = opt.colon || COLON;
+
+			// If it has a slash, then we don't bother searching the pathenv.
+			// just check the file itself, and that's it.
+			const pathEnv =
+				cmd.match(/\//) || (isWindows && cmd.match(/\\/))
+					? [""]
+					: [
+							// windows always checks the cwd first
+							...(isWindows ? [process.cwd()] : []),
+							...(
+								opt.path ||
+								process.env.PATH ||
+								/* istanbul ignore next: very unusual */ ""
+							).split(colon),
+					  ];
+			const pathExtExe = isWindows
+				? opt.pathExt || process.env.PATHEXT || ".EXE;.CMD;.BAT;.COM"
+				: "";
+			const pathExt = isWindows ? pathExtExe.split(colon) : [""];
+
+			if (isWindows) {
+				if (cmd.indexOf(".") !== -1 && pathExt[0] !== "") pathExt.unshift("");
+			}
+
+			return {
+				pathEnv,
+				pathExt,
+				pathExtExe,
+			};
+		};
+
+		const which = (cmd, opt, cb) => {
+			if (typeof opt === "function") {
+				cb = opt;
+				opt = {};
+			}
+			if (!opt) opt = {};
+
+			const { pathEnv, pathExt, pathExtExe } = getPathInfo(cmd, opt);
+			const found = [];
+
+			const step = (i) =>
+				new Promise((resolve, reject) => {
+					if (i === pathEnv.length)
+						return opt.all && found.length
+							? resolve(found)
+							: reject(getNotFoundError(cmd));
+
+					const ppRaw = pathEnv[i];
+					const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
+
+					const pCmd = path.join(pathPart, cmd);
+					const p =
+						!pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
+
+					resolve(subStep(p, i, 0));
+				});
+
+			const subStep = (p, i, ii) =>
+				new Promise((resolve, reject) => {
+					if (ii === pathExt.length) return resolve(step(i + 1));
+					const ext = pathExt[ii];
+					isexe(p + ext, { pathExt: pathExtExe }, (er, is) => {
+						if (!er && is) {
+							if (opt.all) found.push(p + ext);
+							else return resolve(p + ext);
+						}
+						return resolve(subStep(p, i, ii + 1));
+					});
+				});
+
+			return cb ? step(0).then((res) => cb(null, res), cb) : step(0);
+		};
+
+		const whichSync = (cmd, opt) => {
+			opt = opt || {};
+
+			const { pathEnv, pathExt, pathExtExe } = getPathInfo(cmd, opt);
+			const found = [];
+
+			for (let i = 0; i < pathEnv.length; i++) {
+				const ppRaw = pathEnv[i];
+				const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
+
+				const pCmd = path.join(pathPart, cmd);
+				const p =
+					!pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
+
+				for (let j = 0; j < pathExt.length; j++) {
+					const cur = p + pathExt[j];
+					try {
+						const is = isexe.sync(cur, { pathExt: pathExtExe });
+						if (is) {
+							if (opt.all) found.push(cur);
+							else return cur;
+						}
+					} catch (ex) {}
+				}
+			}
+
+			if (opt.all && found.length) return found;
+
+			if (opt.nothrow) return null;
+
+			throw getNotFoundError(cmd);
+		};
+
+		module.exports = which;
+		which.sync = whichSync;
+
+		/***/
+	},
+
 	/***/ 2509: /***/ (module) => {
 		// Returns a wrapper function that returns a wrapped callback
 		// The wrapper function should do some stuff, and return a
@@ -50002,118 +46473,6 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 4034: /***/ (
-		__unused_webpack_module,
-		__webpack_exports__,
-		__nccwpck_require__
-	) => {
-		/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-			/* harmony export */ F: () => /* binding */ commentDisclaimer,
-			/* harmony export */ v: () => /* binding */ commentPrefix,
-			/* harmony export */
-		});
-		const commentDisclaimer = [
-			`> 🤖 Beep boop! This comment was added automatically by [all-contributors-auto-action](https://github.com/marketplace/actions/all-contributors-auto-action).`,
-			`> Not all contributions can be detected from Git & GitHub alone. Please mention any missing contribution types.`,
-			`> ...and of course, thank you for contributing! 💙`,
-		].join("\n");
-		const commentPrefix = "@all-contributors please add";
-
-		/***/
-	},
-
-	/***/ 9187: /***/ (
-		__unused_webpack_module,
-		__webpack_exports__,
-		__nccwpck_require__
-	) => {
-		/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-			/* harmony export */ l: () => /* binding */ doesPullAlreadyHaveComment,
-			/* harmony export */
-		});
-		/* harmony import */ var _comments_js__WEBPACK_IMPORTED_MODULE_0__ =
-			__nccwpck_require__(4034);
-
-		async function doesPullAlreadyHaveComment(octokit, options, id) {
-			const existingComments = await octokit.request(
-				"GET /repos/{owner}/{repo}/issues/{issue_number}/comments",
-				{
-					...options,
-					issue_number: id,
-					headers: {
-						"X-GitHub-Api-Version": "2022-11-28",
-					},
-				}
-			);
-			return existingComments.data.find(({ body }) =>
-				body?.includes(
-					_comments_js__WEBPACK_IMPORTED_MODULE_0__ /* .commentPrefix */.v
-				)
-			);
-		}
-
-		/***/
-	},
-
-	/***/ 9934: /***/ (
-		__unused_webpack_module,
-		__webpack_exports__,
-		__nccwpck_require__
-	) => {
-		// EXPORTS
-		__nccwpck_require__.d(__webpack_exports__, {
-			F: () => /* binding */ getExistingContributors,
-		}); // CONCATENATED MODULE: external "node:fs/promises"
-
-		const promises_namespaceObject = __WEBPACK_EXTERNAL_createRequire(
-			import.meta.url
-		)("node:fs/promises");
-		var promises_default = /*#__PURE__*/ __nccwpck_require__.n(
-			promises_namespaceObject
-		); // CONCATENATED MODULE: ./src/getExistingContributors.ts
-		async function getExistingContributors() {
-			const allContributorsConfig = JSON.parse(
-				(await promises_default().readFile(".all-contributorsrc")).toString()
-			);
-			return Object.fromEntries(
-				allContributorsConfig.contributors?.map((contributor) => [
-					contributor.login,
-					new Set(contributor.contributions),
-				]) ?? []
-			);
-		}
-
-		/***/
-	},
-
-	/***/ 5050: /***/ (
-		__unused_webpack_module,
-		__webpack_exports__,
-		__nccwpck_require__
-	) => {
-		/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-			/* harmony export */ D: () => /* binding */ getMissingContributions,
-			/* harmony export */
-		});
-		function getMissingContributions(
-			contributor,
-			contributions,
-			existingContributors
-		) {
-			const existingContributions = existingContributors[contributor];
-			if (!existingContributions) {
-				return contributions;
-			}
-			return Object.fromEntries(
-				Object.entries(contributions)
-					.filter(([type]) => !existingContributions.has(type))
-					.map(([type, ids]) => [type, Array.from(ids).sort()])
-			);
-		}
-
-		/***/
-	},
-
 	/***/ 474: /***/ (
 		module,
 		__unused_webpack___webpack_exports__,
@@ -50139,109 +46498,38 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 							_actions_github__WEBPACK_IMPORTED_MODULE_1__
 						);
 					/* harmony import */ var all_contributors_for_repository__WEBPACK_IMPORTED_MODULE_2__ =
-						__nccwpck_require__(6105);
-					/* harmony import */ var _comments_js__WEBPACK_IMPORTED_MODULE_3__ =
-						__nccwpck_require__(4034);
-					/* harmony import */ var _doesPullAlreadyHaveComment_js__WEBPACK_IMPORTED_MODULE_4__ =
-						__nccwpck_require__(9187);
-					/* harmony import */ var _getExistingContributors_js__WEBPACK_IMPORTED_MODULE_5__ =
-						__nccwpck_require__(9934);
-					/* harmony import */ var _getMissingContributions_js__WEBPACK_IMPORTED_MODULE_6__ =
-						__nccwpck_require__(5050);
+						__nccwpck_require__(6219);
+					/* harmony import */ var execa__WEBPACK_IMPORTED_MODULE_3__ =
+						__nccwpck_require__(5601);
 
 					_actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(
 						"About to retrieve contributors..."
 					);
 					const githubToken = process.env.GITHUB_TOKEN;
-					if (!githubToken) {
-						throw new Error("Missing process.env.GITHUB_TOKEN :(");
-					}
-					const { owner, repo } =
-						_actions_github__WEBPACK_IMPORTED_MODULE_1__.context.repo;
 					const contributors = await (0,
 					all_contributors_for_repository__WEBPACK_IMPORTED_MODULE_2__ /* .createAllContributorsForRepository */.J)(
 						{
 							auth: githubToken,
-							owner,
-							repo,
+							owner:
+								_actions_github__WEBPACK_IMPORTED_MODULE_1__.context.repo.owner,
+							repo: _actions_github__WEBPACK_IMPORTED_MODULE_1__.context.repo
+								.repo,
 						}
 					);
 					_actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(
-						`Retrieved contributors: ${stringify(contributors)}`
+						`Retrieved contributors: ${JSON.stringify(contributors, null, 4)}`
 					);
-					const existingContributors = await (0,
-					_getExistingContributors_js__WEBPACK_IMPORTED_MODULE_5__ /* .getExistingContributors */.F)();
-					const octokit =
-						_actions_github__WEBPACK_IMPORTED_MODULE_1__.getOctokit(
-							githubToken
-						);
 					for (const [contributor, contributions] of Object.entries(
 						contributors
 					)) {
 						_actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(
-							`Retrieving missing contributions for contributor: ${contributor}`
+							`Adding contributor: ${contributor} (${contributions.join(",")})`
 						);
-						const missingContributions = (0,
-						_getMissingContributions_js__WEBPACK_IMPORTED_MODULE_6__ /* .getMissingContributions */.D)(
-							contributor,
-							contributions,
-							existingContributors
-						);
-						if (!Object.keys(missingContributions).length) {
-							_actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(
-								`${contributor} is not missing any contributions.`
-							);
-							continue;
-						}
-						_actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(
-							`${contributor} is missing: ${stringify(missingContributions)}`
-						);
-						for (const [type, ids] of Object.entries(missingContributions)) {
-							const latestId = ids[ids.length - 1];
-							_actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(
-								`Checking for existing ${contributor} comment: ${latestId}`
-							);
-							const existingComment = await (0,
-							_doesPullAlreadyHaveComment_js__WEBPACK_IMPORTED_MODULE_4__ /* .doesPullAlreadyHaveComment */.l)(
-								octokit,
-								{ owner, repo },
-								latestId
-							);
-							if (existingComment) {
-								_actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(
-									`${latestId} already has a comment: ${existingComment.id}`
-								);
-								continue;
-							}
-							_actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(
-								`${latestId} doesn't already have a comment; posting a new one.`
-							);
-							// TODO: It'd be nice to deduplicate these comments.
-							// PRs that include multiple types will cause multiple comments...
-							const newComment = await octokit.request(
-								"POST /repos/{owner}/{repo}/issues/{issue_number}/comments",
-								{
-									owner,
-									repo,
-									issue_number: latestId,
-									body: [
-										`${
-											_comments_js__WEBPACK_IMPORTED_MODULE_3__ /* .commentPrefix */.v
-										} ${contributor} for ${type}.`,
-										_comments_js__WEBPACK_IMPORTED_MODULE_3__ /* .commentDisclaimer */.F,
-									].join("\n\n"),
-									headers: {
-										"X-GitHub-Api-Version": "2022-11-28",
-									},
-								}
-							);
-							_actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(
-								`Posted comment ${newComment.data.id} for ${latestId}.`
-							);
-						}
-					}
-					function stringify(value) {
-						return JSON.stringify(value, null, 4);
+						await (0, execa__WEBPACK_IMPORTED_MODULE_3__.$)({
+							env: { GITHUB_TOKEN: githubToken },
+						})`npx -y all-contributors add ${contributor} ${contributions.join(
+							","
+						)}`;
 					}
 
 					__webpack_async_result__();
@@ -50272,6 +46560,14 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 	/***/ 4300: /***/ (module) => {
 		module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)(
 			"buffer"
+		);
+
+		/***/
+	},
+
+	/***/ 2081: /***/ (module) => {
+		module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)(
+			"child_process"
 		);
 
 		/***/
@@ -50369,25 +46665,16 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 		/***/
 	},
 
-	/***/ 6105: /***/ (
+	/***/ 6219: /***/ (
 		__unused_webpack___webpack_module__,
 		__webpack_exports__,
 		__nccwpck_require__
 	) => {
 		// EXPORTS
 		__nccwpck_require__.d(__webpack_exports__, {
-			J: () => /* reexport */ createAllContributorsForRepository,
-		}); // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.8/node_modules/all-contributors-for-repository/lib/Contributor.js
+			J: () => /* binding */ createAllContributorsForRepository,
+		}); // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.5/node_modules/all-contributors-for-repository/lib/ContributorsCollection.js
 
-		class Contributor {
-			constructor() {
-				this.contributions = {};
-			}
-			add(number, type) {
-				(this.contributions[type] ??= new Set()).add(number);
-			}
-		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.8/node_modules/all-contributors-for-repository/lib/ContributorsCollection.js
-		//# sourceMappingURL=Contributor.js.map
 		var __classPrivateFieldSet =
 			(undefined && undefined.__classPrivateFieldSet) ||
 			function (receiver, state, value, kind, f) {
@@ -50434,7 +46721,6 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 			};
 		var _ContributorsCollection_contributors,
 			_ContributorsCollection_ignoredLogins;
-
 		class ContributorsCollection {
 			constructor(ignoredLogins) {
 				_ContributorsCollection_contributors.set(this, {});
@@ -50446,7 +46732,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 					"f"
 				);
 			}
-			add(login, number, type) {
+			add(login, type) {
 				if (
 					login &&
 					!__classPrivateFieldGet(
@@ -50459,7 +46745,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 						this,
 						_ContributorsCollection_contributors,
 						"f"
-					)[login.toLowerCase()] ??= new Contributor()).add(number, type);
+					)[login.toLowerCase()] ??= new Set()).add(type);
 				}
 			}
 			collect() {
@@ -50471,16 +46757,9 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 							"f"
 						)
 					)
-						.map(([login, contributor]) => [
-							login,
-							Object.fromEntries(
-								Object.entries(contributor.contributions).map(
-									([type, numbers]) => [
-										type,
-										Array.from(numbers).sort((a, b) => a - b),
-									]
-								)
-							),
+						.map(([contributor, types]) => [
+							contributor,
+							Array.from(types).sort(),
 						])
 						.sort(([a], [b]) => a.localeCompare(b))
 				);
@@ -50490,7 +46769,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 			(_ContributorsCollection_ignoredLogins = new WeakMap());
 		//# sourceMappingURL=ContributorsCollection.js.map
 		// EXTERNAL MODULE: ./node_modules/.pnpm/octokit@2.0.14/node_modules/octokit/dist-node/index.js
-		var dist_node = __nccwpck_require__(5953); // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.8/node_modules/all-contributors-for-repository/lib/collect/api.js
+		var dist_node = __nccwpck_require__(5953); // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.5/node_modules/all-contributors-for-repository/lib/collect/api.js
 		const perPage = 100;
 		function createOctokit(auth) {
 			return new (dist_node /* Octokit.defaults */.vd
@@ -50515,7 +46794,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 				}
 			}
 			return items;
-		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.8/node_modules/all-contributors-for-repository/lib/collect/collectAcceptedIssues.js
+		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.5/node_modules/all-contributors-for-repository/lib/collect/collectAcceptedIssues.js
 		//# sourceMappingURL=api.js.map
 		async function collectAcceptedIssues(defaults, octokit, labelAcceptingPrs) {
 			const issues = await paginate(defaults, async (options) => {
@@ -50530,7 +46809,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 				return response.data;
 			});
 			return Object.fromEntries(issues.map((issue) => [issue.number, issue]));
-		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.8/node_modules/all-contributors-for-repository/lib/collect/collectEvents.js
+		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.5/node_modules/all-contributors-for-repository/lib/collect/collectEvents.js
 		//# sourceMappingURL=collectAcceptedIssues.js.map
 		async function collectEvents(defaults, octokit) {
 			const events = await paginate(defaults, async (options) => {
@@ -50544,7 +46823,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 				return eventsResponse.data;
 			});
 			return events;
-		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.8/node_modules/all-contributors-for-repository/lib/collect/collectIssueEvents.js
+		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.5/node_modules/all-contributors-for-repository/lib/collect/collectIssueEvents.js
 		//# sourceMappingURL=collectEvents.js.map
 		const relevantIssueEvents = new Set([
 			"assigned",
@@ -50567,7 +46846,7 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 			return issueEvents.filter((issueEvent) =>
 				relevantIssueEvents.has(issueEvent.event)
 			);
-		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.8/node_modules/all-contributors-for-repository/lib/collect/collectMergedPulls.js
+		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.5/node_modules/all-contributors-for-repository/lib/collect/collectMergedPulls.js
 		//# sourceMappingURL=collectIssueEvents.js.map
 		async function collectMergedPulls(defaults, octokit) {
 			return await paginate(defaults, async (options) => {
@@ -50577,36 +46856,8 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 				});
 				return response.data.items;
 			});
-		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.8/node_modules/all-contributors-for-repository/lib/collect/eventIsPullRequestReviewEvent.js
+		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.5/node_modules/all-contributors-for-repository/lib/collect/index.js
 		//# sourceMappingURL=collectMergedPulls.js.map
-		function eventIsPullRequestReviewEvent(event) {
-			return event.type === "PullRequestReviewEvent" && !!event.issue?.number;
-		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.8/node_modules/all-contributors-for-repository/lib/collect/parsing/parseMergedPullAuthors.js
-		//# sourceMappingURL=eventIsPullRequestReviewEvent.js.map
-		function parseMergedPullAuthors(mergedPull) {
-			const authors = [];
-			authors.push(mergedPull.user?.login);
-			for (const coAuthor of mergedPull.body
-				?.match(/co-authored-by:.+/gi)
-				?.map((text) => text.match(/@(\S+)/)) ?? []) {
-				authors.push(coAuthor?.[1]);
-			}
-			return authors.filter((author) => !!author);
-		}
-		//# sourceMappingURL=parseMergedPullAuthors.js.map
-		// EXTERNAL MODULE: ./node_modules/.pnpm/conventional-commits-parser@3.2.4/node_modules/conventional-commits-parser/index.js
-		var conventional_commits_parser = __nccwpck_require__(5228); // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.8/node_modules/all-contributors-for-repository/lib/collect/parsing/parseMergedPullType.js
-		const allContributorsTypes = new Map([
-			["build", "infra"],
-			["ci", "infra"],
-			["docs", "doc"],
-			["test", "test"],
-		]);
-		function parseMergedPullType(title) {
-			const { type } = conventional_commits_parser.sync(title);
-			return (type && allContributorsTypes.get(type)) || "code";
-		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.8/node_modules/all-contributors-for-repository/lib/collect/index.js
-		//# sourceMappingURL=parseMergedPullType.js.map
 		async function collect(options) {
 			const contributors = new ContributorsCollection(options.ignoredLogins);
 			const defaults = { owner: options.owner, repo: options.repo };
@@ -50631,31 +46882,24 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 					[options.labelTypeTool, "tool"],
 				]) {
 					if (labels.some((label) => label === labelType)) {
-						contributors.add(
-							acceptedIssue.user?.login,
-							acceptedIssue.number,
-							contribution
-						);
+						contributors.add(acceptedIssue.user?.login, contribution);
 					}
 				}
 			}
-			// 💻 `code` & others: all PR authors and co-authors
+			// 💻 `code`: all PR authors and co-authors
 			for (const mergedPull of mergedPulls) {
-				const authors = parseMergedPullAuthors(mergedPull);
-				const type = parseMergedPullType(mergedPull.title);
-				for (const author of authors) {
-					contributors.add(author, mergedPull.number, type);
+				contributors.add(mergedPull.user?.login, "code");
+				for (const coAuthor of mergedPull.body
+					?.match(/co-authored-by:.+/gi)
+					?.map((text) => text.match(/@(\S+)/)) ?? []) {
+					contributors.add(coAuthor?.[1], "code");
 				}
 			}
 			// 🚧 `maintenance`: adding labels to issues and PRs, and merging PRs
 			const maintainers = new Set();
 			for (const event of issueEvents) {
-				if (event.actor && event.issue) {
-					contributors.add(
-						event.actor.login,
-						event.issue.number,
-						"maintenance"
-					);
+				if (event.actor) {
+					contributors.add(event.actor.login, "maintenance");
 					maintainers.add(event.actor.login);
 				}
 			}
@@ -50663,14 +46907,14 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 			// (restricted just to users marked as maintainers)
 			for (const event of events) {
 				if (
-					eventIsPullRequestReviewEvent(event) &&
+					event.type === "PullRequestReviewEvent" &&
 					maintainers.has(event.actor.login)
 				) {
-					contributors.add(event.actor.login, event.issue.number, "review");
+					contributors.add(event.actor.login, "review");
 				}
 			}
 			return contributors.collect();
-		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.8/node_modules/all-contributors-for-repository/lib/options.js
+		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.5/node_modules/all-contributors-for-repository/lib/options.js
 		//# sourceMappingURL=index.js.map
 		const defaultOptions = {
 			ignoredLogins: [
@@ -50700,15 +46944,1680 @@ import { createRequire as __WEBPACK_EXTERNAL_createRequire } from "module";
 				owner: rawOptions.owner,
 				repo: rawOptions.repo,
 			};
-		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.8/node_modules/all-contributors-for-repository/lib/createAllContributorsForRepository.js
+		} // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.5/node_modules/all-contributors-for-repository/lib/index.js
 		//# sourceMappingURL=options.js.map
 		async function createAllContributorsForRepository(rawOptions) {
 			const options = fillInOptions(rawOptions);
 			return await collect(options);
 		}
-		//# sourceMappingURL=createAllContributorsForRepository.js.map // CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.0.8/node_modules/all-contributors-for-repository/lib/index.js
-
 		//# sourceMappingURL=index.js.map
+
+		/***/
+	},
+
+	/***/ 5601: /***/ (
+		__unused_webpack___webpack_module__,
+		__webpack_exports__,
+		__nccwpck_require__
+	) => {
+		// EXPORTS
+		__nccwpck_require__.d(__webpack_exports__, {
+			$: () => /* binding */ $,
+		}); // CONCATENATED MODULE: external "node:buffer"
+
+		// UNUSED EXPORTS: execa, execaCommand, execaCommandSync, execaNode, execaSync
+
+		const external_node_buffer_namespaceObject =
+			__WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:buffer"); // CONCATENATED MODULE: external "node:path"
+		const external_node_path_namespaceObject = __WEBPACK_EXTERNAL_createRequire(
+			import.meta.url
+		)("node:path"); // CONCATENATED MODULE: external "node:child_process"
+		const external_node_child_process_namespaceObject =
+			__WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:child_process"); // CONCATENATED MODULE: external "node:process"
+		const external_node_process_namespaceObject =
+			__WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:process");
+		// EXTERNAL MODULE: ./node_modules/.pnpm/cross-spawn@7.0.3/node_modules/cross-spawn/index.js
+		var cross_spawn = __nccwpck_require__(9859); // CONCATENATED MODULE: ./node_modules/.pnpm/strip-final-newline@3.0.0/node_modules/strip-final-newline/index.js
+		function stripFinalNewline(input) {
+			const LF = typeof input === "string" ? "\n" : "\n".charCodeAt();
+			const CR = typeof input === "string" ? "\r" : "\r".charCodeAt();
+
+			if (input[input.length - 1] === LF) {
+				input = input.slice(0, -1);
+			}
+
+			if (input[input.length - 1] === CR) {
+				input = input.slice(0, -1);
+			}
+
+			return input;
+		} // CONCATENATED MODULE: external "node:url"
+
+		const external_node_url_namespaceObject = __WEBPACK_EXTERNAL_createRequire(
+			import.meta.url
+		)("node:url"); // CONCATENATED MODULE: ./node_modules/.pnpm/path-key@4.0.0/node_modules/path-key/index.js
+		function pathKey(options = {}) {
+			const { env = process.env, platform = process.platform } = options;
+
+			if (platform !== "win32") {
+				return "PATH";
+			}
+
+			return (
+				Object.keys(env)
+					.reverse()
+					.find((key) => key.toUpperCase() === "PATH") || "Path"
+			);
+		} // CONCATENATED MODULE: ./node_modules/.pnpm/npm-run-path@5.1.0/node_modules/npm-run-path/index.js
+
+		function npmRunPath(options = {}) {
+			const {
+				cwd = external_node_process_namespaceObject.cwd(),
+				path: path_ = external_node_process_namespaceObject.env[pathKey()],
+				execPath = external_node_process_namespaceObject.execPath,
+			} = options;
+
+			let previous;
+			const cwdString =
+				cwd instanceof URL
+					? external_node_url_namespaceObject.fileURLToPath(cwd)
+					: cwd;
+			let cwdPath = external_node_path_namespaceObject.resolve(cwdString);
+			const result = [];
+
+			while (previous !== cwdPath) {
+				result.push(
+					external_node_path_namespaceObject.join(cwdPath, "node_modules/.bin")
+				);
+				previous = cwdPath;
+				cwdPath = external_node_path_namespaceObject.resolve(cwdPath, "..");
+			}
+
+			// Ensure the running `node` binary is used.
+			result.push(
+				external_node_path_namespaceObject.resolve(cwdString, execPath, "..")
+			);
+
+			return [...result, path_].join(
+				external_node_path_namespaceObject.delimiter
+			);
+		}
+
+		function npmRunPathEnv({
+			env = external_node_process_namespaceObject.env,
+			...options
+		} = {}) {
+			env = { ...env };
+
+			const path = pathKey({ env });
+			options.path = env[path];
+			env[path] = npmRunPath(options);
+
+			return env;
+		} // CONCATENATED MODULE: ./node_modules/.pnpm/mimic-fn@4.0.0/node_modules/mimic-fn/index.js
+
+		const copyProperty = (to, from, property, ignoreNonConfigurable) => {
+			// `Function#length` should reflect the parameters of `to` not `from` since we keep its body.
+			// `Function#prototype` is non-writable and non-configurable so can never be modified.
+			if (property === "length" || property === "prototype") {
+				return;
+			}
+
+			// `Function#arguments` and `Function#caller` should not be copied. They were reported to be present in `Reflect.ownKeys` for some devices in React Native (#41), so we explicitly ignore them here.
+			if (property === "arguments" || property === "caller") {
+				return;
+			}
+
+			const toDescriptor = Object.getOwnPropertyDescriptor(to, property);
+			const fromDescriptor = Object.getOwnPropertyDescriptor(from, property);
+
+			if (
+				!canCopyProperty(toDescriptor, fromDescriptor) &&
+				ignoreNonConfigurable
+			) {
+				return;
+			}
+
+			Object.defineProperty(to, property, fromDescriptor);
+		};
+
+		// `Object.defineProperty()` throws if the property exists, is not configurable and either:
+		// - one its descriptors is changed
+		// - it is non-writable and its value is changed
+		const canCopyProperty = function (toDescriptor, fromDescriptor) {
+			return (
+				toDescriptor === undefined ||
+				toDescriptor.configurable ||
+				(toDescriptor.writable === fromDescriptor.writable &&
+					toDescriptor.enumerable === fromDescriptor.enumerable &&
+					toDescriptor.configurable === fromDescriptor.configurable &&
+					(toDescriptor.writable ||
+						toDescriptor.value === fromDescriptor.value))
+			);
+		};
+
+		const changePrototype = (to, from) => {
+			const fromPrototype = Object.getPrototypeOf(from);
+			if (fromPrototype === Object.getPrototypeOf(to)) {
+				return;
+			}
+
+			Object.setPrototypeOf(to, fromPrototype);
+		};
+
+		const wrappedToString = (withName, fromBody) =>
+			`/* Wrapped ${withName}*/\n${fromBody}`;
+
+		const toStringDescriptor = Object.getOwnPropertyDescriptor(
+			Function.prototype,
+			"toString"
+		);
+		const toStringName = Object.getOwnPropertyDescriptor(
+			Function.prototype.toString,
+			"name"
+		);
+
+		// We call `from.toString()` early (not lazily) to ensure `from` can be garbage collected.
+		// We use `bind()` instead of a closure for the same reason.
+		// Calling `from.toString()` early also allows caching it in case `to.toString()` is called several times.
+		const changeToString = (to, from, name) => {
+			const withName = name === "" ? "" : `with ${name.trim()}() `;
+			const newToString = wrappedToString.bind(null, withName, from.toString());
+			// Ensure `to.toString.toString` is non-enumerable and has the same `same`
+			Object.defineProperty(newToString, "name", toStringName);
+			Object.defineProperty(to, "toString", {
+				...toStringDescriptor,
+				value: newToString,
+			});
+		};
+
+		function mimicFunction(to, from, { ignoreNonConfigurable = false } = {}) {
+			const { name } = to;
+
+			for (const property of Reflect.ownKeys(from)) {
+				copyProperty(to, from, property, ignoreNonConfigurable);
+			}
+
+			changePrototype(to, from);
+			changeToString(to, from, name);
+
+			return to;
+		} // CONCATENATED MODULE: ./node_modules/.pnpm/onetime@6.0.0/node_modules/onetime/index.js
+
+		const calledFunctions = new WeakMap();
+
+		const onetime = (function_, options = {}) => {
+			if (typeof function_ !== "function") {
+				throw new TypeError("Expected a function");
+			}
+
+			let returnValue;
+			let callCount = 0;
+			const functionName =
+				function_.displayName || function_.name || "<anonymous>";
+
+			const onetime = function (...arguments_) {
+				calledFunctions.set(onetime, ++callCount);
+
+				if (callCount === 1) {
+					returnValue = function_.apply(this, arguments_);
+					function_ = null;
+				} else if (options.throw === true) {
+					throw new Error(
+						`Function \`${functionName}\` can only be called once`
+					);
+				}
+
+				return returnValue;
+			};
+
+			mimicFunction(onetime, function_);
+			calledFunctions.set(onetime, callCount);
+
+			return onetime;
+		};
+
+		onetime.callCount = (function_) => {
+			if (!calledFunctions.has(function_)) {
+				throw new Error(
+					`The given function \`${function_.name}\` is not wrapped by the \`onetime\` package`
+				);
+			}
+
+			return calledFunctions.get(function_);
+		};
+
+		/* harmony default export */ const node_modules_onetime = onetime; // CONCATENATED MODULE: external "node:os"
+
+		const external_node_os_namespaceObject = __WEBPACK_EXTERNAL_createRequire(
+			import.meta.url
+		)("node:os"); // CONCATENATED MODULE: ./node_modules/.pnpm/human-signals@4.3.1/node_modules/human-signals/build/src/realtime.js
+		const getRealtimeSignals = () => {
+			const length = SIGRTMAX - SIGRTMIN + 1;
+			return Array.from({ length }, getRealtimeSignal);
+		};
+
+		const getRealtimeSignal = (value, index) => ({
+			name: `SIGRT${index + 1}`,
+			number: SIGRTMIN + index,
+			action: "terminate",
+			description: "Application-specific signal (realtime)",
+			standard: "posix",
+		});
+
+		const SIGRTMIN = 34;
+		const SIGRTMAX = 64; // CONCATENATED MODULE: ./node_modules/.pnpm/human-signals@4.3.1/node_modules/human-signals/build/src/core.js
+		const SIGNALS = [
+			{
+				name: "SIGHUP",
+				number: 1,
+				action: "terminate",
+				description: "Terminal closed",
+				standard: "posix",
+			},
+			{
+				name: "SIGINT",
+				number: 2,
+				action: "terminate",
+				description: "User interruption with CTRL-C",
+				standard: "ansi",
+			},
+			{
+				name: "SIGQUIT",
+				number: 3,
+				action: "core",
+				description: "User interruption with CTRL-\\",
+				standard: "posix",
+			},
+			{
+				name: "SIGILL",
+				number: 4,
+				action: "core",
+				description: "Invalid machine instruction",
+				standard: "ansi",
+			},
+			{
+				name: "SIGTRAP",
+				number: 5,
+				action: "core",
+				description: "Debugger breakpoint",
+				standard: "posix",
+			},
+			{
+				name: "SIGABRT",
+				number: 6,
+				action: "core",
+				description: "Aborted",
+				standard: "ansi",
+			},
+			{
+				name: "SIGIOT",
+				number: 6,
+				action: "core",
+				description: "Aborted",
+				standard: "bsd",
+			},
+			{
+				name: "SIGBUS",
+				number: 7,
+				action: "core",
+				description:
+					"Bus error due to misaligned, non-existing address or paging error",
+				standard: "bsd",
+			},
+			{
+				name: "SIGEMT",
+				number: 7,
+				action: "terminate",
+				description: "Command should be emulated but is not implemented",
+				standard: "other",
+			},
+			{
+				name: "SIGFPE",
+				number: 8,
+				action: "core",
+				description: "Floating point arithmetic error",
+				standard: "ansi",
+			},
+			{
+				name: "SIGKILL",
+				number: 9,
+				action: "terminate",
+				description: "Forced termination",
+				standard: "posix",
+				forced: true,
+			},
+			{
+				name: "SIGUSR1",
+				number: 10,
+				action: "terminate",
+				description: "Application-specific signal",
+				standard: "posix",
+			},
+			{
+				name: "SIGSEGV",
+				number: 11,
+				action: "core",
+				description: "Segmentation fault",
+				standard: "ansi",
+			},
+			{
+				name: "SIGUSR2",
+				number: 12,
+				action: "terminate",
+				description: "Application-specific signal",
+				standard: "posix",
+			},
+			{
+				name: "SIGPIPE",
+				number: 13,
+				action: "terminate",
+				description: "Broken pipe or socket",
+				standard: "posix",
+			},
+			{
+				name: "SIGALRM",
+				number: 14,
+				action: "terminate",
+				description: "Timeout or timer",
+				standard: "posix",
+			},
+			{
+				name: "SIGTERM",
+				number: 15,
+				action: "terminate",
+				description: "Termination",
+				standard: "ansi",
+			},
+			{
+				name: "SIGSTKFLT",
+				number: 16,
+				action: "terminate",
+				description: "Stack is empty or overflowed",
+				standard: "other",
+			},
+			{
+				name: "SIGCHLD",
+				number: 17,
+				action: "ignore",
+				description: "Child process terminated, paused or unpaused",
+				standard: "posix",
+			},
+			{
+				name: "SIGCLD",
+				number: 17,
+				action: "ignore",
+				description: "Child process terminated, paused or unpaused",
+				standard: "other",
+			},
+			{
+				name: "SIGCONT",
+				number: 18,
+				action: "unpause",
+				description: "Unpaused",
+				standard: "posix",
+				forced: true,
+			},
+			{
+				name: "SIGSTOP",
+				number: 19,
+				action: "pause",
+				description: "Paused",
+				standard: "posix",
+				forced: true,
+			},
+			{
+				name: "SIGTSTP",
+				number: 20,
+				action: "pause",
+				description: 'Paused using CTRL-Z or "suspend"',
+				standard: "posix",
+			},
+			{
+				name: "SIGTTIN",
+				number: 21,
+				action: "pause",
+				description: "Background process cannot read terminal input",
+				standard: "posix",
+			},
+			{
+				name: "SIGBREAK",
+				number: 21,
+				action: "terminate",
+				description: "User interruption with CTRL-BREAK",
+				standard: "other",
+			},
+			{
+				name: "SIGTTOU",
+				number: 22,
+				action: "pause",
+				description: "Background process cannot write to terminal output",
+				standard: "posix",
+			},
+			{
+				name: "SIGURG",
+				number: 23,
+				action: "ignore",
+				description: "Socket received out-of-band data",
+				standard: "bsd",
+			},
+			{
+				name: "SIGXCPU",
+				number: 24,
+				action: "core",
+				description: "Process timed out",
+				standard: "bsd",
+			},
+			{
+				name: "SIGXFSZ",
+				number: 25,
+				action: "core",
+				description: "File too big",
+				standard: "bsd",
+			},
+			{
+				name: "SIGVTALRM",
+				number: 26,
+				action: "terminate",
+				description: "Timeout or timer",
+				standard: "bsd",
+			},
+			{
+				name: "SIGPROF",
+				number: 27,
+				action: "terminate",
+				description: "Timeout or timer",
+				standard: "bsd",
+			},
+			{
+				name: "SIGWINCH",
+				number: 28,
+				action: "ignore",
+				description: "Terminal window size changed",
+				standard: "bsd",
+			},
+			{
+				name: "SIGIO",
+				number: 29,
+				action: "terminate",
+				description: "I/O is available",
+				standard: "other",
+			},
+			{
+				name: "SIGPOLL",
+				number: 29,
+				action: "terminate",
+				description: "Watched event",
+				standard: "other",
+			},
+			{
+				name: "SIGINFO",
+				number: 29,
+				action: "ignore",
+				description: "Request for process information",
+				standard: "other",
+			},
+			{
+				name: "SIGPWR",
+				number: 30,
+				action: "terminate",
+				description: "Device running out of power",
+				standard: "systemv",
+			},
+			{
+				name: "SIGSYS",
+				number: 31,
+				action: "core",
+				description: "Invalid system call",
+				standard: "other",
+			},
+			{
+				name: "SIGUNUSED",
+				number: 31,
+				action: "terminate",
+				description: "Invalid system call",
+				standard: "other",
+			},
+		]; // CONCATENATED MODULE: ./node_modules/.pnpm/human-signals@4.3.1/node_modules/human-signals/build/src/signals.js
+		const getSignals = () => {
+			const realtimeSignals = getRealtimeSignals();
+			const signals = [...SIGNALS, ...realtimeSignals].map(normalizeSignal);
+			return signals;
+		};
+
+		const normalizeSignal = ({
+			name,
+			number: defaultNumber,
+			description,
+			action,
+			forced = false,
+			standard,
+		}) => {
+			const {
+				signals: { [name]: constantSignal },
+			} = external_node_os_namespaceObject.constants;
+			const supported = constantSignal !== undefined;
+			const number = supported ? constantSignal : defaultNumber;
+			return { name, number, description, supported, action, forced, standard };
+		}; // CONCATENATED MODULE: ./node_modules/.pnpm/human-signals@4.3.1/node_modules/human-signals/build/src/main.js
+		const getSignalsByName = () => {
+			const signals = getSignals();
+			return Object.fromEntries(signals.map(getSignalByName));
+		};
+
+		const getSignalByName = ({
+			name,
+			number,
+			description,
+			supported,
+			action,
+			forced,
+			standard,
+		}) => [
+			name,
+			{ name, number, description, supported, action, forced, standard },
+		];
+
+		const signalsByName = getSignalsByName();
+
+		const getSignalsByNumber = () => {
+			const signals = getSignals();
+			const length = SIGRTMAX + 1;
+			const signalsA = Array.from({ length }, (value, number) =>
+				getSignalByNumber(number, signals)
+			);
+
+			return Object.assign({}, ...signalsA);
+		};
+
+		const getSignalByNumber = (number, signals) => {
+			const signal = findSignalByNumber(number, signals);
+
+			if (signal === undefined) {
+				return {};
+			}
+
+			const { name, description, supported, action, forced, standard } = signal;
+			return {
+				[number]: {
+					name,
+					number,
+					description,
+					supported,
+					action,
+					forced,
+					standard,
+				},
+			};
+		};
+
+		const findSignalByNumber = (number, signals) => {
+			const signal = signals.find(
+				({ name }) =>
+					external_node_os_namespaceObject.constants.signals[name] === number
+			);
+
+			if (signal !== undefined) {
+				return signal;
+			}
+
+			return signals.find((signalA) => signalA.number === number);
+		};
+
+		const signalsByNumber = getSignalsByNumber(); // CONCATENATED MODULE: ./node_modules/.pnpm/execa@7.1.1/node_modules/execa/lib/error.js
+		const getErrorPrefix = ({
+			timedOut,
+			timeout,
+			errorCode,
+			signal,
+			signalDescription,
+			exitCode,
+			isCanceled,
+		}) => {
+			if (timedOut) {
+				return `timed out after ${timeout} milliseconds`;
+			}
+
+			if (isCanceled) {
+				return "was canceled";
+			}
+
+			if (errorCode !== undefined) {
+				return `failed with ${errorCode}`;
+			}
+
+			if (signal !== undefined) {
+				return `was killed with ${signal} (${signalDescription})`;
+			}
+
+			if (exitCode !== undefined) {
+				return `failed with exit code ${exitCode}`;
+			}
+
+			return "failed";
+		};
+
+		const makeError = ({
+			stdout,
+			stderr,
+			all,
+			error,
+			signal,
+			exitCode,
+			command,
+			escapedCommand,
+			timedOut,
+			isCanceled,
+			killed,
+			parsed: {
+				options: { timeout },
+			},
+		}) => {
+			// `signal` and `exitCode` emitted on `spawned.on('exit')` event can be `null`.
+			// We normalize them to `undefined`
+			exitCode = exitCode === null ? undefined : exitCode;
+			signal = signal === null ? undefined : signal;
+			const signalDescription =
+				signal === undefined ? undefined : signalsByName[signal].description;
+
+			const errorCode = error && error.code;
+
+			const prefix = getErrorPrefix({
+				timedOut,
+				timeout,
+				errorCode,
+				signal,
+				signalDescription,
+				exitCode,
+				isCanceled,
+			});
+			const execaMessage = `Command ${prefix}: ${command}`;
+			const isError =
+				Object.prototype.toString.call(error) === "[object Error]";
+			const shortMessage = isError
+				? `${execaMessage}\n${error.message}`
+				: execaMessage;
+			const message = [shortMessage, stderr, stdout].filter(Boolean).join("\n");
+
+			if (isError) {
+				error.originalMessage = error.message;
+				error.message = message;
+			} else {
+				error = new Error(message);
+			}
+
+			error.shortMessage = shortMessage;
+			error.command = command;
+			error.escapedCommand = escapedCommand;
+			error.exitCode = exitCode;
+			error.signal = signal;
+			error.signalDescription = signalDescription;
+			error.stdout = stdout;
+			error.stderr = stderr;
+
+			if (all !== undefined) {
+				error.all = all;
+			}
+
+			if ("bufferedData" in error) {
+				delete error.bufferedData;
+			}
+
+			error.failed = true;
+			error.timedOut = Boolean(timedOut);
+			error.isCanceled = isCanceled;
+			error.killed = killed && !timedOut;
+
+			return error;
+		}; // CONCATENATED MODULE: ./node_modules/.pnpm/execa@7.1.1/node_modules/execa/lib/stdio.js
+
+		const aliases = ["stdin", "stdout", "stderr"];
+
+		const hasAlias = (options) =>
+			aliases.some((alias) => options[alias] !== undefined);
+
+		const normalizeStdio = (options) => {
+			if (!options) {
+				return;
+			}
+
+			const { stdio } = options;
+
+			if (stdio === undefined) {
+				return aliases.map((alias) => options[alias]);
+			}
+
+			if (hasAlias(options)) {
+				throw new Error(
+					`It's not possible to provide \`stdio\` in combination with one of ${aliases
+						.map((alias) => `\`${alias}\``)
+						.join(", ")}`
+				);
+			}
+
+			if (typeof stdio === "string") {
+				return stdio;
+			}
+
+			if (!Array.isArray(stdio)) {
+				throw new TypeError(
+					`Expected \`stdio\` to be of type \`string\` or \`Array\`, got \`${typeof stdio}\``
+				);
+			}
+
+			const length = Math.max(stdio.length, aliases.length);
+			return Array.from({ length }, (value, index) => stdio[index]);
+		};
+
+		// `ipc` is pushed unless it is already present
+		const stdio_normalizeStdioNode = (options) => {
+			const stdio = normalizeStdio(options);
+
+			if (stdio === "ipc") {
+				return "ipc";
+			}
+
+			if (stdio === undefined || typeof stdio === "string") {
+				return [stdio, stdio, stdio, "ipc"];
+			}
+
+			if (stdio.includes("ipc")) {
+				return stdio;
+			}
+
+			return [...stdio, "ipc"];
+		};
+
+		// EXTERNAL MODULE: ./node_modules/.pnpm/signal-exit@3.0.7/node_modules/signal-exit/index.js
+		var signal_exit = __nccwpck_require__(3289); // CONCATENATED MODULE: ./node_modules/.pnpm/execa@7.1.1/node_modules/execa/lib/kill.js
+		const DEFAULT_FORCE_KILL_TIMEOUT = 1000 * 5;
+
+		// Monkey-patches `childProcess.kill()` to add `forceKillAfterTimeout` behavior
+		const spawnedKill = (kill, signal = "SIGTERM", options = {}) => {
+			const killResult = kill(signal);
+			setKillTimeout(kill, signal, options, killResult);
+			return killResult;
+		};
+
+		const setKillTimeout = (kill, signal, options, killResult) => {
+			if (!shouldForceKill(signal, options, killResult)) {
+				return;
+			}
+
+			const timeout = getForceKillAfterTimeout(options);
+			const t = setTimeout(() => {
+				kill("SIGKILL");
+			}, timeout);
+
+			// Guarded because there's no `.unref()` when `execa` is used in the renderer
+			// process in Electron. This cannot be tested since we don't run tests in
+			// Electron.
+			// istanbul ignore else
+			if (t.unref) {
+				t.unref();
+			}
+		};
+
+		const shouldForceKill = (signal, { forceKillAfterTimeout }, killResult) =>
+			isSigterm(signal) && forceKillAfterTimeout !== false && killResult;
+
+		const isSigterm = (signal) =>
+			signal === external_node_os_namespaceObject.constants.signals.SIGTERM ||
+			(typeof signal === "string" && signal.toUpperCase() === "SIGTERM");
+
+		const getForceKillAfterTimeout = ({ forceKillAfterTimeout = true }) => {
+			if (forceKillAfterTimeout === true) {
+				return DEFAULT_FORCE_KILL_TIMEOUT;
+			}
+
+			if (
+				!Number.isFinite(forceKillAfterTimeout) ||
+				forceKillAfterTimeout < 0
+			) {
+				throw new TypeError(
+					`Expected the \`forceKillAfterTimeout\` option to be a non-negative integer, got \`${forceKillAfterTimeout}\` (${typeof forceKillAfterTimeout})`
+				);
+			}
+
+			return forceKillAfterTimeout;
+		};
+
+		// `childProcess.cancel()`
+		const spawnedCancel = (spawned, context) => {
+			const killResult = spawned.kill();
+
+			if (killResult) {
+				context.isCanceled = true;
+			}
+		};
+
+		const timeoutKill = (spawned, signal, reject) => {
+			spawned.kill(signal);
+			reject(Object.assign(new Error("Timed out"), { timedOut: true, signal }));
+		};
+
+		// `timeout` option handling
+		const setupTimeout = (
+			spawned,
+			{ timeout, killSignal = "SIGTERM" },
+			spawnedPromise
+		) => {
+			if (timeout === 0 || timeout === undefined) {
+				return spawnedPromise;
+			}
+
+			let timeoutId;
+			const timeoutPromise = new Promise((resolve, reject) => {
+				timeoutId = setTimeout(() => {
+					timeoutKill(spawned, killSignal, reject);
+				}, timeout);
+			});
+
+			const safeSpawnedPromise = spawnedPromise.finally(() => {
+				clearTimeout(timeoutId);
+			});
+
+			return Promise.race([timeoutPromise, safeSpawnedPromise]);
+		};
+
+		const validateTimeout = ({ timeout }) => {
+			if (timeout !== undefined && (!Number.isFinite(timeout) || timeout < 0)) {
+				throw new TypeError(
+					`Expected the \`timeout\` option to be a non-negative integer, got \`${timeout}\` (${typeof timeout})`
+				);
+			}
+		};
+
+		// `cleanup` option handling
+		const setExitHandler = async (
+			spawned,
+			{ cleanup, detached },
+			timedPromise
+		) => {
+			if (!cleanup || detached) {
+				return timedPromise;
+			}
+
+			const removeExitHandler = signal_exit(() => {
+				spawned.kill();
+			});
+
+			return timedPromise.finally(() => {
+				removeExitHandler();
+			});
+		}; // CONCATENATED MODULE: external "node:fs"
+
+		const external_node_fs_namespaceObject = __WEBPACK_EXTERNAL_createRequire(
+			import.meta.url
+		)("node:fs"); // CONCATENATED MODULE: ./node_modules/.pnpm/is-stream@3.0.0/node_modules/is-stream/index.js
+		function isStream(stream) {
+			return (
+				stream !== null &&
+				typeof stream === "object" &&
+				typeof stream.pipe === "function"
+			);
+		}
+
+		function isWritableStream(stream) {
+			return (
+				isStream(stream) &&
+				stream.writable !== false &&
+				typeof stream._write === "function" &&
+				typeof stream._writableState === "object"
+			);
+		}
+
+		function isReadableStream(stream) {
+			return (
+				isStream(stream) &&
+				stream.readable !== false &&
+				typeof stream._read === "function" &&
+				typeof stream._readableState === "object"
+			);
+		}
+
+		function isDuplexStream(stream) {
+			return isWritableStream(stream) && isReadableStream(stream);
+		}
+
+		function isTransformStream(stream) {
+			return isDuplexStream(stream) && typeof stream._transform === "function";
+		} // CONCATENATED MODULE: ./node_modules/.pnpm/execa@7.1.1/node_modules/execa/lib/pipe.js
+
+		const isExecaChildProcess = (target) =>
+			target instanceof
+				external_node_child_process_namespaceObject.ChildProcess &&
+			typeof target.then === "function";
+
+		const pipeToTarget = (spawned, streamName, target) => {
+			if (typeof target === "string") {
+				spawned[streamName].pipe(
+					(0, external_node_fs_namespaceObject.createWriteStream)(target)
+				);
+				return spawned;
+			}
+
+			if (isWritableStream(target)) {
+				spawned[streamName].pipe(target);
+				return spawned;
+			}
+
+			if (!isExecaChildProcess(target)) {
+				throw new TypeError(
+					"The second argument must be a string, a stream or an Execa child process."
+				);
+			}
+
+			if (!isWritableStream(target.stdin)) {
+				throw new TypeError(
+					"The target child process's stdin must be available."
+				);
+			}
+
+			spawned[streamName].pipe(target.stdin);
+			return target;
+		};
+
+		const addPipeMethods = (spawned) => {
+			if (spawned.stdout !== null) {
+				spawned.pipeStdout = pipeToTarget.bind(undefined, spawned, "stdout");
+			}
+
+			if (spawned.stderr !== null) {
+				spawned.pipeStderr = pipeToTarget.bind(undefined, spawned, "stderr");
+			}
+
+			if (spawned.all !== undefined) {
+				spawned.pipeAll = pipeToTarget.bind(undefined, spawned, "all");
+			}
+		};
+
+		// EXTERNAL MODULE: ./node_modules/.pnpm/get-stream@6.0.1/node_modules/get-stream/index.js
+		var get_stream = __nccwpck_require__(1049);
+		// EXTERNAL MODULE: ./node_modules/.pnpm/merge-stream@2.0.0/node_modules/merge-stream/index.js
+		var merge_stream = __nccwpck_require__(237); // CONCATENATED MODULE: ./node_modules/.pnpm/execa@7.1.1/node_modules/execa/lib/stream.js
+		const validateInputOptions = (input) => {
+			if (input !== undefined) {
+				throw new TypeError(
+					"The `input` and `inputFile` options cannot be both set."
+				);
+			}
+		};
+
+		const getInputSync = ({ input, inputFile }) => {
+			if (typeof inputFile !== "string") {
+				return input;
+			}
+
+			validateInputOptions(input);
+			return (0, external_node_fs_namespaceObject.readFileSync)(inputFile);
+		};
+
+		// `input` and `inputFile` option in sync mode
+		const handleInputSync = (options) => {
+			const input = getInputSync(options);
+
+			if (isStream(input)) {
+				throw new TypeError(
+					"The `input` option cannot be a stream in sync mode"
+				);
+			}
+
+			return input;
+		};
+
+		const getInput = ({ input, inputFile }) => {
+			if (typeof inputFile !== "string") {
+				return input;
+			}
+
+			validateInputOptions(input);
+			return (0, external_node_fs_namespaceObject.createReadStream)(inputFile);
+		};
+
+		// `input` and `inputFile` option in async mode
+		const handleInput = (spawned, options) => {
+			const input = getInput(options);
+
+			if (input === undefined) {
+				return;
+			}
+
+			if (isStream(input)) {
+				input.pipe(spawned.stdin);
+			} else {
+				spawned.stdin.end(input);
+			}
+		};
+
+		// `all` interleaves `stdout` and `stderr`
+		const makeAllStream = (spawned, { all }) => {
+			if (!all || (!spawned.stdout && !spawned.stderr)) {
+				return;
+			}
+
+			const mixed = merge_stream();
+
+			if (spawned.stdout) {
+				mixed.add(spawned.stdout);
+			}
+
+			if (spawned.stderr) {
+				mixed.add(spawned.stderr);
+			}
+
+			return mixed;
+		};
+
+		// On failure, `result.stdout|stderr|all` should contain the currently buffered stream
+		const getBufferedData = async (stream, streamPromise) => {
+			// When `buffer` is `false`, `streamPromise` is `undefined` and there is no buffered data to retrieve
+			if (!stream || streamPromise === undefined) {
+				return;
+			}
+
+			stream.destroy();
+
+			try {
+				return await streamPromise;
+			} catch (error) {
+				return error.bufferedData;
+			}
+		};
+
+		const getStreamPromise = (stream, { encoding, buffer, maxBuffer }) => {
+			if (!stream || !buffer) {
+				return;
+			}
+
+			if (encoding) {
+				return get_stream(stream, { encoding, maxBuffer });
+			}
+
+			return get_stream.buffer(stream, { maxBuffer });
+		};
+
+		// Retrieve result of child process: exit code, signal, error, streams (stdout/stderr/all)
+		const getSpawnedResult = async (
+			{ stdout, stderr, all },
+			{ encoding, buffer, maxBuffer },
+			processDone
+		) => {
+			const stdoutPromise = getStreamPromise(stdout, {
+				encoding,
+				buffer,
+				maxBuffer,
+			});
+			const stderrPromise = getStreamPromise(stderr, {
+				encoding,
+				buffer,
+				maxBuffer,
+			});
+			const allPromise = getStreamPromise(all, {
+				encoding,
+				buffer,
+				maxBuffer: maxBuffer * 2,
+			});
+
+			try {
+				return await Promise.all([
+					processDone,
+					stdoutPromise,
+					stderrPromise,
+					allPromise,
+				]);
+			} catch (error) {
+				return Promise.all([
+					{ error, signal: error.signal, timedOut: error.timedOut },
+					getBufferedData(stdout, stdoutPromise),
+					getBufferedData(stderr, stderrPromise),
+					getBufferedData(all, allPromise),
+				]);
+			}
+		}; // CONCATENATED MODULE: ./node_modules/.pnpm/execa@7.1.1/node_modules/execa/lib/promise.js
+
+		// eslint-disable-next-line unicorn/prefer-top-level-await
+		const nativePromisePrototype = (async () => {})().constructor.prototype;
+
+		const descriptors = ["then", "catch", "finally"].map((property) => [
+			property,
+			Reflect.getOwnPropertyDescriptor(nativePromisePrototype, property),
+		]);
+
+		// The return value is a mixin of `childProcess` and `Promise`
+		const mergePromise = (spawned, promise) => {
+			for (const [property, descriptor] of descriptors) {
+				// Starting the main `promise` is deferred to avoid consuming streams
+				const value =
+					typeof promise === "function"
+						? (...args) => Reflect.apply(descriptor.value, promise(), args)
+						: descriptor.value.bind(promise);
+
+				Reflect.defineProperty(spawned, property, { ...descriptor, value });
+			}
+		};
+
+		// Use promises instead of `child_process` events
+		const getSpawnedPromise = (spawned) =>
+			new Promise((resolve, reject) => {
+				spawned.on("exit", (exitCode, signal) => {
+					resolve({ exitCode, signal });
+				});
+
+				spawned.on("error", (error) => {
+					reject(error);
+				});
+
+				if (spawned.stdin) {
+					spawned.stdin.on("error", (error) => {
+						reject(error);
+					});
+				}
+			}); // CONCATENATED MODULE: ./node_modules/.pnpm/execa@7.1.1/node_modules/execa/lib/command.js
+
+		const normalizeArgs = (file, args = []) => {
+			if (!Array.isArray(args)) {
+				return [file];
+			}
+
+			return [file, ...args];
+		};
+
+		const NO_ESCAPE_REGEXP = /^[\w.-]+$/;
+		const DOUBLE_QUOTES_REGEXP = /"/g;
+
+		const escapeArg = (arg) => {
+			if (typeof arg !== "string" || NO_ESCAPE_REGEXP.test(arg)) {
+				return arg;
+			}
+
+			return `"${arg.replace(DOUBLE_QUOTES_REGEXP, '\\"')}"`;
+		};
+
+		const joinCommand = (file, args) => normalizeArgs(file, args).join(" ");
+
+		const getEscapedCommand = (file, args) =>
+			normalizeArgs(file, args)
+				.map((arg) => escapeArg(arg))
+				.join(" ");
+
+		const SPACES_REGEXP = / +/g;
+
+		// Handle `execaCommand()`
+		const command_parseCommand = (command) => {
+			const tokens = [];
+			for (const token of command.trim().split(SPACES_REGEXP)) {
+				// Allow spaces to be escaped by a backslash if not meant as a delimiter
+				const previousToken = tokens[tokens.length - 1];
+				if (previousToken && previousToken.endsWith("\\")) {
+					// Merge previous token with current one
+					tokens[tokens.length - 1] = `${previousToken.slice(0, -1)} ${token}`;
+				} else {
+					tokens.push(token);
+				}
+			}
+
+			return tokens;
+		};
+
+		const parseExpression = (expression) => {
+			const typeOfExpression = typeof expression;
+
+			if (typeOfExpression === "string") {
+				return expression;
+			}
+
+			if (typeOfExpression === "number") {
+				return String(expression);
+			}
+
+			if (
+				typeOfExpression === "object" &&
+				expression !== null &&
+				!(
+					expression instanceof
+					external_node_child_process_namespaceObject.ChildProcess
+				) &&
+				"stdout" in expression
+			) {
+				const typeOfStdout = typeof expression.stdout;
+
+				if (typeOfStdout === "string") {
+					return expression.stdout;
+				}
+
+				if (
+					external_node_buffer_namespaceObject.Buffer.isBuffer(
+						expression.stdout
+					)
+				) {
+					return expression.stdout.toString();
+				}
+
+				throw new TypeError(
+					`Unexpected "${typeOfStdout}" stdout in template expression`
+				);
+			}
+
+			throw new TypeError(
+				`Unexpected "${typeOfExpression}" in template expression`
+			);
+		};
+
+		const concatTokens = (tokens, nextTokens, isNew) =>
+			isNew || tokens.length === 0 || nextTokens.length === 0
+				? [...tokens, ...nextTokens]
+				: [
+						...tokens.slice(0, -1),
+						`${tokens[tokens.length - 1]}${nextTokens[0]}`,
+						...nextTokens.slice(1),
+				  ];
+
+		const parseTemplate = ({
+			templates,
+			expressions,
+			tokens,
+			index,
+			template,
+		}) => {
+			const templateString = template ?? templates.raw[index];
+			const templateTokens = templateString
+				.split(SPACES_REGEXP)
+				.filter(Boolean);
+			const newTokens = concatTokens(
+				tokens,
+				templateTokens,
+				templateString.startsWith(" ")
+			);
+
+			if (index === expressions.length) {
+				return newTokens;
+			}
+
+			const expression = expressions[index];
+			const expressionTokens = Array.isArray(expression)
+				? expression.map((expression) => parseExpression(expression))
+				: [parseExpression(expression)];
+			return concatTokens(
+				newTokens,
+				expressionTokens,
+				templateString.endsWith(" ")
+			);
+		};
+
+		const parseTemplates = (templates, expressions) => {
+			let tokens = [];
+
+			for (const [index, template] of templates.entries()) {
+				tokens = parseTemplate({
+					templates,
+					expressions,
+					tokens,
+					index,
+					template,
+				});
+			}
+
+			return tokens;
+		}; // CONCATENATED MODULE: external "node:util"
+
+		const external_node_util_namespaceObject = __WEBPACK_EXTERNAL_createRequire(
+			import.meta.url
+		)("node:util"); // CONCATENATED MODULE: ./node_modules/.pnpm/execa@7.1.1/node_modules/execa/lib/verbose.js
+		const verboseDefault = (0, external_node_util_namespaceObject.debuglog)(
+			"execa"
+		).enabled;
+
+		const padField = (field, padding) => String(field).padStart(padding, "0");
+
+		const getTimestamp = () => {
+			const date = new Date();
+			return `${padField(date.getHours(), 2)}:${padField(
+				date.getMinutes(),
+				2
+			)}:${padField(date.getSeconds(), 2)}.${padField(
+				date.getMilliseconds(),
+				3
+			)}`;
+		};
+
+		const logCommand = (escapedCommand, { verbose }) => {
+			if (!verbose) {
+				return;
+			}
+
+			external_node_process_namespaceObject.stderr.write(
+				`[${getTimestamp()}] ${escapedCommand}\n`
+			);
+		}; // CONCATENATED MODULE: ./node_modules/.pnpm/execa@7.1.1/node_modules/execa/index.js
+
+		const DEFAULT_MAX_BUFFER = 1000 * 1000 * 100;
+
+		const getEnv = ({
+			env: envOption,
+			extendEnv,
+			preferLocal,
+			localDir,
+			execPath,
+		}) => {
+			const env = extendEnv
+				? { ...external_node_process_namespaceObject.env, ...envOption }
+				: envOption;
+
+			if (preferLocal) {
+				return npmRunPathEnv({ env, cwd: localDir, execPath });
+			}
+
+			return env;
+		};
+
+		const handleArguments = (file, args, options = {}) => {
+			const parsed = cross_spawn._parse(file, args, options);
+			file = parsed.command;
+			args = parsed.args;
+			options = parsed.options;
+
+			options = {
+				maxBuffer: DEFAULT_MAX_BUFFER,
+				buffer: true,
+				stripFinalNewline: true,
+				extendEnv: true,
+				preferLocal: false,
+				localDir: options.cwd || external_node_process_namespaceObject.cwd(),
+				execPath: external_node_process_namespaceObject.execPath,
+				encoding: "utf8",
+				reject: true,
+				cleanup: true,
+				all: false,
+				windowsHide: true,
+				verbose: verboseDefault,
+				...options,
+			};
+
+			options.env = getEnv(options);
+
+			options.stdio = normalizeStdio(options);
+
+			if (
+				external_node_process_namespaceObject.platform === "win32" &&
+				external_node_path_namespaceObject.basename(file, ".exe") === "cmd"
+			) {
+				// #116
+				args.unshift("/q");
+			}
+
+			return { file, args, options, parsed };
+		};
+
+		const handleOutput = (options, value, error) => {
+			if (
+				typeof value !== "string" &&
+				!external_node_buffer_namespaceObject.Buffer.isBuffer(value)
+			) {
+				// When `execaSync()` errors, we normalize it to '' to mimic `execa()`
+				return error === undefined ? undefined : "";
+			}
+
+			if (options.stripFinalNewline) {
+				return stripFinalNewline(value);
+			}
+
+			return value;
+		};
+
+		function execa(file, args, options) {
+			const parsed = handleArguments(file, args, options);
+			const command = joinCommand(file, args);
+			const escapedCommand = getEscapedCommand(file, args);
+			logCommand(escapedCommand, parsed.options);
+
+			validateTimeout(parsed.options);
+
+			let spawned;
+			try {
+				spawned = external_node_child_process_namespaceObject.spawn(
+					parsed.file,
+					parsed.args,
+					parsed.options
+				);
+			} catch (error) {
+				// Ensure the returned error is always both a promise and a child process
+				const dummySpawned =
+					new external_node_child_process_namespaceObject.ChildProcess();
+				const errorPromise = Promise.reject(
+					makeError({
+						error,
+						stdout: "",
+						stderr: "",
+						all: "",
+						command,
+						escapedCommand,
+						parsed,
+						timedOut: false,
+						isCanceled: false,
+						killed: false,
+					})
+				);
+				mergePromise(dummySpawned, errorPromise);
+				return dummySpawned;
+			}
+
+			const spawnedPromise = getSpawnedPromise(spawned);
+			const timedPromise = setupTimeout(
+				spawned,
+				parsed.options,
+				spawnedPromise
+			);
+			const processDone = setExitHandler(spawned, parsed.options, timedPromise);
+
+			const context = { isCanceled: false };
+
+			spawned.kill = spawnedKill.bind(null, spawned.kill.bind(spawned));
+			spawned.cancel = spawnedCancel.bind(null, spawned, context);
+
+			const handlePromise = async () => {
+				const [
+					{ error, exitCode, signal, timedOut },
+					stdoutResult,
+					stderrResult,
+					allResult,
+				] = await getSpawnedResult(spawned, parsed.options, processDone);
+				const stdout = handleOutput(parsed.options, stdoutResult);
+				const stderr = handleOutput(parsed.options, stderrResult);
+				const all = handleOutput(parsed.options, allResult);
+
+				if (error || exitCode !== 0 || signal !== null) {
+					const returnedError = makeError({
+						error,
+						exitCode,
+						signal,
+						stdout,
+						stderr,
+						all,
+						command,
+						escapedCommand,
+						parsed,
+						timedOut,
+						isCanceled:
+							context.isCanceled ||
+							(parsed.options.signal ? parsed.options.signal.aborted : false),
+						killed: spawned.killed,
+					});
+
+					if (!parsed.options.reject) {
+						return returnedError;
+					}
+
+					throw returnedError;
+				}
+
+				return {
+					command,
+					escapedCommand,
+					exitCode: 0,
+					stdout,
+					stderr,
+					all,
+					failed: false,
+					timedOut: false,
+					isCanceled: false,
+					killed: false,
+				};
+			};
+
+			const handlePromiseOnce = node_modules_onetime(handlePromise);
+
+			handleInput(spawned, parsed.options);
+
+			spawned.all = makeAllStream(spawned, parsed.options);
+
+			addPipeMethods(spawned);
+			mergePromise(spawned, handlePromiseOnce);
+			return spawned;
+		}
+
+		function execaSync(file, args, options) {
+			const parsed = handleArguments(file, args, options);
+			const command = joinCommand(file, args);
+			const escapedCommand = getEscapedCommand(file, args);
+			logCommand(escapedCommand, parsed.options);
+
+			const input = handleInputSync(parsed.options);
+
+			let result;
+			try {
+				result = external_node_child_process_namespaceObject.spawnSync(
+					parsed.file,
+					parsed.args,
+					{ ...parsed.options, input }
+				);
+			} catch (error) {
+				throw makeError({
+					error,
+					stdout: "",
+					stderr: "",
+					all: "",
+					command,
+					escapedCommand,
+					parsed,
+					timedOut: false,
+					isCanceled: false,
+					killed: false,
+				});
+			}
+
+			const stdout = handleOutput(parsed.options, result.stdout, result.error);
+			const stderr = handleOutput(parsed.options, result.stderr, result.error);
+
+			if (result.error || result.status !== 0 || result.signal !== null) {
+				const error = makeError({
+					stdout,
+					stderr,
+					error: result.error,
+					signal: result.signal,
+					exitCode: result.status,
+					command,
+					escapedCommand,
+					parsed,
+					timedOut: result.error && result.error.code === "ETIMEDOUT",
+					isCanceled: false,
+					killed: result.signal !== null,
+				});
+
+				if (!parsed.options.reject) {
+					return error;
+				}
+
+				throw error;
+			}
+
+			return {
+				command,
+				escapedCommand,
+				exitCode: 0,
+				stdout,
+				stderr,
+				failed: false,
+				timedOut: false,
+				isCanceled: false,
+				killed: false,
+			};
+		}
+
+		const normalizeScriptStdin = ({ input, inputFile, stdio }) =>
+			input === undefined && inputFile === undefined && stdio === undefined
+				? { stdin: "inherit" }
+				: {};
+
+		const normalizeScriptOptions = (options = {}) => ({
+			preferLocal: true,
+			...normalizeScriptStdin(options),
+			...options,
+		});
+
+		function create$(options) {
+			function $(templatesOrOptions, ...expressions) {
+				if (!Array.isArray(templatesOrOptions)) {
+					return create$({ ...options, ...templatesOrOptions });
+				}
+
+				const [file, ...args] = parseTemplates(templatesOrOptions, expressions);
+				return execa(file, args, normalizeScriptOptions(options));
+			}
+
+			$.sync = (templates, ...expressions) => {
+				if (!Array.isArray(templates)) {
+					throw new TypeError(
+						"Please use $(options).sync`command` instead of $.sync(options)`command`."
+					);
+				}
+
+				const [file, ...args] = parseTemplates(templates, expressions);
+				return execaSync(file, args, normalizeScriptOptions(options));
+			};
+
+			return $;
+		}
+
+		const $ = create$();
+
+		function execaCommand(command, options) {
+			const [file, ...args] = parseCommand(command);
+			return execa(file, args, options);
+		}
+
+		function execaCommandSync(command, options) {
+			const [file, ...args] = parseCommand(command);
+			return execaSync(file, args, options);
+		}
+
+		function execaNode(scriptPath, args, options = {}) {
+			if (args && !Array.isArray(args) && typeof args === "object") {
+				options = args;
+				args = [];
+			}
+
+			const stdio = normalizeStdioNode(options);
+			const defaultExecArgv = process.execArgv.filter(
+				(arg) => !arg.startsWith("--inspect")
+			);
+
+			const { nodePath = process.execPath, nodeOptions = defaultExecArgv } =
+				options;
+
+			return execa(
+				nodePath,
+				[...nodeOptions, scriptPath, ...(Array.isArray(args) ? args : [])],
+				{
+					...options,
+					stdin: undefined,
+					stdout: undefined,
+					stderr: undefined,
+					stdio,
+					shell: false,
+				}
+			);
+		}
 
 		/***/
 	},
