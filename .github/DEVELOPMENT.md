@@ -68,3 +68,21 @@ In your primary terminal:
 ```shell
 GITHUB_REPOSITORY=JoshuaKGoldberg/template-typescript-node-package GITHUB_TOKEN=$(gh auth token) node lib/index.js
 ```
+
+## Unit Tests
+
+[Vitest](https://vitest.dev) is used for some small tests.
+You can run it locally on the command-line:
+
+```shell
+pnpm run test
+```
+
+Add the `--coverage` flag to compute test coverage and place reports in the `coverage/` directory:
+
+```shell
+pnpm run test --coverage
+```
+
+Note that [console-fail-test](https://github.com/JoshuaKGoldberg/console-fail-test) is enabled for all test runs.
+Calls to `console.log`, `console.warn`, and other console methods will cause a test to fail.
