@@ -38,7 +38,10 @@ export async function getExistingContributors(
 	return Object.fromEntries(
 		allContributorsConfig.contributors?.map(
 			(contributor) =>
-				[contributor.login, new Set(contributor.contributions)] as const
+				[
+					contributor.login.toLowerCase(),
+					new Set(contributor.contributions),
+				] as const
 		) ?? []
 	);
 }
