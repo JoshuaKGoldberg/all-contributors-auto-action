@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { createAllContributorsForRepository } from "all-contributors-for-repository";
+import { getAllContributorsForRepository } from "all-contributors-for-repository";
 
 import { commentDisclaimer, commentPrefix } from "./comments.js";
 import { doesPullAlreadyHaveComment } from "./doesPullAlreadyHaveComment.js";
@@ -15,7 +15,7 @@ const githubToken = process.env.GITHUB_TOKEN!;
 const { repo: locator } = github.context;
 const octokit = github.getOctokit(githubToken);
 
-const contributors = await createAllContributorsForRepository({
+const contributors = await getAllContributorsForRepository({
 	auth: githubToken,
 	...locator,
 });
