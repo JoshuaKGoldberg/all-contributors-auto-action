@@ -32,8 +32,8 @@ devDependencies:
     specifier: ^0.36.1
     version: 0.36.1
   '@vitest/coverage-istanbul':
-    specifier: ^0.32.0
-    version: 0.32.0(vitest@0.32.0)
+    specifier: ^0.33.0
+    version: 0.33.0(vitest@0.32.0)
   console-fail-test:
     specifier: ^0.2.1
     version: 0.2.1
@@ -1643,8 +1643,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@vitest/coverage-istanbul@0.32.0(vitest@0.32.0):
-    resolution: {integrity: sha512-itX7qym7g9SxUpE/VoJWUQ6KR2k1poSbpJCou3R8wmNZ0i5K4HT0o33Sc8tKT4XJ0SluHrS7voORpu5w6y/hGg==}
+  /@vitest/coverage-istanbul@0.33.0(vitest@0.32.0):
+    resolution: {integrity: sha512-DGv6ybomCbLFGlNOGHgVCsaqHPWJWLp8JPrwzZo8I4vZ/O3muqTyZq5R52CZl0ENqgjFGWjra7yNPFUgxKf5pw==}
     peerDependencies:
       vitest: '>=0.32.0 <1'
     dependencies:
