@@ -37,7 +37,7 @@
 		"@actions/core": "^1.10.0",
 		"@actions/github": "^5.1.1",
 		"@types/node": "^20.0.0",
-		"all-contributors-for-repository": "^0.0.10"
+		"all-contributors-for-repository": "^0.1.0"
 	},
 	"devDependencies": {
 		"@types/eslint": "^8.21.1",
