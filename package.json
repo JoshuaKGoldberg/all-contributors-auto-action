@@ -1,6 +1,6 @@
 {
 	"name": "all-contributors-auto-action",
-	"version": "0.0.0",
+	"version": "0.3.2",
 	"description": "Fills in missing allcontributors entries for a repository. 👪",
 	"repository": {
 		"type": "git",
@@ -27,7 +27,7 @@
 		"lint": "eslint . .*js --max-warnings 0 --report-unused-disable-directives",
 		"lint:knip": "knip",
 		"lint:md": "markdownlint \"**/*.md\" \".github/**/*.md\" --rules sentences-per-line",
-		"lint:package-json": "npmPkgJsonLint .",
+		"lint:package-json": "npmPkgJsonLint ./package.json",
 		"lint:packages": "pnpm dedupe --check",
 		"lint:spelling": "cspell \"**\" \".github/**/*\"",
 		"prepare": "husky install",
@@ -80,7 +80,7 @@
 		"vitest": "^0.34.3",
 		"yaml-eslint-parser": "^1.2.2"
 	},
-	"packageManager": "pnpm@8.5.0",
+	"packageManager": "pnpm@8.7.0",
 	"engines": {
 		"node": ">=18"
 	},
