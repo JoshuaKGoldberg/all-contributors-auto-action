@@ -5,7 +5,7 @@ import { ExistingContributions } from "./getExistingContributors.js";
 export function getMissingContributions(
 	contributor: string,
 	contributions: ContributorContributions,
-	existingContributors: ExistingContributions
+	existingContributors: ExistingContributions,
 ): ContributorContributions {
 	const existingContributions = existingContributors[contributor];
 	if (!existingContributions) {
@@ -15,6 +15,6 @@ export function getMissingContributions(
 	return Object.fromEntries(
 		Object.entries(contributions)
 			.filter(([type]) => !existingContributions.has(type))
-			.map(([type, ids]) => [type, Array.from(ids).sort()])
+			.map(([type, ids]) => [type, Array.from(ids).sort()]),
 	);
 }
