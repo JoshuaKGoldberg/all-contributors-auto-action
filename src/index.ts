@@ -26,13 +26,13 @@ const existingContributors = await getExistingContributors(octokit, locator);
 
 for (const [contributor, contributions] of Object.entries(contributors)) {
 	core.debug(
-		`Retrieving missing contributions for contributor: ${contributor}`
+		`Retrieving missing contributions for contributor: ${contributor}`,
 	);
 
 	const missingContributions = getMissingContributions(
 		contributor,
 		contributions,
-		existingContributors
+		existingContributors,
 	);
 	if (!Object.keys(missingContributions).length) {
 		core.debug(`${contributor} is not missing any contributions.`);
@@ -40,7 +40,7 @@ for (const [contributor, contributions] of Object.entries(contributors)) {
 	}
 
 	core.debug(
-		`${contributor} is missing: ${JSON.stringify(missingContributions)}`
+		`${contributor} is missing: ${JSON.stringify(missingContributions)}`,
 	);
 
 	for (const [type, ids] of Object.entries(missingContributions)) {
@@ -51,7 +51,7 @@ for (const [contributor, contributions] of Object.entries(contributors)) {
 		const existingComment = await doesPullAlreadyHaveComment(
 			octokit,
 			locator,
-			latestId
+			latestId,
 		);
 		if (existingComment) {
 			core.debug(`${latestId} already has a comment: ${existingComment.id}`);
@@ -59,14 +59,13 @@ for (const [contributor, contributions] of Object.entries(contributors)) {
 		}
 
 		core.debug(
-			`${latestId} doesn't already have a comment; posting a new one.`
+			`${latestId} doesn't already have a comment; posting a new one.`,
 		);
 
 		const commentRequestArgs = [
 			"POST /repos/{owner}/{repo}/issues/{issue_number}/comments",
 			{
 				...locator,
-				issue_number: latestId,
 				body: [
 					`${commentPrefix} @${contributor} for ${type}.`,
 					commentDisclaimer,
@@ -74,6 +73,7 @@ for (const [contributor, contributions] of Object.entries(contributors)) {
 				headers: {
 					"X-GitHub-Api-Version": "2022-11-28",
 				},
+				issue_number: latestId,
 			},
 		] as const;
 

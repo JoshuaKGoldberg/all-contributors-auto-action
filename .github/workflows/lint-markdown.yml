@@ -1,16 +1,15 @@
 jobs:
-  packages:
+  lint_markdown:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/prepare
-      - run: pnpm lint:packages
+      - run: pnpm lint:md
 
-name: Lint Packages
+name: Lint Markdown
 
 on:
   pull_request: ~
-
   push:
     branches:
       - main
