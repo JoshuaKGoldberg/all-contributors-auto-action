@@ -1,5 +1,9 @@
 lockfileVersion: '6.0'
 
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
 dependencies:
   '@actions/core':
     specifier: ^1.10.0
@@ -25,8 +29,8 @@ devDependencies:
     specifier: ^6.5.0
     version: 6.5.0(eslint@8.48.0)(typescript@5.2.2)
   '@vercel/ncc':
-    specifier: ^0.36.1
-    version: 0.36.1
+    specifier: ^0.38.0
+    version: 0.38.0
   '@vitest/coverage-v8':
     specifier: ^0.34.3
     version: 0.34.3(vitest@0.34.3)
@@ -1565,8 +1569,8 @@ packages:
       eslint-visitor-keys: 3.4.3
     dev: true
 
-  /@vercel/ncc@0.36.1:
-    resolution: {integrity: sha512-S4cL7Taa9yb5qbv+6wLgiKVZ03Qfkc4jGRuiUQMQ8HGBD5pcNRnHeYM33zBvJE4/zJGjJJ8GScB+WmTsn9mORw==}
+  /@vercel/ncc@0.38.0:
+    resolution: {integrity: sha512-B4YKZMm/EqMptKSFyAq4q2SlgJe+VCmEH6Y8gf/E1pTlWbsUJpuH1ymik2Ex3aYO5mCWwV1kaSYHSQOT8+4vHA==}
     hasBin: true
     dev: true
 
@@ -5588,7 +5592,3 @@ packages:
   /zod@3.22.2:
     resolution: {integrity: sha512-wvWkphh5WQsJbVk1tbx1l1Ly4yg+XecD+Mq280uBGt9wa5BKSWf4Mhp6GmrkPixhMxmabYY7RbzlwVP32pbGCg==}
     dev: true
-
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false
