@@ -5,18 +5,32 @@
   "contributors": [
     {
       "avatar_url": "https://avatars.githubusercontent.com/u/3335181?v=4",
-      "contributions": ["tool"],
+      "contributions": [
+        "tool"
+      ],
       "login": "JoshuaKGoldberg",
       "name": "Josh Goldberg",
       "profile": "http://www.joshuakgoldberg.com"
+    },
+    {
+      "login": "johnnyreilly",
+      "name": "John Reilly",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1010525?v=4",
+      "profile": "https://johnnyreilly.com/",
+      "contributions": [
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,
   "contributorsSortAlphabetically": true,
-  "files": ["README.md"],
+  "files": [
+    "README.md"
+  ],
   "imageSize": 100,
   "projectName": "all-contributors-auto-action",
   "projectOwner": "JoshuaKGoldberg",
   "repoHost": "https://github.com",
-  "repoType": "github"
+  "repoType": "github",
+  "commitType": "docs"
 }
