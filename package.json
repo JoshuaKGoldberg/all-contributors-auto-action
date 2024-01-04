@@ -34,7 +34,9 @@
 		"test": "vitest"
 	},
 	"lint-staged": {
-		"*": "prettier --ignore-unknown --write"
+		"*": [
+			"prettier --ignore-unknown --write"
+		]
 	},
 	"dependencies": {
 		"@actions/core": "^1.10.0",
