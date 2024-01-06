@@ -60783,41 +60783,21 @@ try {
 
 /***/ }),
 
-/***/ 7587:
+/***/ 6908:
 /***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
 
 /* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   "F": () => (/* binding */ commentDisclaimer),
-/* harmony export */   "v": () => (/* binding */ commentPrefix)
+/* harmony export */   "HD": () => (/* binding */ locator),
+/* harmony export */   "KT": () => (/* binding */ octokit),
+/* harmony export */   "VX": () => (/* binding */ githubToken)
 /* harmony export */ });
-const commentDisclaimer = [
-    `> 🤖 Beep boop! This comment was added automatically by [all-contributors-auto-action](https://github.com/marketplace/actions/all-contributors-auto-action).`,
-    `> Not all contributions can be detected from Git & GitHub alone. Please comment any missing contribution types this bot missed.`,
-    `> ...and of course, thank you for contributing! 💙`,
-].join("\n");
-const commentPrefix = "@all-contributors please add";
+/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(6764);
+/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nccwpck_require__.n(_actions_github__WEBPACK_IMPORTED_MODULE_0__);
 
-
-/***/ }),
-
-/***/ 4331:
-/***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
-
-/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   "l": () => (/* binding */ doesPullAlreadyHaveComment)
-/* harmony export */ });
-/* harmony import */ var _comments_js__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(7587);
-
-async function doesPullAlreadyHaveComment(octokit, locator, id) {
-    const existingComments = await octokit.request("GET /repos/{owner}/{repo}/issues/{issue_number}/comments", {
-        ...locator,
-        headers: {
-            "X-GitHub-Api-Version": "2022-11-28",
-        },
-        issue_number: id,
-    });
-    return existingComments.data.find(({ body }) => body?.includes(_comments_js__WEBPACK_IMPORTED_MODULE_0__/* .commentPrefix */ .v));
-}
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+const githubToken = process.env.GITHUB_TOKEN;
+const { repo: locator } = _actions_github__WEBPACK_IMPORTED_MODULE_0__.context;
+const octokit = _actions_github__WEBPACK_IMPORTED_MODULE_0__.getOctokit(githubToken);
 
 
 /***/ }),
@@ -60869,12 +60849,49 @@ async function getExistingContributors(octokit, locator) {
 
 /***/ }),
 
-/***/ 1799:
+/***/ 4407:
+/***/ ((module, __unused_webpack___webpack_exports__, __nccwpck_require__) => {
+
+__nccwpck_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(6071);
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nccwpck_require__.n(_actions_core__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var all_contributors_for_repository__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(1040);
+/* harmony import */ var _context_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(6908);
+/* harmony import */ var _getExistingContributors_js__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(3412);
+/* harmony import */ var _postContributorComments_js__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(7157);
+
+
+
+
+
+_actions_core__WEBPACK_IMPORTED_MODULE_0__.debug("About to retrieve contributors...");
+const contributors = await (0,all_contributors_for_repository__WEBPACK_IMPORTED_MODULE_1__/* .getAllContributorsForRepository */ .l)({
+    auth: _context_js__WEBPACK_IMPORTED_MODULE_2__/* .githubToken */ .VX,
+    ..._context_js__WEBPACK_IMPORTED_MODULE_2__/* .locator */ .HD,
+});
+_actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`Retrieved contributors: ${JSON.stringify(contributors)}`);
+const existingContributors = await (0,_getExistingContributors_js__WEBPACK_IMPORTED_MODULE_3__/* .getExistingContributors */ .F)(_context_js__WEBPACK_IMPORTED_MODULE_2__/* .octokit */ .KT, _context_js__WEBPACK_IMPORTED_MODULE_2__/* .locator */ .HD);
+await Promise.all(Object.entries(contributors).map(async ([contributor, contributions]) => {
+    await (0,_postContributorComments_js__WEBPACK_IMPORTED_MODULE_4__/* .postContributorComments */ .n)(contributor, contributions, existingContributors);
+}));
+
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } }, 1);
+
+/***/ }),
+
+/***/ 7157:
 /***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
 
-/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   "D": () => (/* binding */ getMissingContributions)
-/* harmony export */ });
+
+// EXPORTS
+__nccwpck_require__.d(__webpack_exports__, {
+  "n": () => (/* binding */ postContributorComments)
+});
+
+// EXTERNAL MODULE: ./node_modules/.pnpm/@actions+core@1.10.0/node_modules/@actions/core/lib/core.js
+var core = __nccwpck_require__(6071);
+;// CONCATENATED MODULE: ./src/getMissingContributions.ts
 function getMissingContributions(contributor, contributions, existingContributors) {
     const existingContributions = existingContributors[contributor];
     if (!existingContributions) {
@@ -60885,86 +60902,85 @@ function getMissingContributions(contributor, contributions, existingContributor
         .map(([type, ids]) => [type, Array.from(ids).sort()]));
 }
 
+;// CONCATENATED MODULE: ./src/comments.ts
+const commentDisclaimer = [
+    `> 🤖 Beep boop! This comment was added automatically by [all-contributors-auto-action](https://github.com/marketplace/actions/all-contributors-auto-action).`,
+    `> Not all contributions can be detected from Git & GitHub alone. Please comment any missing contribution types this bot missed.`,
+    `> ...and of course, thank you for contributing! 💙`,
+].join("\n");
+const commentPrefix = "@all-contributors please add";
 
-/***/ }),
+// EXTERNAL MODULE: ./src/context.ts
+var context = __nccwpck_require__(6908);
+;// CONCATENATED MODULE: ./src/doesPullAlreadyHaveComment.ts
 
-/***/ 4407:
-/***/ ((module, __unused_webpack___webpack_exports__, __nccwpck_require__) => {
+async function doesPullAlreadyHaveComment(octokit, locator, id) {
+    const existingComments = await octokit.request("GET /repos/{owner}/{repo}/issues/{issue_number}/comments", {
+        ...locator,
+        headers: {
+            "X-GitHub-Api-Version": "2022-11-28",
+        },
+        issue_number: id,
+    });
+    return existingComments.data.find(({ body }) => body?.includes(commentPrefix));
+}
 
-__nccwpck_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(6071);
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nccwpck_require__.n(_actions_core__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(6764);
-/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__nccwpck_require__.n(_actions_github__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var all_contributors_for_repository__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(1040);
-/* harmony import */ var _comments_js__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(7587);
-/* harmony import */ var _doesPullAlreadyHaveComment_js__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(4331);
-/* harmony import */ var _getExistingContributors_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(3412);
-/* harmony import */ var _getMissingContributions_js__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(1799);
-
-
-
+;// CONCATENATED MODULE: ./src/postContributionComment.ts
 
 
 
 
-_actions_core__WEBPACK_IMPORTED_MODULE_0__.debug("About to retrieve contributors...");
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const githubToken = process.env.GITHUB_TOKEN;
-const { repo: locator } = _actions_github__WEBPACK_IMPORTED_MODULE_1__.context;
-const octokit = _actions_github__WEBPACK_IMPORTED_MODULE_1__.getOctokit(githubToken);
-const contributors = await (0,all_contributors_for_repository__WEBPACK_IMPORTED_MODULE_2__/* .getAllContributorsForRepository */ .l)({
-    auth: githubToken,
-    ...locator,
-});
-_actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`Retrieved contributors: ${JSON.stringify(contributors)}`);
-const existingContributors = await (0,_getExistingContributors_js__WEBPACK_IMPORTED_MODULE_5__/* .getExistingContributors */ .F)(octokit, locator);
-for (const [contributor, contributions] of Object.entries(contributors)) {
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`Retrieving missing contributions for contributor: ${contributor}`);
-    const missingContributions = (0,_getMissingContributions_js__WEBPACK_IMPORTED_MODULE_6__/* .getMissingContributions */ .D)(contributor, contributions, existingContributors);
-    if (!Object.keys(missingContributions).length) {
-        _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`${contributor} is not missing any contributions.`);
-        continue;
+async function postContributionComment(contributor, latestId, type) {
+    core.debug(`Checking for existing ${contributor} comment: ${latestId}`);
+    const existingComment = await doesPullAlreadyHaveComment(context/* octokit */.KT, context/* locator */.HD, latestId);
+    if (existingComment) {
+        core.debug(`${latestId} already has a comment: ${existingComment.id}`);
+        return;
     }
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`${contributor} is missing: ${JSON.stringify(missingContributions)}`);
-    for (const [type, ids] of Object.entries(missingContributions)) {
-        const latestId = ids[ids.length - 1];
-        _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`Checking for existing ${contributor} comment: ${latestId}`);
-        const existingComment = await (0,_doesPullAlreadyHaveComment_js__WEBPACK_IMPORTED_MODULE_4__/* .doesPullAlreadyHaveComment */ .l)(octokit, locator, latestId);
-        if (existingComment) {
-            _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`${latestId} already has a comment: ${existingComment.id}`);
-            continue;
-        }
-        _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`${latestId} doesn't already have a comment; posting a new one.`);
-        const commentRequestArgs = [
-            "POST /repos/{owner}/{repo}/issues/{issue_number}/comments",
-            {
-                ...locator,
-                body: [
-                    `${_comments_js__WEBPACK_IMPORTED_MODULE_3__/* .commentPrefix */ .v} @${contributor} for ${type}.`,
-                    _comments_js__WEBPACK_IMPORTED_MODULE_3__/* .commentDisclaimer */ .F,
-                ].join("\n\n"),
-                headers: {
-                    "X-GitHub-Api-Version": "2022-11-28",
-                },
-                issue_number: latestId,
+    core.debug(`${latestId} doesn't already have a comment; posting a new one.`);
+    const commentRequestArgs = [
+        "POST /repos/{owner}/{repo}/issues/{issue_number}/comments",
+        {
+            ...context/* locator */.HD,
+            body: [
+                `${commentPrefix} @${contributor} for ${type}.`,
+                commentDisclaimer,
+            ].join("\n\n"),
+            headers: {
+                "X-GitHub-Api-Version": "2022-11-28",
             },
-        ];
-        if (process.env.LOCAL_TESTING === "true") {
-            _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`LOCAL_TESTING: ${JSON.stringify(commentRequestArgs)}`);
-        }
-        else {
-            // TODO: It'd be nice to deduplicate these comments.
-            // PRs that include multiple types will cause multiple comments...
-            // https://github.com/JoshuaKGoldberg/all-contributors-auto-action/issues/180
-            const newComment = await octokit.request(...commentRequestArgs);
-            _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`Posted comment ${newComment.data.id} for ${latestId}.`);
-        }
+            issue_number: latestId,
+        },
+    ];
+    if (process.env.LOCAL_TESTING === "true") {
+        core.debug(`LOCAL_TESTING: ${JSON.stringify(commentRequestArgs)}`);
+    }
+    else {
+        // TODO: It'd be nice to deduplicate these comments.
+        // PRs that include multiple types will cause multiple comments...
+        // https://github.com/JoshuaKGoldberg/all-contributors-auto-action/issues/180
+        const newComment = await context/* octokit.request */.KT.request(...commentRequestArgs);
+        core.debug(`Posted comment ${newComment.data.id} for ${latestId}.`);
     }
 }
 
-__webpack_async_result__();
-} catch(e) { __webpack_async_result__(e); } }, 1);
+;// CONCATENATED MODULE: ./src/postContributorComments.ts
+
+
+
+async function postContributorComments(contributor, contributions, existingContributors) {
+    core.debug(`Retrieving missing contributions for contributor: ${contributor}`);
+    const missingContributions = getMissingContributions(contributor, contributions, existingContributors);
+    if (!Object.keys(missingContributions).length) {
+        core.debug(`${contributor} is not missing any contributions.`);
+        return;
+    }
+    core.debug(`${contributor} is missing: ${JSON.stringify(missingContributions)}`);
+    for (const [type, ids] of Object.entries(missingContributions)) {
+        await postContributionComment(contributor, ids[ids.length - 1], type);
+    }
+}
+
 
 /***/ }),
 
