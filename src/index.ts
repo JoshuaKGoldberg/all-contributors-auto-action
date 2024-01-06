@@ -86,6 +86,6 @@ for (const [contributor, contributions] of Object.entries(contributors)) {
 			core.debug(`Posted comment ${newComment.data.id} for ${latestId}.`);
 		}
 
-		console.log("POST /repos/{owner}/{repo}/issues/{issue_number}/comments");
+		core.debug("POST /repos/{owner}/{repo}/issues/{issue_number}/comments");
 	}
 }
