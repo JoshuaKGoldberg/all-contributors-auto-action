@@ -82,6 +82,7 @@ for (const [contributor, contributions] of Object.entries(contributors)) {
 		} else {
 			// TODO: It'd be nice to deduplicate these comments.
 			// PRs that include multiple types will cause multiple comments...
+			// https://github.com/JoshuaKGoldberg/all-contributors-auto-action/issues/180
 			const newComment = await octokit.request(...commentRequestArgs);
 			core.debug(`Posted comment ${newComment.data.id} for ${latestId}.`);
 		}
