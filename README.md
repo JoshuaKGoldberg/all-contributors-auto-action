@@ -23,6 +23,8 @@
 	<img alt="TypeScript: Strict" src="https://img.shields.io/badge/typescript-strict-21bb42.svg" />
 </p>
 
+<img align="right" alt="Project logo: the light purple wreath from the All Contributors logo, with a purple 'play' triangle from the GitHub Actions default icon" src="./all-contributors-auto-action.png" height="128px" width="128px">
+
 ## Usage
 
 This action will:
