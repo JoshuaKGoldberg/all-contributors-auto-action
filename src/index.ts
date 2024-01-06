@@ -85,7 +85,5 @@ for (const [contributor, contributions] of Object.entries(contributors)) {
 			const newComment = await octokit.request(...commentRequestArgs);
 			core.debug(`Posted comment ${newComment.data.id} for ${latestId}.`);
 		}
-
-		console.log("POST /repos/{owner}/{repo}/issues/{issue_number}/comments");
 	}
 }
