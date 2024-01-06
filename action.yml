@@ -1,4 +1,7 @@
 author: JoshuaKGoldberg
+branding:
+  color: purple
+  icon: award
 description: Fills in missing allcontributors entries for a repository. 👪
 name: All Contributors Auto Action
 runs:
