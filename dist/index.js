@@ -60959,7 +60959,7 @@ for (const [contributor, contributions] of Object.entries(contributors)) {
             const newComment = await octokit.request(...commentRequestArgs);
             _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`Posted comment ${newComment.data.id} for ${latestId}.`);
         }
-        console.log("POST /repos/{owner}/{repo}/issues/{issue_number}/comments");
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug("POST /repos/{owner}/{repo}/issues/{issue_number}/comments");
     }
 }
 
