@@ -1,6 +1,6 @@
 <h1 align="center">All Contributors Auto Action</h1>
 
-<p align="center">Fills in missing allcontributors entries for a repository. 👪</p>
+<p align="center">Fills in missing <a href="https://allcontributors.org">allcontributors</a> entries for a repository. 👪</p>
 
 <p align="center">
 	<a href="#contributors" target="_blank">
