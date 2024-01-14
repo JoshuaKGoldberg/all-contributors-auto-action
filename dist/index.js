@@ -10176,8 +10176,11 @@ function fetchWrapper(requestOptions) {
   let url;
   console.log("Inside function fetchWrapper")
   console.log({ globalThis })
-  console.log("typeof fetch:", typeof fetch)
-  console.log("typeof globalThis.fetch:", typeof fetch)
+  console.log("typeof global:", typeof global)
+  if (typeof global !== "undefined") {
+    console.log({ global })
+  }
+  console.log("typeof globalThis.fetch:", typeof globalThis.fetch)
   let { fetch } = globalThis;
   console.log("first", { fetch })
   if ((_b = requestOptions.request) == null ? void 0 : _b.fetch) {
