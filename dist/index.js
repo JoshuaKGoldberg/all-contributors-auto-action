@@ -10160,6 +10160,9 @@ function getBufferResponse(response) {
 }
 
 console.log("Outside function fetchWrapper");
+console.log({ process });
+console.log("process version:", process.version);
+console.log("process versions:", process.versions);
 console.log({ globalThis })
 console.log("typeof fetch:", typeof fetch)
 console.log("typeof globalThis.fetch:", typeof fetch)
