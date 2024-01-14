@@ -10181,7 +10181,7 @@ function fetchWrapper(requestOptions) {
   let { fetch } = globalThis;
   console.log("first", { fetch })
   if ((_b = requestOptions.request) == null ? void 0 : _b.fetch) {
-    console.log("setting to", { requestOptions.request })
+    console.log("setting to", { requestOptions })
     fetch = requestOptions.request.fetch;
   }
   if (!fetch) {
