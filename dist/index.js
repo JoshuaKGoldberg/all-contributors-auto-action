@@ -10159,6 +10159,10 @@ function getBufferResponse(response) {
   return response.arrayBuffer();
 }
 
+console.log("Outside function fetchWrapper");
+console.log({ globalThis })
+console.log("typeof fetch:", typeof fetch)
+console.log("typeof globalThis.fetch:", typeof fetch)
 // pkg/dist-src/fetch-wrapper.js
 function fetchWrapper(requestOptions) {
   var _a, _b, _c;
@@ -10170,8 +10174,14 @@ function fetchWrapper(requestOptions) {
   let headers = {};
   let status;
   let url;
+  console.log("Inside function fetchWrapper")
+  console.log({ globalThis })
+  console.log("typeof fetch:", typeof fetch)
+  console.log("typeof globalThis.fetch:", typeof fetch)
   let { fetch } = globalThis;
+  console.log("first", { fetch })
   if ((_b = requestOptions.request) == null ? void 0 : _b.fetch) {
+    console.log("setting to", { requestOptions.request })
     fetch = requestOptions.request.fetch;
   }
   if (!fetch) {
