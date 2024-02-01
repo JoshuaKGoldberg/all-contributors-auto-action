@@ -89,8 +89,8 @@ devDependencies:
     specifier: ^2.4.0
     version: 2.4.0
   knip:
-    specifier: 4.2.2
-    version: 4.2.2(@types/node@20.11.0)(typescript@5.3.3)
+    specifier: 4.2.3
+    version: 4.2.3(@types/node@20.11.0)(typescript@5.3.3)
   lint-staged:
     specifier: ^15.2.0
     version: 15.2.0
@@ -1271,6 +1271,7 @@ packages:
     engines: {node: '>=14'}
     requiresBuild: true
     dev: true
+    optional: true
 
   /@pkgr/core@0.1.0:
     resolution: {integrity: sha512-Zwq5OCzuwJC2jwqmpEQt7Ds1DTi6BWSwoGkbb1n9pO3hzb35BoJELx7c0T23iDkBGkh2e7tvOtjF3tr3OaQHDQ==}
@@ -4038,8 +4039,8 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /knip@4.2.2(@types/node@20.11.0)(typescript@5.3.3):
-    resolution: {integrity: sha512-d+aGKO9hLRgxwkBtmykkKHSxAHmr2w6tFvi+vCzE5pw7n5VDEsgINRV4jyDvjKhhuNSBx5UYuzlq2rA5tt8gjg==}
+  /knip@4.2.3(@types/node@20.11.0)(typescript@5.3.3):
+    resolution: {integrity: sha512-X1OE/Uks6hIAXmaxrJn/mjywFRwpeXr11wAtGNT+n7R5vSWOUEfVbtG2C4wAMDu6AfBx5tVUGLm5+2eK5rwNEw==}
     engines: {node: '>=18.6.0'}
     hasBin: true
     peerDependencies:
@@ -4050,7 +4051,6 @@ packages:
       '@nodelib/fs.walk': 2.0.0
       '@npmcli/map-workspaces': 3.0.4
       '@npmcli/package-json': 5.0.0
-      '@pkgjs/parseargs': 0.11.0
       '@pnpm/logger': 5.0.0
       '@pnpm/workspace.pkgs-graph': 2.0.14(@pnpm/logger@5.0.0)
       '@snyk/github-codeowners': 1.1.0
