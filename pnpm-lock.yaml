@@ -107,7 +107,7 @@ importers:
         version: 8.0.0(typescript@5.4.5)
       npm-package-json-lint-config-default:
         specifier: ^7.0.0
-        version: 7.0.0(npm-package-json-lint@8.0.0(typescript@5.4.5))
+        version: 7.0.1(npm-package-json-lint@8.0.0(typescript@5.4.5))
       prettier:
         specifier: ^3.1.1
         version: 3.1.1
@@ -2369,11 +2369,11 @@ packages:
     resolution: {integrity: sha512-p2W1sgqij3zMMyRC067Dg16bfzVH+w7hyegmpIvZ4JNjqtGOVAIvLmjBx3yP7YTe9vKJgkoNOPjwQGogDoMXFA==}
     engines: {node: '>=10'}
 
-  npm-package-json-lint-config-default@7.0.0:
-    resolution: {integrity: sha512-Fc8N037pq3yslJbi3cBjMIbj/rQb2MDOUUM5DuFyET/ZQVCAL1+0/AF52pJYgu4vMoLW6pKpNhcKHDq0Tg2L+g==}
+  npm-package-json-lint-config-default@7.0.1:
+    resolution: {integrity: sha512-UMdVX/iowvA5qGeEgHsTHXMGgamdGR1pOSuzMDzQntZ/+mq8z9S9t1qr7rRdxKH3kNx6I3fuct1ECbmCz8u2ow==}
     engines: {node: '>=18.0.0', npm: '>=9.0.0'}
     peerDependencies:
-      npm-package-json-lint: ^7.1.0
+      npm-package-json-lint: ^8.0.0
 
   npm-package-json-lint@8.0.0:
     resolution: {integrity: sha512-44xqAKoV0nXnBYYLGUhMItGZb5tW3cLoW3UZxcsaCOX/YAkECrzOQA5F48oAA51vVE5CqAnsJB2CFvtolzMA3Q==}
@@ -5604,7 +5604,7 @@ snapshots:
       semver: 7.6.2
       validate-npm-package-license: 3.0.4
 
-  npm-package-json-lint-config-default@7.0.0(npm-package-json-lint@8.0.0(typescript@5.4.5)):
+  npm-package-json-lint-config-default@7.0.1(npm-package-json-lint@8.0.0(typescript@5.4.5)):
     dependencies:
       npm-package-json-lint: 8.0.0(typescript@5.4.5)
 
