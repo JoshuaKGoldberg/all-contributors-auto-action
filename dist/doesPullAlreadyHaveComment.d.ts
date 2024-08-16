@@ -3,13 +3,13 @@ export declare function doesPullAlreadyHaveComment(octokit: Octokit, locator: Lo
     id: number;
     node_id: string;
     url: string;
-    body?: string | undefined;
-    body_text?: string | undefined;
-    body_html?: string | undefined;
+    body?: string;
+    body_text?: string;
+    body_html?: string;
     html_url: string;
     user: {
-        name?: string | null | undefined;
-        email?: string | null | undefined;
+        name?: string | null;
+        email?: string | null;
         login: string;
         id: number;
         node_id: string;
@@ -28,7 +28,7 @@ export declare function doesPullAlreadyHaveComment(octokit: Octokit, locator: Lo
         received_events_url: string;
         type: string;
         site_admin: boolean;
-        starred_at?: string | undefined;
+        starred_at?: string;
     } | null;
     created_at: string;
     updated_at: string;
@@ -36,11 +36,11 @@ export declare function doesPullAlreadyHaveComment(octokit: Octokit, locator: Lo
     author_association: "COLLABORATOR" | "CONTRIBUTOR" | "FIRST_TIMER" | "FIRST_TIME_CONTRIBUTOR" | "MANNEQUIN" | "MEMBER" | "NONE" | "OWNER";
     performed_via_github_app?: {
         id: number;
-        slug?: string | undefined;
+        slug?: string;
         node_id: string;
         owner: {
-            name?: string | null | undefined;
-            email?: string | null | undefined;
+            name?: string | null;
+            email?: string | null;
             login: string;
             id: number;
             node_id: string;
@@ -59,7 +59,7 @@ export declare function doesPullAlreadyHaveComment(octokit: Octokit, locator: Lo
             received_events_url: string;
             type: string;
             site_admin: boolean;
-            starred_at?: string | undefined;
+            starred_at?: string;
         } | null;
         name: string;
         description: string | null;
@@ -68,20 +68,20 @@ export declare function doesPullAlreadyHaveComment(octokit: Octokit, locator: Lo
         created_at: string;
         updated_at: string;
         permissions: {
+            issues?: string;
+            checks?: string;
+            metadata?: string;
+            contents?: string;
+            deployments?: string;
             [key: string]: string | undefined;
-            issues?: string | undefined;
-            checks?: string | undefined;
-            metadata?: string | undefined;
-            contents?: string | undefined;
-            deployments?: string | undefined;
         };
         events: string[];
-        installations_count?: number | undefined;
-        client_id?: string | undefined;
-        client_secret?: string | undefined;
-        webhook_secret?: string | null | undefined;
-        pem?: string | undefined;
-    } | null | undefined;
+        installations_count?: number;
+        client_id?: string;
+        client_secret?: string;
+        webhook_secret?: string | null;
+        pem?: string;
+    } | null;
     reactions?: {
         url: string;
         total_count: number;
@@ -93,5 +93,5 @@ export declare function doesPullAlreadyHaveComment(octokit: Octokit, locator: Lo
         hooray: number;
         eyes: number;
         rocket: number;
-    } | undefined;
+    };
 } | undefined>;
