@@ -2,6 +2,7 @@ import {
 	blockCTATransitions,
 	blockESLint,
 	blockNcc,
+	blockReleaseIt,
 	blockTSup,
 	createConfig,
 } from "create-typescript-app";
@@ -26,7 +27,7 @@ export default createConfig({
 		],
 		blocks: {
 			add: [blockCTATransitions, blockNcc],
-			exclude: [blockTSup],
+			exclude: [blockReleaseIt, blockTSup],
 		},
 	},
 });
