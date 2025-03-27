@@ -1,49 +1,41 @@
 {
-  "badgeTemplate": "\t<a href=\"#contributors\" target=\"_blank\"><img alt=\"👪 All Contributors: <%= contributors.length %>\" src=\"https://img.shields.io/badge/%F0%9F%91%AA_all_contributors-<%= contributors.length %>-21bb42.svg\" /></a>",
-  "contributors": [
-    {
-      "avatar_url": "https://avatars.githubusercontent.com/u/3335181?v=4",
-      "contributions": [
-        "tool",
-        "code",
-        "content",
-        "doc",
-        "ideas",
-        "infra",
-        "maintenance",
-        "projectManagement"
-      ],
-      "login": "JoshuaKGoldberg",
-      "name": "Josh Goldberg",
-      "profile": "http://www.joshuakgoldberg.com"
-    },
-    {
-      "login": "johnnyreilly",
-      "name": "John Reilly",
-      "avatar_url": "https://avatars.githubusercontent.com/u/1010525?v=4",
-      "profile": "https://johnnyreilly.com/",
-      "contributions": [
-        "ideas"
-      ]
-    },
-    {
-      "login": "fdlpm",
-      "name": "Fabian De La Peña Montero",
-      "avatar_url": "https://avatars.githubusercontent.com/u/9667945?v=4",
-      "profile": "https://www.fdlpm.com",
-      "contributions": [
-        "doc"
-      ]
-    }
-  ],
-  "contributorsSortAlphabetically": true,
-  "projectName": "all-contributors-auto-action",
-  "projectOwner": "JoshuaKGoldberg",
-  "repoType": "github",
-  "commitConvention": "angular",
-  "files": [
-    "README.md"
-  ],
-  "commitType": "docs",
-  "contributorsPerLine": 7
+	"badgeTemplate": "\t<a href=\"#contributors\" target=\"_blank\"><img alt=\"👪 All Contributors: <%= contributors.length %>\" src=\"https://img.shields.io/badge/%F0%9F%91%AA_all_contributors-<%= contributors.length %>-21bb42.svg\" /></a>",
+	"contributors": [
+		{
+			"avatar_url": "https://avatars.githubusercontent.com/u/3335181?v=4",
+			"contributions": [
+				"tool",
+				"code",
+				"content",
+				"doc",
+				"ideas",
+				"infra",
+				"maintenance",
+				"projectManagement"
+			],
+			"login": "JoshuaKGoldberg",
+			"name": "Josh Goldberg",
+			"profile": "http://www.joshuakgoldberg.com"
+		},
+		{
+			"login": "johnnyreilly",
+			"name": "John Reilly",
+			"avatar_url": "https://avatars.githubusercontent.com/u/1010525?v=4",
+			"profile": "https://johnnyreilly.com/",
+			"contributions": ["ideas"]
+		},
+		{
+			"login": "fdlpm",
+			"name": "Fabian De La Peña Montero",
+			"avatar_url": "https://avatars.githubusercontent.com/u/9667945?v=4",
+			"profile": "https://www.fdlpm.com",
+			"contributions": ["doc"]
+		}
+	],
+	"contributorsSortAlphabetically": true,
+	"projectName": "all-contributors-auto-action",
+	"projectOwner": "JoshuaKGoldberg",
+	"repoType": "github",
+	"commitConvention": "angular"
 }
+
