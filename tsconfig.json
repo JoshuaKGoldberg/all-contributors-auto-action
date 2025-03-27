@@ -5,10 +5,9 @@
 		"esModuleInterop": true,
 		"module": "NodeNext",
 		"moduleResolution": "NodeNext",
-		"outDir": "lib",
+		"noEmit": true,
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
-		"sourceMap": true,
 		"strict": true,
 		"target": "ES2022"
 	},

@@ -17,7 +17,7 @@ export async function doesPullAlreadyHaveComment(
 		},
 	);
 
-	return existingComments.data.find(
-		({ body }) => body?.includes(commentPrefix),
+	return existingComments.data.find(({ body }) =>
+		body?.includes(commentPrefix),
 	);
 }

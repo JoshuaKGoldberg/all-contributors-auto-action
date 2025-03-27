@@ -7,14 +7,14 @@ export interface AllContributorsConfig {
 	contributors?: Contributor[];
 }
 
-interface Contributor {
-	contributions: string[];
-	login: string;
-}
-
 export interface Locator {
 	owner: string;
 	repo: string;
 }
 
 export type Octokit = ReturnType<typeof github.getOctokit>;
+
+interface Contributor {
+	contributions: string[];
+	login: string;
+}

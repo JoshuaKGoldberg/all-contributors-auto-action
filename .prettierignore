@@ -1,7 +1,5 @@
-coverage/
-dist/
-lib/
-pnpm-lock.yaml
-
-# See https://github.com/all-contributors/cli/issues/347
-.all-contributorsrc
+/.all-contributorsrc
+/.husky
+/coverage
+/lib
+/pnpm-lock.yaml
