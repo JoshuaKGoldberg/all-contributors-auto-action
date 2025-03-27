@@ -1,29 +1,34 @@
 {
-	"dictionaries": ["typescript"],
+	"dictionaries": ["npm", "node", "typescript"],
 	"ignorePaths": [
+		".all-contributorsrc",
 		".github",
 		"CHANGELOG.md",
 		"coverage",
 		"dist",
 		"lib",
 		"node_modules",
-		"pnpm-lock.yaml",
-		"script/*.json"
+		"pnpm-lock.yaml"
 	],
 	"words": [
-		"allcontributors",
-		"boop",
 		"Codecov",
+		"allcontributors",
+		"apexskier",
+		"automerge",
+		"boop",
 		"codespace",
 		"commitlint",
 		"contributorsrc",
 		"conventionalcommits",
 		"infile",
+		"joshuakgoldberg",
 		"knip",
 		"lcov",
+		"markdownlintignore",
 		"outro",
 		"packagejson",
 		"quickstart",
+		"tseslint",
 		"wontfix"
 	]
 }
