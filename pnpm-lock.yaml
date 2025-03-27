@@ -31,7 +31,7 @@ importers:
         specifier: 2.0.2
         version: 2.0.2
       '@vercel/ncc':
-        specifier: 0.38.3
+        specifier: ^0.38.3
         version: 0.38.3
       '@vitest/coverage-v8':
         specifier: 3.0.9
@@ -43,8 +43,8 @@ importers:
         specifier: 0.5.0
         version: 0.5.0
       create-typescript-app:
-        specifier: 2.15.1
-        version: 2.15.1(bingo-systems@0.5.4)
+        specifier: 2.15.2
+        version: 2.15.2(bingo-systems@0.5.4)
       cspell:
         specifier: 8.17.5
         version: 8.17.5
@@ -1370,8 +1370,8 @@ packages:
   core-util-is@1.0.3:
     resolution: {integrity: sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==}
 
-  create-typescript-app@2.15.1:
-    resolution: {integrity: sha512-udFmxpum9S58FVRzA4EdVRSNM1SXAGEj5MvTuU+rIkzRp0tV5o4pxAcgMaHfG8nQwuSme8Spx47+PBH4wFgqRw==}
+  create-typescript-app@2.15.2:
+    resolution: {integrity: sha512-B3AKfZaFOw/1HDMuRrweRMyLYtiHZHx8az8z2GIqQwonZtntka5AGtFw3S6K2ITxMHuc+NF+93+EzCy1a0raOQ==}
     engines: {node: '>=18.3.0'}
     hasBin: true
 
@@ -4440,7 +4440,7 @@ snapshots:
 
   core-util-is@1.0.3: {}
 
-  create-typescript-app@2.15.1(bingo-systems@0.5.4):
+  create-typescript-app@2.15.2(bingo-systems@0.5.4):
     dependencies:
       bingo: 0.5.10
       bingo-fs: 0.5.4
