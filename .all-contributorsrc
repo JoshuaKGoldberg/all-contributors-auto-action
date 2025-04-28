@@ -12,7 +12,8 @@
         "infra",
         "maintenance",
         "projectManagement",
-        "test"
+        "test",
+        "bug"
       ],
       "login": "JoshuaKGoldberg",
       "name": "Josh Goldberg",
