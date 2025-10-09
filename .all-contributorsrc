@@ -11,7 +11,8 @@
 				"ideas",
 				"infra",
 				"maintenance",
-				"projectManagement"
+				"projectManagement",
+				"test"
 			],
 			"login": "JoshuaKGoldberg",
 			"name": "Josh Goldberg",
