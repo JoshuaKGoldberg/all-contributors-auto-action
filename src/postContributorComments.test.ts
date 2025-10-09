@@ -31,7 +31,7 @@ describe("postContributorComments", () => {
 			{},
 		);
 
-		expect(mockPostContributionComment).toHaveBeenCalledWith(
+		expect(mockPostContributionComment).toHaveBeenCalledExactlyOnceWith(
 			contributor,
 			contribution,
 			"fix",
