@@ -104,7 +104,7 @@ test("end-to-end", async () => {
 		  [
 		    "POST /repos/{owner}/{repo}/issues/{issue_number}/comments",
 		    {
-		      "body": "@all-contributors please add @Existing-Login for feat.
+		      "body": "@all-contributors please add Existing-Login for feat.
 
 		> 🤖 Beep boop! This comment was added automatically by [all-contributors-auto-action](https://github.com/marketplace/actions/all-contributors-auto-action).
 		> Not all contributions can be detected from Git & GitHub alone. Please comment any missing contribution types this bot missed.
@@ -120,7 +120,7 @@ test("end-to-end", async () => {
 		  [
 		    "POST /repos/{owner}/{repo}/issues/{issue_number}/comments",
 		    {
-		      "body": "@all-contributors please add @New-Login for ideas.
+		      "body": "@all-contributors please add New-Login for ideas.
 
 		> 🤖 Beep boop! This comment was added automatically by [all-contributors-auto-action](https://github.com/marketplace/actions/all-contributors-auto-action).
 		> Not all contributions can be detected from Git & GitHub alone. Please comment any missing contribution types this bot missed.

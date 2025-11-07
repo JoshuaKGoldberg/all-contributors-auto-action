@@ -49,7 +49,7 @@ on:
 
 ...and will post comments like the following automatically:
 
-> @all-contributors please add @JoshuaKGoldberg for code.
+> @all-contributors please add JoshuaKGoldberg for code.
 >
 > > 🤖 Beep boop! This comment was added automatically by [all-contributors-auto-action](https://github.com/marketplace/actions/all-contributors-auto-action).
 > >
