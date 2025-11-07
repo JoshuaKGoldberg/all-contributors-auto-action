@@ -28,7 +28,7 @@ export async function postContributionComment(
 		{
 			...locator,
 			body: [
-				`${commentPrefix} @${contributor} for ${type}.`,
+				`${commentPrefix} ${contributor} for ${type}.`,
 				commentDisclaimer,
 			].join("\n\n"),
 			headers: {
