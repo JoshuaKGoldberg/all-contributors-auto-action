@@ -68,7 +68,7 @@ describe("postContributionComment", () => {
 			    "222 doesn't already have a comment; posting a new one.",
 			  ],
 			  [
-			    "LOCAL_TESTING: ["POST /repos/{owner}/{repo}/issues/{issue_number}/comments",{"body":"@all-contributors please add @Test-Contributor for fix.\\n\\n> 🤖 Beep boop! This comment was added automatically by [all-contributors-auto-action](https://github.com/marketplace/actions/all-contributors-auto-action).\\n> Not all contributions can be detected from Git & GitHub alone. Please comment any missing contribution types this bot missed.\\n> ...and of course, thank you for contributing! 💙","headers":{"X-GitHub-Api-Version":"2022-11-28"},"issue_number":222}]",
+			    "LOCAL_TESTING: ["POST /repos/{owner}/{repo}/issues/{issue_number}/comments",{"body":"@all-contributors please add Test-Contributor for fix.\\n\\n> 🤖 Beep boop! This comment was added automatically by [all-contributors-auto-action](https://github.com/marketplace/actions/all-contributors-auto-action).\\n> Not all contributions can be detected from Git & GitHub alone. Please comment any missing contribution types this bot missed.\\n> ...and of course, thank you for contributing! 💙","headers":{"X-GitHub-Api-Version":"2022-11-28"},"issue_number":222}]",
 			  ],
 			]
 		`);
@@ -85,7 +85,7 @@ describe("postContributionComment", () => {
 			  [
 			    "POST /repos/{owner}/{repo}/issues/{issue_number}/comments",
 			    {
-			      "body": "@all-contributors please add @Test-Contributor for fix.
+			      "body": "@all-contributors please add Test-Contributor for fix.
 
 			> 🤖 Beep boop! This comment was added automatically by [all-contributors-auto-action](https://github.com/marketplace/actions/all-contributors-auto-action).
 			> Not all contributions can be detected from Git & GitHub alone. Please comment any missing contribution types this bot missed.
