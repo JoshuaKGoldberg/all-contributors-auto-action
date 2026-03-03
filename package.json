@@ -43,7 +43,7 @@
 		"@eslint-community/eslint-plugin-eslint-comments": "4.6.0",
 		"@eslint/js": "10.0.1",
 		"@types/eslint-plugin-markdown": "2.0.2",
-		"@types/node": "24.10.0",
+		"@types/node": "24.11.0",
 		"@vercel/ncc": "0.38.4",
 		"@vitest/coverage-v8": "4.0.1",
 		"@vitest/eslint-plugin": "1.6.1",
