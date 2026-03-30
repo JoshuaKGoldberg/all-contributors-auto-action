@@ -91,9 +91,6 @@ export declare function doesPullAlreadyHaveComment(octokit: Octokit, locator: Lo
         };
         events: string[];
         installations_count?: number;
-        client_secret?: string;
-        webhook_secret?: string | null;
-        pem?: string;
     } | null;
     reactions?: {
         url: string;
