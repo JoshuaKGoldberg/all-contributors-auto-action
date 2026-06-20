@@ -32,19 +32,19 @@ For example, the following job will run on every push to `main`:
 
 ```yml
 # .github/workflows/contributors.yml
-jobs:
-  contributors:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: JoshuaKGoldberg/all-contributors-auto-action@v0.3.2
-
 name: Contributors
 
 on:
   push:
     branches:
       - main
+
+jobs:
+  contributors:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: JoshuaKGoldberg/all-contributors-auto-action@v0.3.2
 ```
 
 ...and will post comments like the following automatically:
@@ -57,6 +57,36 @@ on:
 > > Please comment any missing contribution types this bot missed.
 > >
 > > ...and of course, thank you for contributing! 💙
+
+### Inputs
+
+#### `ignored-logins`
+
+RegExp patterns to use for omitting sets of logins (e.g. dependabot).
+The action will not attempt to add these users as contributors.
+Powered by `all-contributors-for-repository`, which comes with its own set of reasonable defaults (e.g. `\[bot\]$`).
+All patterns will be used to create `RegExp` with case-insensitive matching.
+
+```yml
+# .github/workflows/contributors.yml
+name: Contributors
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  contributors:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: JoshuaKGoldberg/all-contributors-auto-action@v0.3.2
+        with:
+          ignored-logins: |
+            -admin$
+            -it$
+```
 
 ## Development
 

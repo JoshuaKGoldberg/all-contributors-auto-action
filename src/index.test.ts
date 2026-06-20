@@ -1,14 +1,9 @@
-import { expect, test, vi } from "vitest";
+import { getMultilineInput } from "@actions/core";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const getAllContributorsForRepositorySpy = vi.fn();
 vi.mock("all-contributors-for-repository", () => ({
-	getAllContributorsForRepository: () => ({
-		"Existing-Login": {
-			feat: [111],
-		},
-		"New-Login": {
-			ideas: [222],
-		},
-	}),
+	getAllContributorsForRepository: getAllContributorsForRepositorySpy,
 }));
 
 const mockRepo = "test-repository";
@@ -48,7 +43,10 @@ const mockOctokit = {
 	request: mockRequest,
 };
 
-vi.mock("@actions/core");
+vi.mock("@actions/core", () => ({
+	debug: vi.fn(),
+	getMultilineInput: vi.fn(),
+}));
 
 vi.mock("@actions/github", () => ({
 	context: {
@@ -60,13 +58,29 @@ vi.mock("@actions/github", () => ({
 	getOctokit: () => mockOctokit,
 }));
 
-test("end-to-end", async () => {
-	process.env.GITHUB_TOKEN = "gh_abc123";
-	process.env.GITHUB_REPOSITORY = mockRepo;
+describe("end-to-end", () => {
+	getAllContributorsForRepositorySpy.mockResolvedValue({
+		"Existing-Login": {
+			feat: [111],
+		},
+		"New-Login": {
+			ideas: [222],
+		},
+	});
 
-	await import("./index.js");
+	beforeEach(() => {
+		vi.resetModules();
+		getAllContributorsForRepositorySpy.mockClear();
+		vi.mocked(getMultilineInput).mockReturnValue([]);
+	});
 
-	expect(mockRequest.mock.calls).toMatchInlineSnapshot(`
+	it("should correctly call with octokit", async () => {
+		process.env.GITHUB_TOKEN = "gh_abc123";
+		process.env.GITHUB_REPOSITORY = mockRepo;
+
+		await import("./index.js");
+
+		expect(mockRequest.mock.calls).toMatchInlineSnapshot(`
 		[
 		  [
 		    "GET /repos/{owner}/{repo}/contents/{path}",
@@ -135,4 +149,21 @@ test("end-to-end", async () => {
 		  ],
 		]
 	`);
+	});
+
+	it("should call getAllContributorsForRepository with the correct ignoreLogins option", async () => {
+		vi.mocked(getMultilineInput).mockReturnValue(["\\[bot\\]$"]);
+
+		process.env.GITHUB_TOKEN = "gh_abc123";
+		process.env.GITHUB_REPOSITORY = mockRepo;
+
+		await import("./index.js");
+
+		const expectedIgnoredLogins = /\[bot\]$/i;
+		expect(getAllContributorsForRepositorySpy).toHaveBeenCalledWith(
+			expect.objectContaining({
+				ignoredLogins: expect.arrayContaining([expectedIgnoredLogins]),
+			}),
+		);
+	});
 });

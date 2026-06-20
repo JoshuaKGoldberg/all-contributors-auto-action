@@ -3,6 +3,15 @@ branding:
   color: purple
   icon: award
 description: Fills in missing allcontributors entries for a repository. 👪
+inputs:
+  ignored-logins:
+    default: ~
+    description: >
+      RegExp patterns to use for omitting sets of logins (e.g. dependabot).
+      The action will not attempt to add these users as contributors.
+      Powered by `all-contributors-for-repository`, which comes with its own
+      set of reasonable defaults (e.g. `\[bot\]$`).
+    required: false
 name: All Contributors Auto Action
 runs:
   main: dist/index.js

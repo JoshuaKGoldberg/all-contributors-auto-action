@@ -7,8 +7,15 @@ import { postContributorComments } from "./postContributorComments.js";
 
 core.debug("About to retrieve contributors...");
 
+const ignoredLoginsRaw = core.getMultilineInput("ignored-logins");
+const ignoredLogins = ignoredLoginsRaw.map(
+	(rawInput) => new RegExp(rawInput, "i"),
+);
+
 const contributors = await getAllContributorsForRepository({
 	auth: githubToken,
+	// Don't include at all, if no option was provided, so we fall back to defaults
+	...(ignoredLogins.length ? { ignoredLogins } : {}),
 	...locator,
 });
 
