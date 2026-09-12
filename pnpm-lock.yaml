@@ -237,8 +237,8 @@ importers:
         specifier: 9.1.7
         version: 9.1.7
       knip:
-        specifier: 5.87.0
-        version: 5.87.0(@types/node@24.13.2)(typescript@5.9.3)
+        specifier: 5.88.1
+        version: 5.88.1(@types/node@24.13.2)(typescript@5.9.3)
       lint-staged:
         specifier: 17.5.0
         version: 17.5.0
@@ -2255,8 +2255,8 @@ packages:
   keyv@5.6.0:
     resolution: {integrity: sha512-CYDD3SOtsHtyXeEORYRx2qBtpDJFjRTGXUtmNEMGyzYOKj1TE3tycdlho7kA1Ufx9OYWZzg52QFBGALTirzDSw==}
 
-  knip@5.87.0:
-    resolution: {integrity: sha512-oJBrwd4/Mt5E6817vcdQLaPpejxZTxpASauYLkp6HaT0HN1seHnpF96KEjza9O8yARvHEQ9+So9AFUjkPci7dQ==}
+  knip@5.88.1:
+    resolution: {integrity: sha512-tpy5o7zu1MjawVkLPuahymVJekYY3kYjvzcoInhIchgePxTlo+api90tBv2KfhAIe5uXh+mez1tAfmbv8/TiZg==}
     engines: {node: '>=18.18.0'}
     hasBin: true
     peerDependencies:
@@ -5407,7 +5407,7 @@ snapshots:
     dependencies:
       '@keyv/serialize': 1.1.1
 
-  knip@5.87.0(@types/node@24.13.2)(typescript@5.9.3):
+  knip@5.88.1(@types/node@24.13.2)(typescript@5.9.3):
     dependencies:
       '@nodelib/fs.walk': 1.2.8
       '@types/node': 24.13.2
