@@ -28,8 +28,6 @@ export async function postContributorComments(
 		`${contributor} is missing: ${JSON.stringify(missingContributions)}`,
 	);
 
-	// Multiple types may share the same latest issue or PR.
-	// Grouping them lets us post a single comment requesting all of them at once.
 	const typesByLatestId = new Map<number, string[]>();
 
 	for (const [type, ids] of Object.entries(missingContributions)) {
