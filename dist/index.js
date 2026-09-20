@@ -30831,7 +30831,7 @@ async function doesPullAlreadyHaveComment(octokit, locator, id) {
 
 
 
-async function postContributionComment(contributor, latestId, type) {
+async function postContributionComment(contributor, latestId, types) {
     core/* debug */.Yz(`Checking for existing ${contributor} comment: ${latestId}`);
     const existingComment = await doesPullAlreadyHaveComment(context/* octokit */.A8, context/* locator */.fl, latestId);
     if (existingComment) {
@@ -30844,7 +30844,7 @@ async function postContributionComment(contributor, latestId, type) {
         {
             ...context/* locator */.fl,
             body: [
-                `${commentPrefix} ${contributor} for ${type}.`,
+                `${commentPrefix} ${contributor} for ${types.join(", ")}.`,
                 commentDisclaimer,
             ].join("\n\n"),
             headers: {
@@ -30857,9 +30857,6 @@ async function postContributionComment(contributor, latestId, type) {
         core/* debug */.Yz(`LOCAL_TESTING: ${JSON.stringify(commentRequestArgs)}`);
     }
     else {
-        // TODO: It'd be nice to deduplicate these comments.
-        // PRs that include multiple types will cause multiple comments...
-        // https://github.com/JoshuaKGoldberg/all-contributors-auto-action/issues/180
         const newComment = await context/* octokit */.A8.request(...commentRequestArgs);
         core/* debug */.Yz(`Posted comment ${newComment.data.id} for ${latestId}.`);
     }
@@ -30877,8 +30874,21 @@ async function postContributorComments(contributor, contributions, existingContr
         return;
     }
     core/* debug */.Yz(`${contributor} is missing: ${JSON.stringify(missingContributions)}`);
+    // Multiple types may share the same latest issue or PR.
+    // Grouping them lets us post a single comment requesting all of them at once.
+    const typesByLatestId = new Map();
     for (const [type, ids] of Object.entries(missingContributions)) {
-        await postContributionComment(contributor, ids[ids.length - 1], type);
+        const latestId = ids[ids.length - 1];
+        const types = typesByLatestId.get(latestId);
+        if (types) {
+            types.push(type);
+        }
+        else {
+            typesByLatestId.set(latestId, [type]);
+        }
+    }
+    for (const [latestId, types] of typesByLatestId) {
+        await postContributionComment(contributor, latestId, types);
     }
 }
 
