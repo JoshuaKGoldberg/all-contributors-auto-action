@@ -1,1 +1,3 @@
+pnpm build:release
+git add dist
 npx lint-staged
