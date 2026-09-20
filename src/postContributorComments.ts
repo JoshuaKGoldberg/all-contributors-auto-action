@@ -28,7 +28,20 @@ export async function postContributorComments(
 		`${contributor} is missing: ${JSON.stringify(missingContributions)}`,
 	);
 
+	const typesByLatestId = new Map<number, string[]>();
+
 	for (const [type, ids] of Object.entries(missingContributions)) {
-		await postContributionComment(contributor, ids[ids.length - 1], type);
+		const latestId = ids[ids.length - 1];
+		const types = typesByLatestId.get(latestId);
+
+		if (types) {
+			types.push(type);
+		} else {
+			typesByLatestId.set(latestId, [type]);
+		}
+	}
+
+	for (const [latestId, types] of typesByLatestId) {
+		await postContributionComment(contributor, latestId, types);
 	}
 }

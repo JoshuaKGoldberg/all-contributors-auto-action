@@ -37,7 +37,7 @@ describe("postContributionComment", () => {
 	it("doesn't post a comment when it already exists", async () => {
 		mockDoesPullAlreadyHaveComment.mockResolvedValueOnce({});
 
-		await postContributionComment(contributor, 222, "fix");
+		await postContributionComment(contributor, 222, ["fix"]);
 
 		expect(mockRequest).not.toHaveBeenCalled();
 		expect(mockDebug.mock.calls).toMatchInlineSnapshot(`
@@ -56,7 +56,7 @@ describe("postContributionComment", () => {
 		mockDoesPullAlreadyHaveComment.mockResolvedValueOnce(undefined);
 		process.env.LOCAL_TESTING = "true";
 
-		await postContributionComment(contributor, 222, "fix");
+		await postContributionComment(contributor, 222, ["bug", "maintenance"]);
 
 		expect(mockRequest).not.toHaveBeenCalled();
 		expect(mockDebug.mock.calls).toMatchInlineSnapshot(`
@@ -68,7 +68,7 @@ describe("postContributionComment", () => {
 			    "222 doesn't already have a comment; posting a new one.",
 			  ],
 			  [
-			    "LOCAL_TESTING: ["POST /repos/{owner}/{repo}/issues/{issue_number}/comments",{"body":"@all-contributors please add Test-Contributor for fix.\\n\\n> 🤖 Beep boop! This comment was added automatically by [all-contributors-auto-action](https://github.com/marketplace/actions/all-contributors-auto-action).\\n> Not all contributions can be detected from Git & GitHub alone. Please comment any missing contribution types this bot missed.\\n> ...and of course, thank you for contributing! 💙","headers":{"X-GitHub-Api-Version":"2022-11-28"},"issue_number":222}]",
+			    "LOCAL_TESTING: ["POST /repos/{owner}/{repo}/issues/{issue_number}/comments",{"body":"@all-contributors please add Test-Contributor for bug, maintenance.\\n\\n> 🤖 Beep boop! This comment was added automatically by [all-contributors-auto-action](https://github.com/marketplace/actions/all-contributors-auto-action).\\n> Not all contributions can be detected from Git & GitHub alone. Please comment any missing contribution types this bot missed.\\n> ...and of course, thank you for contributing! 💙","headers":{"X-GitHub-Api-Version":"2022-11-28"},"issue_number":222}]",
 			  ],
 			]
 		`);
@@ -78,7 +78,7 @@ describe("postContributionComment", () => {
 		mockDoesPullAlreadyHaveComment.mockResolvedValueOnce(undefined);
 		process.env.LOCAL_TESTING = "false";
 
-		await postContributionComment(contributor, 222, "fix");
+		await postContributionComment(contributor, 222, ["fix"]);
 
 		expect(mockRequest.mock.calls).toMatchInlineSnapshot(`
 			[

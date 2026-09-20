@@ -7,7 +7,7 @@ import { doesPullAlreadyHaveComment } from "./doesPullAlreadyHaveComment.js";
 export async function postContributionComment(
 	contributor: string,
 	latestId: number,
-	type: string,
+	types: string[],
 ) {
 	core.debug(`Checking for existing ${contributor} comment: ${latestId}`);
 
@@ -28,7 +28,7 @@ export async function postContributionComment(
 		{
 			...locator,
 			body: [
-				`${commentPrefix} ${contributor} for ${type}.`,
+				`${commentPrefix} ${contributor} for ${types.join(", ")}.`,
 				commentDisclaimer,
 			].join("\n\n"),
 			headers: {
@@ -41,9 +41,6 @@ export async function postContributionComment(
 	if (process.env.LOCAL_TESTING === "true") {
 		core.debug(`LOCAL_TESTING: ${JSON.stringify(commentRequestArgs)}`);
 	} else {
-		// TODO: It'd be nice to deduplicate these comments.
-		// PRs that include multiple types will cause multiple comments...
-		// https://github.com/JoshuaKGoldberg/all-contributors-auto-action/issues/180
 		const newComment = await octokit.request(...commentRequestArgs);
 		core.debug(`Posted comment ${newComment.data.id} for ${latestId}.`);
 	}
