@@ -91,6 +91,8 @@ Grant it these repository permissions:
 - **Pull requests**: Read and write
 - **Metadata**: Read-only _(selected automatically)_
 
+A classic personal access token needs the `public_repo` scope for public repositories, or the `repo` scope for private repositories.
+
 Then pass it to the action instead of `secrets.GITHUB_TOKEN`:
 
 ```yml
