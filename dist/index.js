@@ -30816,7 +30816,6 @@ var context = __nccwpck_require__(8979);
 ;// CONCATENATED MODULE: ./src/doesPullAlreadyHaveComment.ts
 
 async function doesPullAlreadyHaveComment(octokit, locator, id) {
-    // Comments are paginated, so an existing comment may be past the first page
     const existingComments = await octokit.paginate(octokit.rest.issues.listComments, {
         ...locator,
         headers: {

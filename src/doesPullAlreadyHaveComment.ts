@@ -6,7 +6,6 @@ export async function doesPullAlreadyHaveComment(
 	locator: Locator,
 	id: number,
 ) {
-	// Comments are paginated, so an existing comment may be past the first page
 	const existingComments = await octokit.paginate(
 		octokit.rest.issues.listComments,
 		{
