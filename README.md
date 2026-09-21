@@ -39,12 +39,18 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 jobs:
   contributors:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
       - uses: JoshuaKGoldberg/all-contributors-auto-action@v0.3.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ...and will post comments like the following automatically:
@@ -57,6 +63,42 @@ jobs:
 > > Please comment any missing contribution types this bot missed.
 > >
 > > ...and of course, thank you for contributing! 💙
+
+### Token and Permissions
+
+The action reads its GitHub token from the `GITHUB_TOKEN` environment variable.
+It uses that token to:
+
+- Read the repository's issues, pull requests, commits, and events to detect contributions
+- Read the repository's `.all-contributorsrc` file to see which contributors are already recorded
+- Post `@all-contributors` comments on issues and pull requests
+
+The workflow's built-in [`secrets.GITHUB_TOKEN`](https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication) works as long as the job is granted these permissions:
+
+```yml
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+```
+
+Alternately, you can use a [fine-grained personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token) stored as a repository secret.
+Grant it these repository permissions:
+
+- **Contents**: Read-only
+- **Issues**: Read and write
+- **Pull requests**: Read and write
+- **Metadata**: Read-only _(selected automatically)_
+
+A classic personal access token needs the `public_repo` scope for public repositories, or the `repo` scope for private repositories.
+
+Then pass it to the action instead of `secrets.GITHUB_TOKEN`:
+
+```yml
+- uses: JoshuaKGoldberg/all-contributors-auto-action@v0.3.2
+  env:
+    GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+```
 
 ### Inputs
 
@@ -76,12 +118,18 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 jobs:
   contributors:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
       - uses: JoshuaKGoldberg/all-contributors-auto-action@v0.3.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           ignored-logins: |
             -admin$
