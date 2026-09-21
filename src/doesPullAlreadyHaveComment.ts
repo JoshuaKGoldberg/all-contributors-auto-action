@@ -6,18 +6,17 @@ export async function doesPullAlreadyHaveComment(
 	locator: Locator,
 	id: number,
 ) {
-	const existingComments = await octokit.request(
-		"GET /repos/{owner}/{repo}/issues/{issue_number}/comments",
+	const existingComments = await octokit.paginate(
+		octokit.rest.issues.listComments,
 		{
 			...locator,
 			headers: {
 				"X-GitHub-Api-Version": "2022-11-28",
 			},
 			issue_number: id,
+			per_page: 100,
 		},
 	);
 
-	return existingComments.data.find(({ body }) =>
-		body?.includes(commentPrefix),
-	);
+	return existingComments.find(({ body }) => body?.includes(commentPrefix));
 }
