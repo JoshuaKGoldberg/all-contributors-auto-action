@@ -176,8 +176,8 @@ importers:
         specifier: ^24.0.0
         version: 24.13.2
       all-contributors-for-repository:
-        specifier: ^0.5.0
-        version: 0.5.2
+        specifier: ^0.6.1
+        version: 0.6.1
     devDependencies:
       '@eslint-community/eslint-plugin-eslint-comments':
         specifier: 4.8.0
@@ -1314,8 +1314,8 @@ packages:
   ajv@6.15.0:
     resolution: {integrity: sha512-fgFx7Hfoq60ytK2c7DhnF8jIvzYgOMxfugjLOSMHjLIPgenqa7S7oaagATUq99mV6IYvN2tRmC0wnTYX6iPbMw==}
 
-  all-contributors-for-repository@0.5.2:
-    resolution: {integrity: sha512-zyRdqys5R32bX01nBEmdJGt6zMkvNGa7hpQK4oWw+WqOSRqsiMlybuZCMuOKZnw8jDQ/lgKwHoe2oXSAqvyPXA==}
+  all-contributors-for-repository@0.6.1:
+    resolution: {integrity: sha512-xwBHkQpG5AX3gHZD/BF0W1MPtu3oaxFbIW4Pqve5u37Pik+WEKVizWQPSBHB7+sL5qyKUIPuvIEl+84MMAmw2A==}
     engines: {node: '>=18'}
 
   all-properties-lazy@0.1.0:
@@ -4328,7 +4328,7 @@ snapshots:
       json-schema-traverse: 0.4.1
       uri-js: 4.4.1
 
-  all-contributors-for-repository@0.5.2:
+  all-contributors-for-repository@0.6.1:
     dependencies:
       co-author-to-username: 0.1.3
       conventional-commits-parser: 7.1.2
