@@ -137,6 +137,51 @@ jobs:
             -it$
 ```
 
+#### `since`
+
+How far back to look for contributions.
+Defaults to `auto`.
+
+- `auto`: Look back to when the workflow's previous successful run started, so repeated runs don't re-request contributions they've already seen.
+  This requires the job to have the `actions: read` permission.
+  If there is no previous successful run, or it can't be determined, all available history is used.
+- `all`: Look at all available history.
+- An ISO 8601 date, such as `2026-01-01`, or a duration such as `12h`, `7d`, or `2w`.
+
+Only the contributions made since that time are requested from GitHub.
+This makes each run faster and cheaper in API requests, especially on busy repositories.
+
+A contributor's older contributions won't be seen by a windowed run, though.
+To also catch anything a windowed run missed, consider running a full scan on a schedule alongside the windowed runs:
+
+```yml
+# .github/workflows/contributors.yml
+name: Contributors
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "0 0 * * 0"
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  contributors:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: JoshuaKGoldberg/all-contributors-auto-action@v0.3.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          since: ${{ github.event_name == 'schedule' && 'all' || 'auto' }}
+```
+
 ## Development
 
 See [`.github/CONTRIBUTING.md`](./.github/CONTRIBUTING.md), then [`.github/DEVELOPMENT.md`](./.github/DEVELOPMENT.md).

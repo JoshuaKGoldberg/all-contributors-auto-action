@@ -37,7 +37,7 @@
 		"@actions/core": "^3.0.0",
 		"@actions/github": "^9.0.0",
 		"@types/node": "^24.0.0",
-		"all-contributors-for-repository": "^0.6.1",
+		"all-contributors-for-repository": "^1.0.0",
 		"get-github-auth-token": "^0.2.0"
 	},
 	"devDependencies": {
