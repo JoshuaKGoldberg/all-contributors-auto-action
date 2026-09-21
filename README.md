@@ -66,8 +66,8 @@ jobs:
 
 ### Token and Permissions
 
-The action reads its GitHub token from the `GITHUB_TOKEN` environment variable.
-See [get-github-auth-token](https://github.com/JoshuaKGoldberg/get-github-auth-token) for the other places it will look.
+The action reads its GitHub token from the `GH_TOKEN` or `GITHUB_TOKEN` environment variable.
+See [get-github-auth-token](https://github.com/JoshuaKGoldberg/get-github-auth-token) for more details.
 It uses that token to:
 
 - Read the repository's issues, pull requests, commits, and events to detect contributions
