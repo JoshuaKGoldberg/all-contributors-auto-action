@@ -25,11 +25,6 @@ const mockRequest = vi.fn((route: string) => {
 				},
 			};
 
-		case "GET /repos/{owner}/{repo}/issues/{issue_number}/comments":
-			return {
-				data: [],
-			};
-
 		case "POST /repos/{owner}/{repo}/issues/{issue_number}/comments":
 			return {
 				data: {
@@ -39,8 +34,14 @@ const mockRequest = vi.fn((route: string) => {
 	}
 });
 
+const mockListComments = vi.fn();
+
+const mockPaginate = vi.fn(() => []);
+
 const mockOctokit = {
+	paginate: mockPaginate,
 	request: mockRequest,
+	rest: { issues: { listComments: mockListComments } },
 };
 
 vi.mock("@actions/core", () => ({
@@ -80,6 +81,35 @@ describe("end-to-end", () => {
 
 		await import("./index.js");
 
+		expect(mockPaginate.mock.calls).toMatchInlineSnapshot(`
+		[
+		  [
+		    [MockFunction],
+		    {
+		      "headers": {
+		        "X-GitHub-Api-Version": "2022-11-28",
+		      },
+		      "issue_number": 111,
+		      "owner": "Mock-Owner",
+		      "per_page": 100,
+		      "repo": "test-repository",
+		    },
+		  ],
+		  [
+		    [MockFunction],
+		    {
+		      "headers": {
+		        "X-GitHub-Api-Version": "2022-11-28",
+		      },
+		      "issue_number": 222,
+		      "owner": "Mock-Owner",
+		      "per_page": 100,
+		      "repo": "test-repository",
+		    },
+		  ],
+		]
+	`);
+
 		expect(mockRequest.mock.calls).toMatchInlineSnapshot(`
 		[
 		  [
@@ -90,28 +120,6 @@ describe("end-to-end", () => {
 		      },
 		      "owner": "Mock-Owner",
 		      "path": ".all-contributorsrc",
-		      "repo": "test-repository",
-		    },
-		  ],
-		  [
-		    "GET /repos/{owner}/{repo}/issues/{issue_number}/comments",
-		    {
-		      "headers": {
-		        "X-GitHub-Api-Version": "2022-11-28",
-		      },
-		      "issue_number": 111,
-		      "owner": "Mock-Owner",
-		      "repo": "test-repository",
-		    },
-		  ],
-		  [
-		    "GET /repos/{owner}/{repo}/issues/{issue_number}/comments",
-		    {
-		      "headers": {
-		        "X-GitHub-Api-Version": "2022-11-28",
-		      },
-		      "issue_number": 222,
-		      "owner": "Mock-Owner",
 		      "repo": "test-repository",
 		    },
 		  ],
