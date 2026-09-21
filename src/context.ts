@@ -1,22 +1,18 @@
 import * as github from "@actions/github";
+import { getGitHubAuthToken } from "get-github-auth-token";
 
 import { Octokit } from "./types.js";
 
-function getGithubToken() {
-	const githubToken = process.env.GITHUB_TOKEN;
+const auth = await getGitHubAuthToken();
 
-	// Octokit would otherwise silently fall back to unauthenticated requests,
-	// which fail later with a confusing rate limit error
-	if (!githubToken) {
-		throw new Error(
-			"The GITHUB_TOKEN environment variable must be set. See https://github.com/JoshuaKGoldberg/all-contributors-auto-action#token-and-permissions.",
-		);
-	}
-
-	return githubToken;
+if (!auth.succeeded) {
+	throw new Error(
+		"Could not find a GitHub token. See https://github.com/JoshuaKGoldberg/all-contributors-auto-action#token-and-permissions.",
+		{ cause: auth.error },
+	);
 }
 
-export const githubToken = getGithubToken();
+export const githubToken = auth.token;
 
 export const { repo: locator } = github.context;
 export const octokit: Octokit = github.getOctokit(githubToken);

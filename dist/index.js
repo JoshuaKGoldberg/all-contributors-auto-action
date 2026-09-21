@@ -30505,205 +30505,68 @@ module.exports = {
 
 /***/ }),
 
-/***/ 8979:
+/***/ 8206:
 /***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
 
-
-// EXPORTS
-__nccwpck_require__.d(__webpack_exports__, {
-  bU: () => (/* binding */ githubToken),
-  fl: () => (/* binding */ locator),
-  A8: () => (/* binding */ octokit)
-});
-
-// EXTERNAL MODULE: external "fs"
-var external_fs_ = __nccwpck_require__(9896);
-// EXTERNAL MODULE: external "os"
-var external_os_ = __nccwpck_require__(857);
-;// CONCATENATED MODULE: ./node_modules/.pnpm/@actions+github@9.1.1/node_modules/@actions/github/lib/context.js
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   P: () => (/* binding */ commentDisclaimer),
+/* harmony export */   y: () => (/* binding */ commentPrefix)
+/* harmony export */ });
+const commentDisclaimer = [
+    `> 🤖 Beep boop! This comment was added automatically by [all-contributors-auto-action](https://github.com/marketplace/actions/all-contributors-auto-action).`,
+    `> Not all contributions can be detected from Git & GitHub alone. Please comment any missing contribution types this bot missed.`,
+    `> ...and of course, thank you for contributing! 💙`,
+].join("\n");
+const commentPrefix = "@all-contributors please add";
 
 
-class Context {
-    /**
-     * Hydrate the context from the environment
-     */
-    constructor() {
-        var _a, _b, _c;
-        this.payload = {};
-        if (process.env.GITHUB_EVENT_PATH) {
-            if ((0,external_fs_.existsSync)(process.env.GITHUB_EVENT_PATH)) {
-                this.payload = JSON.parse((0,external_fs_.readFileSync)(process.env.GITHUB_EVENT_PATH, { encoding: 'utf8' }));
-            }
-            else {
-                const path = process.env.GITHUB_EVENT_PATH;
-                process.stdout.write(`GITHUB_EVENT_PATH ${path} does not exist${external_os_.EOL}`);
-            }
-        }
-        this.eventName = process.env.GITHUB_EVENT_NAME;
-        this.sha = process.env.GITHUB_SHA;
-        this.ref = process.env.GITHUB_REF;
-        this.workflow = process.env.GITHUB_WORKFLOW;
-        this.action = process.env.GITHUB_ACTION;
-        this.actor = process.env.GITHUB_ACTOR;
-        this.job = process.env.GITHUB_JOB;
-        this.runAttempt = parseInt(process.env.GITHUB_RUN_ATTEMPT, 10);
-        this.runNumber = parseInt(process.env.GITHUB_RUN_NUMBER, 10);
-        this.runId = parseInt(process.env.GITHUB_RUN_ID, 10);
-        this.apiUrl = (_a = process.env.GITHUB_API_URL) !== null && _a !== void 0 ? _a : `https://api.github.com`;
-        this.serverUrl = (_b = process.env.GITHUB_SERVER_URL) !== null && _b !== void 0 ? _b : `https://github.com`;
-        this.graphqlUrl =
-            (_c = process.env.GITHUB_GRAPHQL_URL) !== null && _c !== void 0 ? _c : `https://api.github.com/graphql`;
-    }
-    get issue() {
-        const payload = this.payload;
-        return Object.assign(Object.assign({}, this.repo), { number: (payload.issue || payload.pull_request || payload).number });
-    }
-    get repo() {
-        if (process.env.GITHUB_REPOSITORY) {
-            const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
-            return { owner, repo };
-        }
-        if (this.payload.repository) {
-            return {
-                owner: this.payload.repository.owner.login,
-                repo: this.payload.repository.name
-            };
-        }
-        throw new Error("context.repo requires a GITHUB_REPOSITORY environment variable like 'owner/repo'");
-    }
+/***/ }),
+
+/***/ 3933:
+/***/ ((module, __webpack_exports__, __nccwpck_require__) => {
+
+__nccwpck_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   A8: () => (/* binding */ octokit),
+/* harmony export */   bU: () => (/* binding */ githubToken),
+/* harmony export */   fl: () => (/* binding */ locator)
+/* harmony export */ });
+/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(5560);
+/* harmony import */ var get_github_auth_token__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(7237);
+
+
+const auth = await (0,get_github_auth_token__WEBPACK_IMPORTED_MODULE_1__/* .getGitHubAuthToken */ .h)();
+if (!auth.succeeded) {
+    throw new Error("Could not find a GitHub token. See https://github.com/JoshuaKGoldberg/all-contributors-auto-action#token-and-permissions.", { cause: auth.error });
 }
-//# sourceMappingURL=context.js.map
-// EXTERNAL MODULE: ./node_modules/.pnpm/@actions+http-client@3.0.2/node_modules/@actions/http-client/lib/index.js
-var lib = __nccwpck_require__(2504);
-// EXTERNAL MODULE: ./node_modules/.pnpm/undici@6.28.1/node_modules/undici/index.js
-var undici = __nccwpck_require__(6438);
-;// CONCATENATED MODULE: ./node_modules/.pnpm/@actions+github@9.1.1/node_modules/@actions/github/lib/internal/utils.js
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
+const githubToken = auth.token;
+const { repo: locator } = _actions_github__WEBPACK_IMPORTED_MODULE_0__/* .context */ ._;
+const octokit = _actions_github__WEBPACK_IMPORTED_MODULE_0__/* .getOctokit */ .Q(githubToken);
+
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } }, 1);
+
+/***/ }),
+
+/***/ 7561:
+/***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
+
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   u: () => (/* binding */ doesPullAlreadyHaveComment)
+/* harmony export */ });
+/* harmony import */ var _comments_js__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(8206);
+
+async function doesPullAlreadyHaveComment(octokit, locator, id) {
+    const existingComments = await octokit.paginate(octokit.rest.issues.listComments, {
+        ...locator,
+        headers: {
+            "X-GitHub-Api-Version": "2022-11-28",
+        },
+        issue_number: id,
+        per_page: 100,
     });
-};
-
-
-function getAuthString(token, options) {
-    if (!token && !options.auth) {
-        throw new Error('Parameter token or opts.auth is required');
-    }
-    else if (token && options.auth) {
-        throw new Error('Parameters token and opts.auth may not both be specified');
-    }
-    return typeof options.auth === 'string' ? options.auth : `token ${token}`;
+    return existingComments.find(({ body }) => body?.includes(_comments_js__WEBPACK_IMPORTED_MODULE_0__/* .commentPrefix */ .y));
 }
-function getProxyAgent(destinationUrl) {
-    const hc = new lib.HttpClient();
-    return hc.getAgent(destinationUrl);
-}
-function getProxyAgentDispatcher(destinationUrl) {
-    const hc = new lib.HttpClient();
-    return hc.getAgentDispatcher(destinationUrl);
-}
-function getProxyFetch(destinationUrl) {
-    const httpDispatcher = getProxyAgentDispatcher(destinationUrl);
-    const proxyFetch = (url, opts) => __awaiter(this, void 0, void 0, function* () {
-        return (0,undici.fetch)(url, Object.assign(Object.assign({}, opts), { dispatcher: httpDispatcher }));
-    });
-    return proxyFetch;
-}
-function getApiBaseUrl() {
-    return process.env['GITHUB_API_URL'] || 'https://api.github.com';
-}
-function getUserAgentWithOrchestrationId(baseUserAgent) {
-    var _a;
-    const orchId = (_a = process.env['ACTIONS_ORCHESTRATION_ID']) === null || _a === void 0 ? void 0 : _a.trim();
-    if (orchId) {
-        const sanitizedId = orchId.replace(/[^a-z0-9_.-]/gi, '_');
-        const tag = `actions_orchestration_id/${sanitizedId}`;
-        if (baseUserAgent === null || baseUserAgent === void 0 ? void 0 : baseUserAgent.includes(tag))
-            return baseUserAgent;
-        const ua = baseUserAgent ? `${baseUserAgent} ` : '';
-        return `${ua}${tag}`;
-    }
-    return baseUserAgent;
-}
-//# sourceMappingURL=utils.js.map
-// EXTERNAL MODULE: ./node_modules/.pnpm/@octokit+core@7.0.8/node_modules/@octokit/core/dist-src/index.js + 7 modules
-var dist_src = __nccwpck_require__(4504);
-// EXTERNAL MODULE: ./node_modules/.pnpm/@octokit+plugin-rest-endpoint-methods@17.0.0_@octokit+core@7.0.8/node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/index.js + 3 modules
-var plugin_rest_endpoint_methods_dist_src = __nccwpck_require__(8845);
-// EXTERNAL MODULE: ./node_modules/.pnpm/@octokit+plugin-paginate-rest@14.0.0_@octokit+core@7.0.8/node_modules/@octokit/plugin-paginate-rest/dist-bundle/index.js
-var dist_bundle = __nccwpck_require__(8726);
-;// CONCATENATED MODULE: ./node_modules/.pnpm/@actions+github@9.1.1/node_modules/@actions/github/lib/utils.js
-
-
-// octokit + plugins
-
-
-
-const context = new Context();
-const baseUrl = getApiBaseUrl();
-const defaults = {
-    baseUrl,
-    request: {
-        agent: getProxyAgent(baseUrl),
-        fetch: getProxyFetch(baseUrl)
-    }
-};
-const GitHub = dist_src/* Octokit */.E.plugin(plugin_rest_endpoint_methods_dist_src/* restEndpointMethods */._, dist_bundle/* paginateRest */.ud).defaults(defaults);
-
-/**
- * Convience function to correctly format Octokit Options to pass into the constructor.
- *
- * @param     token    the repo PAT or GITHUB_TOKEN
- * @param     options  other options to set
- */
-function getOctokitOptions(token, options) {
-    const opts = Object.assign({}, options || {}); // Shallow clone - don't mutate the object provided by the caller
-    // Auth
-    const auth = getAuthString(token, opts);
-    if (auth) {
-        opts.auth = auth;
-    }
-    // Orchestration ID
-    const userAgent = getUserAgentWithOrchestrationId(opts.userAgent);
-    if (userAgent) {
-        opts.userAgent = userAgent;
-    }
-    return opts;
-}
-//# sourceMappingURL=utils.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/@actions+github@9.1.1/node_modules/@actions/github/lib/github.js
-
-
-const github_context = new Context();
-/**
- * Returns a hydrated octokit ready to use for GitHub Actions
- *
- * @param     token    the repo PAT or GITHUB_TOKEN
- * @param     options  other options to set
- */
-function getOctokit(token, options, ...additionalPlugins) {
-    const GitHubWithPlugins = GitHub.plugin(...additionalPlugins);
-    return new GitHubWithPlugins(getOctokitOptions(token, options));
-}
-//# sourceMappingURL=github.js.map
-;// CONCATENATED MODULE: ./src/context.ts
-
-function getGithubToken() {
-    const githubToken = process.env.GITHUB_TOKEN;
-    // Octokit would otherwise silently fall back to unauthenticated requests,
-    // which fail later with a confusing rate limit error
-    if (!githubToken) {
-        throw new Error("The GITHUB_TOKEN environment variable must be set. See https://github.com/JoshuaKGoldberg/all-contributors-auto-action#token-and-permissions.");
-    }
-    return githubToken;
-}
-const githubToken = getGithubToken();
-const { repo: locator } = github_context;
-const octokit = getOctokit(githubToken);
 
 
 /***/ }),
@@ -30755,15 +30618,36 @@ async function getExistingContributors(octokit, locator) {
 
 /***/ }),
 
+/***/ 725:
+/***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
+
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   g: () => (/* binding */ getMissingContributions)
+/* harmony export */ });
+function getMissingContributions(contributor, contributions, existingContributors) {
+    const existingContributions = existingContributors[contributor];
+    if (!existingContributions) {
+        return contributions;
+    }
+    return Object.fromEntries(Object.entries(contributions)
+        .filter(([type]) => !existingContributions.has(type))
+        .map(([type, ids]) => [type, Array.from(ids).sort()]));
+}
+
+
+/***/ }),
+
 /***/ 5522:
 /***/ ((module, __unused_webpack___webpack_exports__, __nccwpck_require__) => {
 
 __nccwpck_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(8830);
-/* harmony import */ var all_contributors_for_repository__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(301);
-/* harmony import */ var _context_js__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(8979);
+/* harmony import */ var all_contributors_for_repository__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(6249);
+/* harmony import */ var _context_js__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(3933);
 /* harmony import */ var _getExistingContributors_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(9480);
-/* harmony import */ var _postContributorComments_js__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(5399);
+/* harmony import */ var _postContributorComments_js__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(5359);
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_context_js__WEBPACK_IMPORTED_MODULE_1__, _postContributorComments_js__WEBPACK_IMPORTED_MODULE_3__]);
+([_context_js__WEBPACK_IMPORTED_MODULE_1__, _postContributorComments_js__WEBPACK_IMPORTED_MODULE_3__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
 
 
 
@@ -30789,72 +30673,38 @@ __webpack_async_result__();
 
 /***/ }),
 
-/***/ 5399:
-/***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
+/***/ 5503:
+/***/ ((module, __webpack_exports__, __nccwpck_require__) => {
 
-
-// EXPORTS
-__nccwpck_require__.d(__webpack_exports__, {
-  G: () => (/* binding */ postContributorComments)
-});
-
-// EXTERNAL MODULE: ./node_modules/.pnpm/@actions+core@3.0.1/node_modules/@actions/core/lib/core.js + 18 modules
-var core = __nccwpck_require__(8830);
-;// CONCATENATED MODULE: ./src/getMissingContributions.ts
-function getMissingContributions(contributor, contributions, existingContributors) {
-    const existingContributions = existingContributors[contributor];
-    if (!existingContributions) {
-        return contributions;
-    }
-    return Object.fromEntries(Object.entries(contributions)
-        .filter(([type]) => !existingContributions.has(type))
-        .map(([type, ids]) => [type, Array.from(ids).sort()]));
-}
-
-;// CONCATENATED MODULE: ./src/comments.ts
-const commentDisclaimer = [
-    `> 🤖 Beep boop! This comment was added automatically by [all-contributors-auto-action](https://github.com/marketplace/actions/all-contributors-auto-action).`,
-    `> Not all contributions can be detected from Git & GitHub alone. Please comment any missing contribution types this bot missed.`,
-    `> ...and of course, thank you for contributing! 💙`,
-].join("\n");
-const commentPrefix = "@all-contributors please add";
-
-// EXTERNAL MODULE: ./src/context.ts + 4 modules
-var context = __nccwpck_require__(8979);
-;// CONCATENATED MODULE: ./src/doesPullAlreadyHaveComment.ts
-
-async function doesPullAlreadyHaveComment(octokit, locator, id) {
-    const existingComments = await octokit.paginate(octokit.rest.issues.listComments, {
-        ...locator,
-        headers: {
-            "X-GitHub-Api-Version": "2022-11-28",
-        },
-        issue_number: id,
-        per_page: 100,
-    });
-    return existingComments.find(({ body }) => body?.includes(commentPrefix));
-}
-
-;// CONCATENATED MODULE: ./src/postContributionComment.ts
+__nccwpck_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   A: () => (/* binding */ postContributionComment)
+/* harmony export */ });
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(8830);
+/* harmony import */ var _comments_js__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(8206);
+/* harmony import */ var _context_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(3933);
+/* harmony import */ var _doesPullAlreadyHaveComment_js__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(7561);
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_context_js__WEBPACK_IMPORTED_MODULE_2__]);
+_context_js__WEBPACK_IMPORTED_MODULE_2__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
 
 
 
 
 async function postContributionComment(contributor, latestId, types) {
-    core/* debug */.Yz(`Checking for existing ${contributor} comment: ${latestId}`);
-    const existingComment = await doesPullAlreadyHaveComment(context/* octokit */.A8, context/* locator */.fl, latestId);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .debug */ .Yz(`Checking for existing ${contributor} comment: ${latestId}`);
+    const existingComment = await (0,_doesPullAlreadyHaveComment_js__WEBPACK_IMPORTED_MODULE_3__/* .doesPullAlreadyHaveComment */ .u)(_context_js__WEBPACK_IMPORTED_MODULE_2__/* .octokit */ .A8, _context_js__WEBPACK_IMPORTED_MODULE_2__/* .locator */ .fl, latestId);
     if (existingComment) {
-        core/* debug */.Yz(`${latestId} already has a comment: ${existingComment.id}`);
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .debug */ .Yz(`${latestId} already has a comment: ${existingComment.id}`);
         return;
     }
-    core/* debug */.Yz(`${latestId} doesn't already have a comment; posting a new one.`);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .debug */ .Yz(`${latestId} doesn't already have a comment; posting a new one.`);
     const commentRequestArgs = [
         "POST /repos/{owner}/{repo}/issues/{issue_number}/comments",
         {
-            ...context/* locator */.fl,
+            ..._context_js__WEBPACK_IMPORTED_MODULE_2__/* .locator */ .fl,
             body: [
-                `${commentPrefix} ${contributor} for ${types.join(", ")}.`,
-                commentDisclaimer,
+                `${_comments_js__WEBPACK_IMPORTED_MODULE_1__/* .commentPrefix */ .y} ${contributor} for ${types.join(", ")}.`,
+                _comments_js__WEBPACK_IMPORTED_MODULE_1__/* .commentDisclaimer */ .P,
             ].join("\n\n"),
             headers: {
                 "X-GitHub-Api-Version": "2022-11-28",
@@ -30863,26 +30713,42 @@ async function postContributionComment(contributor, latestId, types) {
         },
     ];
     if (process.env.LOCAL_TESTING === "true") {
-        core/* debug */.Yz(`LOCAL_TESTING: ${JSON.stringify(commentRequestArgs)}`);
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .debug */ .Yz(`LOCAL_TESTING: ${JSON.stringify(commentRequestArgs)}`);
     }
     else {
-        const newComment = await context/* octokit */.A8.request(...commentRequestArgs);
-        core/* debug */.Yz(`Posted comment ${newComment.data.id} for ${latestId}.`);
+        const newComment = await _context_js__WEBPACK_IMPORTED_MODULE_2__/* .octokit */ .A8.request(...commentRequestArgs);
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .debug */ .Yz(`Posted comment ${newComment.data.id} for ${latestId}.`);
     }
 }
 
-;// CONCATENATED MODULE: ./src/postContributorComments.ts
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } });
+
+/***/ }),
+
+/***/ 5359:
+/***/ ((module, __webpack_exports__, __nccwpck_require__) => {
+
+__nccwpck_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   G: () => (/* binding */ postContributorComments)
+/* harmony export */ });
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(8830);
+/* harmony import */ var _getMissingContributions_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(725);
+/* harmony import */ var _postContributionComment_js__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(5503);
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_postContributionComment_js__WEBPACK_IMPORTED_MODULE_1__]);
+_postContributionComment_js__WEBPACK_IMPORTED_MODULE_1__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
 
 
 
 async function postContributorComments(contributor, contributions, existingContributors) {
-    core/* debug */.Yz(`Retrieving missing contributions for contributor: ${contributor}`);
-    const missingContributions = getMissingContributions(contributor, contributions, existingContributors);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .debug */ .Yz(`Retrieving missing contributions for contributor: ${contributor}`);
+    const missingContributions = (0,_getMissingContributions_js__WEBPACK_IMPORTED_MODULE_2__/* .getMissingContributions */ .g)(contributor, contributions, existingContributors);
     if (!Object.keys(missingContributions).length) {
-        core/* debug */.Yz(`${contributor} is not missing any contributions.`);
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .debug */ .Yz(`${contributor} is not missing any contributions.`);
         return;
     }
-    core/* debug */.Yz(`${contributor} is missing: ${JSON.stringify(missingContributions)}`);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .debug */ .Yz(`${contributor} is missing: ${JSON.stringify(missingContributions)}`);
     const typesByLatestId = new Map();
     for (const [type, ids] of Object.entries(missingContributions)) {
         const latestId = ids[ids.length - 1];
@@ -30895,10 +30761,12 @@ async function postContributorComments(contributor, contributions, existingContr
         }
     }
     for (const [latestId, types] of typesByLatestId) {
-        await postContributionComment(contributor, latestId, types);
+        await (0,_postContributionComment_js__WEBPACK_IMPORTED_MODULE_1__/* .postContributionComment */ .A)(contributor, latestId, types);
     }
 }
 
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } });
 
 /***/ }),
 
@@ -30962,6 +30830,13 @@ module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:async_h
 /***/ ((module) => {
 
 module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:buffer");
+
+/***/ }),
+
+/***/ 1421:
+/***/ ((module) => {
+
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:child_process");
 
 /***/ }),
 
@@ -34069,6 +33944,193 @@ function getIDToken(aud) {
  */
 
 //# sourceMappingURL=core.js.map
+
+/***/ }),
+
+/***/ 5560:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+
+// EXPORTS
+__nccwpck_require__.d(__webpack_exports__, {
+  _: () => (/* binding */ github_context),
+  Q: () => (/* binding */ getOctokit)
+});
+
+// EXTERNAL MODULE: external "fs"
+var external_fs_ = __nccwpck_require__(9896);
+// EXTERNAL MODULE: external "os"
+var external_os_ = __nccwpck_require__(857);
+;// CONCATENATED MODULE: ./node_modules/.pnpm/@actions+github@9.1.1/node_modules/@actions/github/lib/context.js
+
+
+class Context {
+    /**
+     * Hydrate the context from the environment
+     */
+    constructor() {
+        var _a, _b, _c;
+        this.payload = {};
+        if (process.env.GITHUB_EVENT_PATH) {
+            if ((0,external_fs_.existsSync)(process.env.GITHUB_EVENT_PATH)) {
+                this.payload = JSON.parse((0,external_fs_.readFileSync)(process.env.GITHUB_EVENT_PATH, { encoding: 'utf8' }));
+            }
+            else {
+                const path = process.env.GITHUB_EVENT_PATH;
+                process.stdout.write(`GITHUB_EVENT_PATH ${path} does not exist${external_os_.EOL}`);
+            }
+        }
+        this.eventName = process.env.GITHUB_EVENT_NAME;
+        this.sha = process.env.GITHUB_SHA;
+        this.ref = process.env.GITHUB_REF;
+        this.workflow = process.env.GITHUB_WORKFLOW;
+        this.action = process.env.GITHUB_ACTION;
+        this.actor = process.env.GITHUB_ACTOR;
+        this.job = process.env.GITHUB_JOB;
+        this.runAttempt = parseInt(process.env.GITHUB_RUN_ATTEMPT, 10);
+        this.runNumber = parseInt(process.env.GITHUB_RUN_NUMBER, 10);
+        this.runId = parseInt(process.env.GITHUB_RUN_ID, 10);
+        this.apiUrl = (_a = process.env.GITHUB_API_URL) !== null && _a !== void 0 ? _a : `https://api.github.com`;
+        this.serverUrl = (_b = process.env.GITHUB_SERVER_URL) !== null && _b !== void 0 ? _b : `https://github.com`;
+        this.graphqlUrl =
+            (_c = process.env.GITHUB_GRAPHQL_URL) !== null && _c !== void 0 ? _c : `https://api.github.com/graphql`;
+    }
+    get issue() {
+        const payload = this.payload;
+        return Object.assign(Object.assign({}, this.repo), { number: (payload.issue || payload.pull_request || payload).number });
+    }
+    get repo() {
+        if (process.env.GITHUB_REPOSITORY) {
+            const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
+            return { owner, repo };
+        }
+        if (this.payload.repository) {
+            return {
+                owner: this.payload.repository.owner.login,
+                repo: this.payload.repository.name
+            };
+        }
+        throw new Error("context.repo requires a GITHUB_REPOSITORY environment variable like 'owner/repo'");
+    }
+}
+//# sourceMappingURL=context.js.map
+// EXTERNAL MODULE: ./node_modules/.pnpm/@actions+http-client@3.0.2/node_modules/@actions/http-client/lib/index.js
+var lib = __nccwpck_require__(2504);
+// EXTERNAL MODULE: ./node_modules/.pnpm/undici@6.28.1/node_modules/undici/index.js
+var undici = __nccwpck_require__(6438);
+;// CONCATENATED MODULE: ./node_modules/.pnpm/@actions+github@9.1.1/node_modules/@actions/github/lib/internal/utils.js
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+
+
+function getAuthString(token, options) {
+    if (!token && !options.auth) {
+        throw new Error('Parameter token or opts.auth is required');
+    }
+    else if (token && options.auth) {
+        throw new Error('Parameters token and opts.auth may not both be specified');
+    }
+    return typeof options.auth === 'string' ? options.auth : `token ${token}`;
+}
+function getProxyAgent(destinationUrl) {
+    const hc = new lib.HttpClient();
+    return hc.getAgent(destinationUrl);
+}
+function getProxyAgentDispatcher(destinationUrl) {
+    const hc = new lib.HttpClient();
+    return hc.getAgentDispatcher(destinationUrl);
+}
+function getProxyFetch(destinationUrl) {
+    const httpDispatcher = getProxyAgentDispatcher(destinationUrl);
+    const proxyFetch = (url, opts) => __awaiter(this, void 0, void 0, function* () {
+        return (0,undici.fetch)(url, Object.assign(Object.assign({}, opts), { dispatcher: httpDispatcher }));
+    });
+    return proxyFetch;
+}
+function getApiBaseUrl() {
+    return process.env['GITHUB_API_URL'] || 'https://api.github.com';
+}
+function getUserAgentWithOrchestrationId(baseUserAgent) {
+    var _a;
+    const orchId = (_a = process.env['ACTIONS_ORCHESTRATION_ID']) === null || _a === void 0 ? void 0 : _a.trim();
+    if (orchId) {
+        const sanitizedId = orchId.replace(/[^a-z0-9_.-]/gi, '_');
+        const tag = `actions_orchestration_id/${sanitizedId}`;
+        if (baseUserAgent === null || baseUserAgent === void 0 ? void 0 : baseUserAgent.includes(tag))
+            return baseUserAgent;
+        const ua = baseUserAgent ? `${baseUserAgent} ` : '';
+        return `${ua}${tag}`;
+    }
+    return baseUserAgent;
+}
+//# sourceMappingURL=utils.js.map
+// EXTERNAL MODULE: ./node_modules/.pnpm/@octokit+core@7.0.8/node_modules/@octokit/core/dist-src/index.js + 7 modules
+var dist_src = __nccwpck_require__(4504);
+// EXTERNAL MODULE: ./node_modules/.pnpm/@octokit+plugin-rest-endpoint-methods@17.0.0_@octokit+core@7.0.8/node_modules/@octokit/plugin-rest-endpoint-methods/dist-src/index.js + 3 modules
+var plugin_rest_endpoint_methods_dist_src = __nccwpck_require__(8845);
+// EXTERNAL MODULE: ./node_modules/.pnpm/@octokit+plugin-paginate-rest@14.0.0_@octokit+core@7.0.8/node_modules/@octokit/plugin-paginate-rest/dist-bundle/index.js
+var dist_bundle = __nccwpck_require__(8726);
+;// CONCATENATED MODULE: ./node_modules/.pnpm/@actions+github@9.1.1/node_modules/@actions/github/lib/utils.js
+
+
+// octokit + plugins
+
+
+
+const context = new Context();
+const baseUrl = getApiBaseUrl();
+const defaults = {
+    baseUrl,
+    request: {
+        agent: getProxyAgent(baseUrl),
+        fetch: getProxyFetch(baseUrl)
+    }
+};
+const GitHub = dist_src/* Octokit */.E.plugin(plugin_rest_endpoint_methods_dist_src/* restEndpointMethods */._, dist_bundle/* paginateRest */.ud).defaults(defaults);
+
+/**
+ * Convience function to correctly format Octokit Options to pass into the constructor.
+ *
+ * @param     token    the repo PAT or GITHUB_TOKEN
+ * @param     options  other options to set
+ */
+function getOctokitOptions(token, options) {
+    const opts = Object.assign({}, options || {}); // Shallow clone - don't mutate the object provided by the caller
+    // Auth
+    const auth = getAuthString(token, opts);
+    if (auth) {
+        opts.auth = auth;
+    }
+    // Orchestration ID
+    const userAgent = getUserAgentWithOrchestrationId(opts.userAgent);
+    if (userAgent) {
+        opts.userAgent = userAgent;
+    }
+    return opts;
+}
+//# sourceMappingURL=utils.js.map
+;// CONCATENATED MODULE: ./node_modules/.pnpm/@actions+github@9.1.1/node_modules/@actions/github/lib/github.js
+
+
+const github_context = new Context();
+/**
+ * Returns a hydrated octokit ready to use for GitHub Actions
+ *
+ * @param     token    the repo PAT or GITHUB_TOKEN
+ * @param     options  other options to set
+ */
+function getOctokit(token, options, ...additionalPlugins) {
+    const GitHubWithPlugins = GitHub.plugin(...additionalPlugins);
+    return new GitHubWithPlugins(getOctokitOptions(token, options));
+}
+//# sourceMappingURL=github.js.map
 
 /***/ }),
 
@@ -38956,7 +39018,7 @@ var request = dist_bundle_withDefaults(endpoint, defaults_default);
 
 /***/ }),
 
-/***/ 301:
+/***/ 6249:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
 
@@ -39017,8 +39079,8 @@ function addAcceptedIssues(acceptedIssues, contributors, options) {
 
 
 //# sourceMappingURL=addAcceptedIssues.js.map
-;// CONCATENATED MODULE: external "node:child_process"
-const external_node_child_process_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:child_process");
+// EXTERNAL MODULE: external "node:child_process"
+var external_node_child_process_ = __nccwpck_require__(1421);
 // EXTERNAL MODULE: external "node:util"
 var external_node_util_ = __nccwpck_require__(7975);
 ;// CONCATENATED MODULE: ./node_modules/.pnpm/get-github-auth-token@0.1.2/node_modules/get-github-auth-token/lib/getGitHubAuthToken.js
@@ -39028,7 +39090,7 @@ async function getGitHubAuthToken_getGitHubAuthToken() {
   if (process.env.GH_TOKEN) {
     return { succeeded: true, token: process.env.GH_TOKEN };
   }
-  const exec = external_node_util_.promisify(external_node_child_process_namespaceObject.exec);
+  const exec = external_node_util_.promisify(external_node_child_process_.exec);
   const token = await exec("gh auth token").catch(
     () => ({})
   );
@@ -45458,6 +45520,55 @@ async function getAllContributorsForRepository(rawOptions) {
 
 
 //# sourceMappingURL=getAllContributorsForRepository.js.map
+
+/***/ }),
+
+/***/ 7237:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+
+// EXPORTS
+__nccwpck_require__.d(__webpack_exports__, {
+  h: () => (/* reexport */ getGitHubAuthToken)
+});
+
+// EXTERNAL MODULE: external "node:child_process"
+var external_node_child_process_ = __nccwpck_require__(1421);
+// EXTERNAL MODULE: external "node:util"
+var external_node_util_ = __nccwpck_require__(7975);
+;// CONCATENATED MODULE: ./node_modules/.pnpm/get-github-auth-token@0.2.0/node_modules/get-github-auth-token/lib/getGitHubAuthToken.js
+
+
+async function getGitHubAuthToken() {
+  if (process.env.GH_TOKEN) {
+    return { succeeded: true, token: process.env.GH_TOKEN };
+  }
+  if (process.env.GITHUB_TOKEN) {
+    return { succeeded: true, token: process.env.GITHUB_TOKEN };
+  }
+  const exec = external_node_util_.promisify(external_node_child_process_.exec);
+  const token = await exec("gh auth token").catch(
+    () => ({})
+  );
+  if (token.stdout) {
+    return { succeeded: true, token: token.stdout };
+  }
+  const help = await exec("gh").catch((error) => ({
+    stderr: error
+  }));
+  return {
+    error: help.stderr && `Could not run \`gh\`: ${help.stderr}` || // If stderr is "", we still ignore it and set to undefined
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    token.stderr || void 0,
+    succeeded: false
+  };
+}
+
+
+;// CONCATENATED MODULE: ./node_modules/.pnpm/get-github-auth-token@0.2.0/node_modules/get-github-auth-token/lib/index.js
+
+
+
 
 /***/ }),
 
