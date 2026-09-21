@@ -12,6 +12,15 @@ inputs:
       Powered by `all-contributors-for-repository`, which comes with its own
       set of reasonable defaults (e.g. `\[bot\]$`).
     required: false
+  since:
+    default: auto
+    description: >
+      How far back to look for contributions.
+      `auto` looks back to the workflow's previous successful run, which
+      requires the `actions: read` permission, and falls back to all history.
+      `all` looks at all available history.
+      Otherwise, an ISO 8601 date or a duration such as `7d` or `12h`.
+    required: false
 name: All Contributors Auto Action
 runs:
   main: dist/index.js

@@ -30642,12 +30642,16 @@ function getMissingContributions(contributor, contributions, existingContributor
 
 __nccwpck_require__.a(module, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(8830);
-/* harmony import */ var all_contributors_for_repository__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(6249);
-/* harmony import */ var _context_js__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(3933);
-/* harmony import */ var _getExistingContributors_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(9480);
-/* harmony import */ var _postContributorComments_js__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(5359);
-var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_context_js__WEBPACK_IMPORTED_MODULE_1__, _postContributorComments_js__WEBPACK_IMPORTED_MODULE_3__]);
-([_context_js__WEBPACK_IMPORTED_MODULE_1__, _postContributorComments_js__WEBPACK_IMPORTED_MODULE_3__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(5560);
+/* harmony import */ var all_contributors_for_repository__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(7854);
+/* harmony import */ var _context_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(3933);
+/* harmony import */ var _getExistingContributors_js__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(9480);
+/* harmony import */ var _postContributorComments_js__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(5359);
+/* harmony import */ var _resolveSince_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(4785);
+var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_context_js__WEBPACK_IMPORTED_MODULE_2__, _postContributorComments_js__WEBPACK_IMPORTED_MODULE_4__]);
+([_context_js__WEBPACK_IMPORTED_MODULE_2__, _postContributorComments_js__WEBPACK_IMPORTED_MODULE_4__] = __webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__);
+
+
 
 
 
@@ -30656,16 +30660,19 @@ var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([_con
 _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .debug */ .Yz("About to retrieve contributors...");
 const ignoredLoginsRaw = _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .getMultilineInput */ .q3("ignored-logins");
 const ignoredLogins = ignoredLoginsRaw.map((rawInput) => new RegExp(rawInput, "i"));
-const contributors = await (0,all_contributors_for_repository__WEBPACK_IMPORTED_MODULE_4__/* .getAllContributorsForRepository */ .X)({
-    auth: _context_js__WEBPACK_IMPORTED_MODULE_1__/* .githubToken */ .bU,
+const since = await (0,_resolveSince_js__WEBPACK_IMPORTED_MODULE_5__/* .resolveSince */ .h)(_actions_core__WEBPACK_IMPORTED_MODULE_0__/* .getInput */ .V4("since"), _context_js__WEBPACK_IMPORTED_MODULE_2__/* .octokit */ .A8, _context_js__WEBPACK_IMPORTED_MODULE_2__/* .locator */ .fl, _actions_github__WEBPACK_IMPORTED_MODULE_1__/* .context */ ._.runId);
+_actions_core__WEBPACK_IMPORTED_MODULE_0__/* .debug */ .Yz(`Looking for contributions since: ${since?.toISOString() ?? "(all history)"}`);
+const contributors = await (0,all_contributors_for_repository__WEBPACK_IMPORTED_MODULE_6__/* .getAllContributorsForRepository */ .X)({
+    auth: _context_js__WEBPACK_IMPORTED_MODULE_2__/* .githubToken */ .bU,
     // Don't include at all, if no option was provided, so we fall back to defaults
     ...(ignoredLogins.length ? { ignoredLogins } : {}),
-    ..._context_js__WEBPACK_IMPORTED_MODULE_1__/* .locator */ .fl,
+    since,
+    ..._context_js__WEBPACK_IMPORTED_MODULE_2__/* .locator */ .fl,
 });
 _actions_core__WEBPACK_IMPORTED_MODULE_0__/* .debug */ .Yz(`Retrieved contributors: ${JSON.stringify(contributors)}`);
-const existingContributors = await (0,_getExistingContributors_js__WEBPACK_IMPORTED_MODULE_2__/* .getExistingContributors */ .W)(_context_js__WEBPACK_IMPORTED_MODULE_1__/* .octokit */ .A8, _context_js__WEBPACK_IMPORTED_MODULE_1__/* .locator */ .fl);
+const existingContributors = await (0,_getExistingContributors_js__WEBPACK_IMPORTED_MODULE_3__/* .getExistingContributors */ .W)(_context_js__WEBPACK_IMPORTED_MODULE_2__/* .octokit */ .A8, _context_js__WEBPACK_IMPORTED_MODULE_2__/* .locator */ .fl);
 await Promise.all(Object.entries(contributors).map(async ([contributor, contributions]) => {
-    await (0,_postContributorComments_js__WEBPACK_IMPORTED_MODULE_3__/* .postContributorComments */ .G)(contributor, contributions, existingContributors);
+    await (0,_postContributorComments_js__WEBPACK_IMPORTED_MODULE_4__/* .postContributorComments */ .G)(contributor, contributions, existingContributors);
 }));
 
 __webpack_async_result__();
@@ -30767,6 +30774,91 @@ async function postContributorComments(contributor, contributions, existingContr
 
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } });
+
+/***/ }),
+
+/***/ 4785:
+/***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
+
+
+// EXPORTS
+__nccwpck_require__.d(__webpack_exports__, {
+  h: () => (/* binding */ resolveSince)
+});
+
+// EXTERNAL MODULE: ./node_modules/.pnpm/@actions+core@3.0.1/node_modules/@actions/core/lib/core.js + 18 modules
+var core = __nccwpck_require__(8830);
+;// CONCATENATED MODULE: ./src/getPreviousRunTime.ts
+
+/**
+ * Finds when the workflow's most recent successful run before this one started.
+ * @returns That time, or undefined if it couldn't be determined.
+ */
+async function getPreviousRunTime(octokit, locator, runId) {
+    try {
+        const { data: { workflow_id: workflowId }, } = await octokit.request("GET /repos/{owner}/{repo}/actions/runs/{run_id}", {
+            ...locator,
+            headers: {
+                "X-GitHub-Api-Version": "2022-11-28",
+            },
+            run_id: runId,
+        });
+        const { data: { workflow_runs: previousRuns }, } = await octokit.request("GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs", {
+            ...locator,
+            headers: {
+                "X-GitHub-Api-Version": "2022-11-28",
+            },
+            per_page: 1,
+            status: "success",
+            workflow_id: workflowId,
+        });
+        const previousRun = previousRuns.at(0);
+        if (!previousRun) {
+            core/* info */.pq("No previous successful run found; looking at all history.");
+            return undefined;
+        }
+        core/* info */.pq(`Previous successful run ${previousRun.id} started at ${previousRun.created_at}.`);
+        return new Date(previousRun.created_at);
+    }
+    catch (error) {
+        core/* info */.pq(`Could not determine the previous run (does the job have 'actions: read' permission?); looking at all history: ${String(error)}`);
+        return undefined;
+    }
+}
+
+;// CONCATENATED MODULE: ./src/resolveSince.ts
+
+const durationMatcher = /^(\d+)\s*([hdw])$/i;
+const millisecondsPerUnit = {
+    d: 24 * 60 * 60 * 1000,
+    h: 60 * 60 * 1000,
+    w: 7 * 24 * 60 * 60 * 1000,
+};
+/**
+ * Resolves the `since` input into the earliest time to look for contributions.
+ * @returns That time, or undefined to look at all history.
+ */
+async function resolveSince(input, octokit, locator, runId, now = new Date()) {
+    const trimmed = input.trim();
+    switch (trimmed.toLowerCase()) {
+        case "":
+        case "auto":
+            return await getPreviousRunTime(octokit, locator, runId);
+        case "all":
+            return undefined;
+    }
+    const duration = durationMatcher.exec(trimmed);
+    if (duration) {
+        const unit = duration[2].toLowerCase();
+        return new Date(now.getTime() - Number(duration[1]) * millisecondsPerUnit[unit]);
+    }
+    const date = new Date(trimmed);
+    if (Number.isNaN(date.getTime())) {
+        throw new Error(`Invalid 'since' input: "${input}". Expected 'auto', 'all', an ISO 8601 date, or a duration like '7d' or '12h'.`);
+    }
+    return date;
+}
+
 
 /***/ }),
 
@@ -30994,10 +31086,12 @@ module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("util");
 // EXPORTS
 __nccwpck_require__.d(__webpack_exports__, {
   Yz: () => (/* binding */ core_debug),
-  q3: () => (/* binding */ getMultilineInput)
+  V4: () => (/* binding */ getInput),
+  q3: () => (/* binding */ getMultilineInput),
+  pq: () => (/* binding */ info)
 });
 
-// UNUSED EXPORTS: ExitCode, addPath, endGroup, error, exportVariable, getBooleanInput, getIDToken, getInput, getState, group, info, isDebug, markdownSummary, notice, platform, saveState, setCommandEcho, setFailed, setOutput, setSecret, startGroup, summary, toPlatformPath, toPosixPath, toWin32Path, warning
+// UNUSED EXPORTS: ExitCode, addPath, endGroup, error, exportVariable, getBooleanInput, getIDToken, getState, group, isDebug, markdownSummary, notice, platform, saveState, setCommandEcho, setFailed, setOutput, setSecret, startGroup, summary, toPlatformPath, toPosixPath, toWin32Path, warning
 
 // EXTERNAL MODULE: external "os"
 var external_os_ = __nccwpck_require__(857);
@@ -33857,7 +33951,7 @@ function notice(message, properties = {}) {
  * @param message info message
  */
 function info(message) {
-    process.stdout.write(message + os.EOL);
+    process.stdout.write(message + external_os_.EOL);
 }
 /**
  * Begin an output group.
@@ -39018,7 +39112,7 @@ var request = dist_bundle_withDefaults(endpoint, defaults_default);
 
 /***/ }),
 
-/***/ 6249:
+/***/ 7854:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
 
@@ -39055,7 +39149,7 @@ function descriptionToCoAuthors(description) {
 }
 
 //# sourceMappingURL=index.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.6.1/node_modules/all-contributors-for-repository/lib/collect/adding/addAcceptedIssues.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@1.0.0/node_modules/all-contributors-for-repository/lib/collect/adding/addAcceptedIssues.js
 
 //#region src/collect/adding/addAcceptedIssues.ts
 function addAcceptedIssues(acceptedIssues, contributors, options) {
@@ -39079,67 +39173,598 @@ function addAcceptedIssues(acceptedIssues, contributors, options) {
 
 
 //# sourceMappingURL=addAcceptedIssues.js.map
-// EXTERNAL MODULE: external "node:child_process"
-var external_node_child_process_ = __nccwpck_require__(1421);
-// EXTERNAL MODULE: external "node:util"
-var external_node_util_ = __nccwpck_require__(7975);
-;// CONCATENATED MODULE: ./node_modules/.pnpm/get-github-auth-token@0.1.2/node_modules/get-github-auth-token/lib/getGitHubAuthToken.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@1.0.0/node_modules/all-contributors-for-repository/lib/collect/parsing/parseMergedPullAuthors.js
 
-
-async function getGitHubAuthToken_getGitHubAuthToken() {
-  if (process.env.GH_TOKEN) {
-    return { succeeded: true, token: process.env.GH_TOKEN };
-  }
-  const exec = external_node_util_.promisify(external_node_child_process_.exec);
-  const token = await exec("gh auth token").catch(
-    () => ({})
-  );
-  if (token.stdout) {
-    return { succeeded: true, token: token.stdout };
-  }
-  const help = await exec("gh").catch((error) => ({
-    stderr: error
-  }));
-  return {
-    error: help.stderr && `Could not run \`gh\`: ${help.stderr}` || // If stderr is "", we still ignore it and set to undefined
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    token.stderr || void 0,
-    succeeded: false
-  };
+//#region src/collect/parsing/parseMergedPullAuthors.ts
+async function parseMergedPullAuthors(mergedPull, cachingCoAuthorToUsername) {
+	const authors = [];
+	authors.push(mergedPull.user?.login);
+	if (mergedPull.body) {
+		const coAuthors = descriptionToCoAuthors(mergedPull.body);
+		for (const coAuthor of coAuthors) authors.push(await cachingCoAuthorToUsername(coAuthor));
+	}
+	return Array.from(new Set(authors.filter((author) => !!author)));
 }
+//#endregion
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/get-github-auth-token@0.1.2/node_modules/get-github-auth-token/lib/index.js
-
-
-
-;// CONCATENATED MODULE: ./node_modules/.pnpm/octokit-from-auth@0.3.2/node_modules/octokit-from-auth/lib/octokitFromAuth.js
-
-
-async function octokitFromAuth(options) {
-  const auth = await retrieveAuth(options?.auth);
-  return new Octokit({ ...options, auth });
+//# sourceMappingURL=parseMergedPullAuthors.js.map
+;// CONCATENATED MODULE: ./node_modules/.pnpm/conventional-commits-parser@7.1.2/node_modules/conventional-commits-parser/dist/regex.js
+const nomatchRegex = /(?!.*)/;
+function regex_escape(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
-async function retrieveAuth(provided) {
-  if (provided) {
-    return provided;
-  }
-  if (provided === "") {
-    throw new Error("Invalid auth provided: an empty string ('').");
-  }
-  const auth = await getGitHubAuthToken();
-  if (auth.succeeded) {
-    return auth.token;
-  }
-  throw new Error(
-    "Please provide an auth token (process.env.GH_TOKEN) or log in with the GitHub CLI (gh).",
-    {
-      cause: auth.error
+function joinOr(parts) {
+    return parts
+        .map(val => (typeof val === 'string' ? regex_escape(val.trim()) : val.source))
+        .filter(Boolean)
+        .join('|');
+}
+function getNotesRegex(noteKeywords, notesPattern) {
+    if (!noteKeywords) {
+        return nomatchRegex;
     }
-  );
+    const noteKeywordsSelection = joinOr(noteKeywords);
+    if (!notesPattern) {
+        return new RegExp(`^(?:\\*\\s+)?(${noteKeywordsSelection}):\\s*(.*)`, 'i');
+    }
+    return notesPattern(noteKeywordsSelection);
+}
+function getReferencePartsRegex(issuePrefixes, issuePrefixesCaseSensitive) {
+    if (!issuePrefixes) {
+        return nomatchRegex;
+    }
+    const flags = issuePrefixesCaseSensitive ? 'g' : 'gi';
+    return new RegExp(`(?:.*?)??\\s*([\\w-\\.\\/]*?)??(${joinOr(issuePrefixes)})([\\w-]+)(?=\\s|$|[,;.)\\]])`, flags);
+}
+function getReferencesRegex(referenceActions) {
+    if (!referenceActions) {
+        // matches everything
+        return /()(.+)/gi;
+    }
+    const joinedKeywords = joinOr(referenceActions);
+    return new RegExp(`(${joinedKeywords})(?:\\s+(.*?))(?=(?:${joinedKeywords})|$)`, 'gi');
+}
+function getFooterTokenRegex(issuePrefixes) {
+    const issuePrefixSeparator = issuePrefixes
+        ? `|\\s+(?:${joinOr(issuePrefixes)})`
+        : '';
+    // Footers follow the git trailer convention: the token starts at the
+    // beginning of the line, indented `key: value` lines are not footers.
+    return new RegExp(`^(?:BREAKING CHANGE|[\\w-]+)(?::\\s+${issuePrefixSeparator}).+`, 'i');
+}
+/**
+ * Make the regexes used to parse a commit.
+ * @param options
+ * @returns Regexes.
+ */
+function getParserRegexes(options = {}) {
+    const notes = getNotesRegex(options.noteKeywords, options.notesPattern);
+    const referenceParts = getReferencePartsRegex(options.issuePrefixes, options.issuePrefixesCaseSensitive);
+    const references = getReferencesRegex(options.referenceActions);
+    const footerToken = getFooterTokenRegex(options.issuePrefixes);
+    return {
+        notes,
+        referenceParts,
+        references,
+        footerToken,
+        mentions: /@([\w-]+)/g,
+        url: /\b(?:https?):\/\/(?:www\.)?([-a-zA-Z0-9@:%_+.~#?&//=])+\b/
+    };
+}
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoicmVnZXguanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi9zcmMvcmVnZXgudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBS0EsTUFBTSxZQUFZLEdBQUcsUUFBUSxDQUFBO0FBRTdCLFNBQVMsTUFBTSxDQUFDLE1BQWM7SUFDNUIsT0FBTyxNQUFNLENBQUMsT0FBTyxDQUFDLHFCQUFxQixFQUFFLE1BQU0sQ0FBQyxDQUFBO0FBQ3RELENBQUM7QUFFRCxTQUFTLE1BQU0sQ0FBQyxLQUEwQjtJQUN4QyxPQUFPLEtBQUs7U0FDVCxHQUFHLENBQUMsR0FBRyxDQUFDLEVBQUUsQ0FBQyxDQUFDLE9BQU8sR0FBRyxLQUFLLFFBQVEsQ0FBQyxDQUFDLENBQUMsTUFBTSxDQUFDLEdBQUcsQ0FBQyxJQUFJLEVBQUUsQ0FBQyxDQUFDLENBQUMsQ0FBQyxHQUFHLENBQUMsTUFBTSxDQUFDLENBQUM7U0FDdkUsTUFBTSxDQUFDLE9BQU8sQ0FBQztTQUNmLElBQUksQ0FBQyxHQUFHLENBQUMsQ0FBQTtBQUNkLENBQUM7QUFFRCxTQUFTLGFBQWEsQ0FDcEIsWUFBNkMsRUFDN0MsWUFBb0Q7SUFFcEQsSUFBSSxDQUFDLFlBQVksRUFBRSxDQUFDO1FBQ2xCLE9BQU8sWUFBWSxDQUFBO0lBQ3JCLENBQUM7SUFFRCxNQUFNLHFCQUFxQixHQUFHLE1BQU0sQ0FBQyxZQUFZLENBQUMsQ0FBQTtJQUVsRCxJQUFJLENBQUMsWUFBWSxFQUFFLENBQUM7UUFDbEIsT0FBTyxJQUFJLE1BQU0sQ0FBQyxpQkFBaUIscUJBQXFCLFlBQVksRUFBRSxHQUFHLENBQUMsQ0FBQTtJQUM1RSxDQUFDO0lBRUQsT0FBTyxZQUFZLENBQUMscUJBQXFCLENBQUMsQ0FBQTtBQUM1QyxDQUFDO0FBRUQsU0FBUyxzQkFBc0IsQ0FDN0IsYUFBOEMsRUFDOUMsMEJBQStDO0lBRS9DLElBQUksQ0FBQyxhQUFhLEVBQUUsQ0FBQztRQUNuQixPQUFPLFlBQVksQ0FBQTtJQUNyQixDQUFDO0lBRUQsTUFBTSxLQUFLLEdBQUcsMEJBQTBCLENBQUMsQ0FBQyxDQUFDLEdBQUcsQ0FBQyxDQUFDLENBQUMsSUFBSSxDQUFBO0lBRXJELE9BQU8sSUFBSSxNQUFNLENBQUMsbUNBQW1DLE1BQU0sQ0FBQyxhQUFhLENBQUMsK0JBQStCLEVBQUUsS0FBSyxDQUFDLENBQUE7QUFDbkgsQ0FBQztBQUVELFNBQVMsa0JBQWtCLENBQ3pCLGdCQUFpRDtJQUVqRCxJQUFJLENBQUMsZ0JBQWdCLEVBQUUsQ0FBQztRQUN0QixxQkFBcUI7UUFDckIsT0FBTyxVQUFVLENBQUE7SUFDbkIsQ0FBQztJQUVELE1BQU0sY0FBYyxHQUFHLE1BQU0sQ0FBQyxnQkFBZ0IsQ0FBQyxDQUFBO0lBRS9DLE9BQU8sSUFBSSxNQUFNLENBQUMsSUFBSSxjQUFjLHVCQUF1QixjQUFjLE1BQU0sRUFBRSxJQUFJLENBQUMsQ0FBQTtBQUN4RixDQUFDO0FBRUQsU0FBUyxtQkFBbUIsQ0FDMUIsYUFBOEM7SUFFOUMsTUFBTSxvQkFBb0IsR0FBRyxhQUFhO1FBQ3hDLENBQUMsQ0FBQyxXQUFXLE1BQU0sQ0FBQyxhQUFhLENBQUMsR0FBRztRQUNyQyxDQUFDLENBQUMsRUFBRSxDQUFBO0lBRU4scUVBQXFFO0lBQ3JFLHNFQUFzRTtJQUN0RSxPQUFPLElBQUksTUFBTSxDQUFDLHVDQUF1QyxvQkFBb0IsS0FBSyxFQUFFLEdBQUcsQ0FBQyxDQUFBO0FBQzFGLENBQUM7QUFFRDs7OztHQUlHO0FBQ0gsTUFBTSxVQUFVLGdCQUFnQixDQUM5QixPQUFPLEdBQStILEVBQUU7SUFFeEksTUFBTSxLQUFLLEdBQUcsYUFBYSxDQUFDLE9BQU8sQ0FBQyxZQUFZLEVBQUUsT0FBTyxDQUFDLFlBQVksQ0FBQyxDQUFBO0lBQ3ZFLE1BQU0sY0FBYyxHQUFHLHNCQUFzQixDQUFDLE9BQU8sQ0FBQyxhQUFhLEVBQUUsT0FBTyxDQUFDLDBCQUEwQixDQUFDLENBQUE7SUFDeEcsTUFBTSxVQUFVLEdBQUcsa0JBQWtCLENBQUMsT0FBTyxDQUFDLGdCQUFnQixDQUFDLENBQUE7SUFDL0QsTUFBTSxXQUFXLEdBQUcsbUJBQW1CLENBQUMsT0FBTyxDQUFDLGFBQWEsQ0FBQyxDQUFBO0lBRTlELE9BQU87UUFDTCxLQUFLO1FBQ0wsY0FBYztRQUNkLFVBQVU7UUFDVixXQUFXO1FBQ1gsUUFBUSxFQUFFLFlBQVk7UUFDdEIsR0FBRyxFQUFFLDJEQUEyRDtLQUNqRSxDQUFBO0FBQ0gsQ0FBQyJ9
+;// CONCATENATED MODULE: ./node_modules/.pnpm/conventional-commits-parser@7.1.2/node_modules/conventional-commits-parser/dist/utils.js
+const SCISSOR = '------------------------ >8 ------------------------';
+/**
+ * Remove leading and trailing newlines.
+ * @param input
+ * @returns String without leading and trailing newlines.
+ */
+function trimNewLines(input) {
+    // To escape ReDos we should escape String#replace with regex.
+    const matches = input.match(/[^\r\n]/);
+    if (typeof matches?.index !== 'number') {
+        return '';
+    }
+    const firstIndex = matches.index;
+    let lastIndex = input.length - 1;
+    while (input[lastIndex] === '\r' || input[lastIndex] === '\n') {
+        lastIndex--;
+    }
+    return input.substring(firstIndex, lastIndex + 1);
+}
+/**
+ * Append a newline to a string.
+ * @param src
+ * @param line
+ * @returns String with appended newline.
+ */
+function appendLine(src, line) {
+    return src ? `${src}\n${line || ''}` : line || '';
+}
+/**
+ * Creates a function that filters out comments lines.
+ * @param char
+ * @returns Comment filter function.
+ */
+function getCommentFilter(char) {
+    return char
+        ? (line) => !line.startsWith(char)
+        : () => true;
+}
+/**
+ * Select lines before the scissor.
+ * @param lines
+ * @param commentChar
+ * @returns Lines before the scissor.
+ */
+function truncateToScissor(lines, commentChar) {
+    const scissorIndex = lines.indexOf(`${commentChar} ${SCISSOR}`);
+    if (scissorIndex === -1) {
+        return lines;
+    }
+    return lines.slice(0, scissorIndex);
+}
+/**
+ * Filter out GPG sign lines.
+ * @param line
+ * @returns True if the line is not a GPG sign line.
+ */
+function gpgFilter(line) {
+    return !line.match(/^\s*gpg:/);
+}
+/**
+ * Assign matched correspondence to the target object.
+ * @param target - The target object to assign values to.
+ * @param matches - The RegExp match array containing the matched groups.
+ * @param correspondence - An array of keys that correspond to the matched groups.
+ * @returns The target object with assigned values.
+ */
+function assignMatchedCorrespondence(target, matches, correspondence) {
+    const { groups } = matches;
+    for (let i = 0, len = correspondence.length, key; i < len; i++) {
+        key = correspondence[i];
+        target[key] = (groups ? groups[key] : matches[i + 1]) || null;
+    }
+    return target;
+}
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoidXRpbHMuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi9zcmMvdXRpbHMudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUEsTUFBTSxPQUFPLEdBQUcsc0RBQXNELENBQUE7QUFFdEU7Ozs7R0FJRztBQUNILE1BQU0sVUFBVSxZQUFZLENBQUMsS0FBYTtJQUN4Qyw4REFBOEQ7SUFFOUQsTUFBTSxPQUFPLEdBQUcsS0FBSyxDQUFDLEtBQUssQ0FBQyxTQUFTLENBQUMsQ0FBQTtJQUV0QyxJQUFJLE9BQU8sT0FBTyxFQUFFLEtBQUssS0FBSyxRQUFRLEVBQUUsQ0FBQztRQUN2QyxPQUFPLEVBQUUsQ0FBQTtJQUNYLENBQUM7SUFFRCxNQUFNLFVBQVUsR0FBRyxPQUFPLENBQUMsS0FBSyxDQUFBO0lBQ2hDLElBQUksU0FBUyxHQUFHLEtBQUssQ0FBQyxNQUFNLEdBQUcsQ0FBQyxDQUFBO0lBRWhDLE9BQU8sS0FBSyxDQUFDLFNBQVMsQ0FBQyxLQUFLLElBQUksSUFBSSxLQUFLLENBQUMsU0FBUyxDQUFDLEtBQUssSUFBSSxFQUFFLENBQUM7UUFDOUQsU0FBUyxFQUFFLENBQUE7SUFDYixDQUFDO0lBRUQsT0FBTyxLQUFLLENBQUMsU0FBUyxDQUFDLFVBQVUsRUFBRSxTQUFTLEdBQUcsQ0FBQyxDQUFDLENBQUE7QUFDbkQsQ0FBQztBQUVEOzs7OztHQUtHO0FBQ0gsTUFBTSxVQUFVLFVBQVUsQ0FBQyxHQUFrQixFQUFFLElBQXdCO0lBQ3JFLE9BQU8sR0FBRyxDQUFDLENBQUMsQ0FBQyxHQUFHLEdBQUcsS0FBSyxJQUFJLElBQUksRUFBRSxFQUFFLENBQUMsQ0FBQyxDQUFDLElBQUksSUFBSSxFQUFFLENBQUE7QUFDbkQsQ0FBQztBQUVEOzs7O0dBSUc7QUFDSCxNQUFNLFVBQVUsZ0JBQWdCLENBQUMsSUFBd0I7SUFDdkQsT0FBTyxJQUFJO1FBQ1QsQ0FBQyxDQUFDLENBQUMsSUFBWSxFQUFFLEVBQUUsQ0FBQyxDQUFDLElBQUksQ0FBQyxVQUFVLENBQUMsSUFBSSxDQUFDO1FBQzFDLENBQUMsQ0FBQyxHQUFHLEVBQUUsQ0FBQyxJQUFJLENBQUE7QUFDaEIsQ0FBQztBQUVEOzs7OztHQUtHO0FBQ0gsTUFBTSxVQUFVLGlCQUFpQixDQUMvQixLQUFlLEVBQ2YsV0FBbUI7SUFFbkIsTUFBTSxZQUFZLEdBQUcsS0FBSyxDQUFDLE9BQU8sQ0FBQyxHQUFHLFdBQVcsSUFBSSxPQUFPLEVBQUUsQ0FBQyxDQUFBO0lBRS9ELElBQUksWUFBWSxLQUFLLENBQUMsQ0FBQyxFQUFFLENBQUM7UUFDeEIsT0FBTyxLQUFLLENBQUE7SUFDZCxDQUFDO0lBRUQsT0FBTyxLQUFLLENBQUMsS0FBSyxDQUFDLENBQUMsRUFBRSxZQUFZLENBQUMsQ0FBQTtBQUNyQyxDQUFDO0FBRUQ7Ozs7R0FJRztBQUNILE1BQU0sVUFBVSxTQUFTLENBQUMsSUFBWTtJQUNwQyxPQUFPLENBQUMsSUFBSSxDQUFDLEtBQUssQ0FBQyxVQUFVLENBQUMsQ0FBQTtBQUNoQyxDQUFDO0FBRUQ7Ozs7OztHQU1HO0FBQ0gsTUFBTSxVQUFVLDJCQUEyQixDQUN6QyxNQUFxQyxFQUNyQyxPQUF5QixFQUN6QixjQUF3QjtJQUV4QixNQUFNLEVBQUUsTUFBTSxFQUFFLEdBQUcsT0FBTyxDQUFBO0lBRTFCLEtBQUssSUFBSSxDQUFDLEdBQUcsQ0FBQyxFQUFFLEdBQUcsR0FBRyxjQUFjLENBQUMsTUFBTSxFQUFFLEdBQUcsRUFBRSxDQUFDLEdBQUcsR0FBRyxFQUFFLENBQUMsRUFBRSxFQUFFLENBQUM7UUFDL0QsR0FBRyxHQUFHLGNBQWMsQ0FBQyxDQUFDLENBQUMsQ0FBQTtRQUN2QixNQUFNLENBQUMsR0FBRyxDQUFDLEdBQUcsQ0FBQyxNQUFNLENBQUMsQ0FBQyxDQUFDLE1BQU0sQ0FBQyxHQUFHLENBQUMsQ0FBQyxDQUFDLENBQUMsT0FBTyxDQUFDLENBQUMsR0FBRyxDQUFDLENBQUMsQ0FBQyxJQUFJLElBQUksQ0FBQTtJQUMvRCxDQUFDO0lBRUQsT0FBTyxNQUFNLENBQUE7QUFDZixDQUFDIn0=
+;// CONCATENATED MODULE: ./node_modules/.pnpm/conventional-commits-parser@7.1.2/node_modules/conventional-commits-parser/dist/options.js
+const defaultOptions = {
+    noteKeywords: ['BREAKING CHANGE', 'BREAKING-CHANGE'],
+    issuePrefixes: ['#'],
+    referenceActions: [
+        'close',
+        'closes',
+        'closed',
+        'fix',
+        'fixes',
+        'fixed',
+        'resolve',
+        'resolves',
+        'resolved'
+    ],
+    headerPattern: /^(\w*)(?:\(([\w$@.\-*/ ]*)\))?: (.*)$/,
+    headerCorrespondence: [
+        'type',
+        'scope',
+        'subject'
+    ],
+    revertPattern: /^Revert\s"([\s\S]*)"\s*This reverts commit (\w*)\.?/,
+    revertCorrespondence: ['header', 'hash'],
+    // The field name must contain at least one word character so that
+    // YAML document markers like `---` are not treated as field markers.
+    fieldPattern: /^-(?=.*\w)(.*?)-$/
+};
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoib3B0aW9ucy5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uL3NyYy9vcHRpb25zLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQUVBLE1BQU0sQ0FBQyxNQUFNLGNBQWMsR0FBa0I7SUFDM0MsWUFBWSxFQUFFLENBQUMsaUJBQWlCLEVBQUUsaUJBQWlCLENBQUM7SUFDcEQsYUFBYSxFQUFFLENBQUMsR0FBRyxDQUFDO0lBQ3BCLGdCQUFnQixFQUFFO1FBQ2hCLE9BQU87UUFDUCxRQUFRO1FBQ1IsUUFBUTtRQUNSLEtBQUs7UUFDTCxPQUFPO1FBQ1AsT0FBTztRQUNQLFNBQVM7UUFDVCxVQUFVO1FBQ1YsVUFBVTtLQUNYO0lBQ0QsYUFBYSxFQUFFLHVDQUF1QztJQUN0RCxvQkFBb0IsRUFBRTtRQUNwQixNQUFNO1FBQ04sT0FBTztRQUNQLFNBQVM7S0FDVjtJQUNELGFBQWEsRUFBRSxxREFBcUQ7SUFDcEUsb0JBQW9CLEVBQUUsQ0FBQyxRQUFRLEVBQUUsTUFBTSxDQUFDO0lBQ3hDLGtFQUFrRTtJQUNsRSxxRUFBcUU7SUFDckUsWUFBWSxFQUFFLG1CQUFtQjtDQUNsQyxDQUFBIn0=
+;// CONCATENATED MODULE: ./node_modules/.pnpm/conventional-commits-parser@7.1.2/node_modules/conventional-commits-parser/dist/CommitParser.js
+
+
+
+/**
+ * Helper to create commit object.
+ * @param initialData - Initial commit data.
+ * @returns Commit object with empty data.
+ */
+function createCommitObject(initialData = {}) {
+    // @ts-expect-error: You can read properties from `Commit` without problems, but you can't assign object to this type. So here is helper for that.
+    return {
+        merge: null,
+        revert: null,
+        header: null,
+        body: null,
+        footer: null,
+        notes: [],
+        mentions: [],
+        references: [],
+        ...initialData
+    };
+}
+/**
+ * Commit message parser.
+ */
+class CommitParser_CommitParser {
+    options;
+    regexes;
+    lines = [];
+    lineIndex = 0;
+    commit = createCommitObject();
+    constructor(options = {}) {
+        this.options = {
+            ...defaultOptions,
+            ...options
+        };
+        this.regexes = getParserRegexes(this.options);
+    }
+    currentLine() {
+        return this.lines[this.lineIndex];
+    }
+    nextLine() {
+        return this.lines[this.lineIndex++];
+    }
+    isLineAvailable() {
+        return this.lineIndex < this.lines.length;
+    }
+    parseReference(input, action) {
+        const { regexes } = this;
+        if (regexes.url.test(input)) {
+            return null;
+        }
+        const matches = regexes.referenceParts.exec(input);
+        if (!matches) {
+            return null;
+        }
+        let [raw, repository = null, prefix, issue] = matches;
+        let owner = null;
+        if (repository) {
+            const slashIndex = repository.indexOf('/');
+            if (slashIndex !== -1) {
+                owner = repository.slice(0, slashIndex);
+                repository = repository.slice(slashIndex + 1);
+            }
+        }
+        return {
+            raw,
+            action,
+            owner,
+            repository,
+            prefix,
+            issue
+        };
+    }
+    parseReferences(input) {
+        const { regexes } = this;
+        const regex = input.match(regexes.references)
+            ? regexes.references
+            : /()(.+)/gi;
+        const references = [];
+        let matches;
+        let action;
+        let sentence;
+        let reference;
+        while (true) {
+            matches = regex.exec(input);
+            if (!matches) {
+                break;
+            }
+            action = matches[1] || null;
+            sentence = matches[2] || '';
+            while (true) {
+                reference = this.parseReference(sentence, action);
+                if (!reference) {
+                    break;
+                }
+                references.push(reference);
+            }
+        }
+        return references;
+    }
+    skipEmptyLines() {
+        let line = this.currentLine();
+        while (line !== undefined && !line.trim()) {
+            this.nextLine();
+            line = this.currentLine();
+        }
+    }
+    parseMerge() {
+        const { commit, options } = this;
+        const correspondence = options.mergeCorrespondence || [];
+        const merge = this.currentLine();
+        const matches = merge && options.mergePattern
+            ? merge.match(options.mergePattern)
+            : null;
+        if (matches) {
+            this.nextLine();
+            commit.merge = matches[0] || null;
+            assignMatchedCorrespondence(commit, matches, correspondence);
+            return true;
+        }
+        return false;
+    }
+    parseHeader(isMergeCommit) {
+        if (isMergeCommit) {
+            this.skipEmptyLines();
+        }
+        const { commit, options } = this;
+        const correspondence = options.headerCorrespondence || [];
+        const header = commit.header ?? this.nextLine();
+        let matches = null;
+        if (header) {
+            if (options.breakingHeaderPattern) {
+                matches = header.match(options.breakingHeaderPattern);
+            }
+            if (!matches && options.headerPattern) {
+                matches = header.match(options.headerPattern);
+            }
+        }
+        if (header) {
+            commit.header = header;
+        }
+        if (matches) {
+            assignMatchedCorrespondence(commit, matches, correspondence);
+        }
+    }
+    parseMeta() {
+        const { options, commit } = this;
+        if (!options.fieldPattern || !this.isLineAvailable()) {
+            return false;
+        }
+        let matches;
+        let field = null;
+        let parsed = false;
+        while (this.isLineAvailable()) {
+            matches = this.currentLine().match(options.fieldPattern);
+            if (matches) {
+                field = matches[1] || null;
+                this.nextLine();
+                continue;
+            }
+            if (field) {
+                parsed = true;
+                commit[field] = appendLine(commit[field], this.currentLine());
+                this.nextLine();
+            }
+            else {
+                break;
+            }
+        }
+        return parsed;
+    }
+    parseNotes() {
+        const { regexes, commit } = this;
+        if (!this.isLineAvailable()) {
+            return false;
+        }
+        const matches = this.currentLine().match(regexes.notes);
+        let isFooterToken;
+        if (matches) {
+            const note = {
+                title: matches[1],
+                text: matches[2]
+            };
+            commit.notes.push(note);
+            commit.footer = appendLine(commit.footer, this.currentLine());
+            this.nextLine();
+            while (this.isLineAvailable()) {
+                if (this.parseMeta()) {
+                    return true;
+                }
+                if (this.parseNotes()) {
+                    return true;
+                }
+                isFooterToken = regexes.footerToken.test(this.currentLine());
+                commit.references.push(...this.parseReferences(this.currentLine()));
+                if (!isFooterToken) {
+                    note.text = appendLine(note.text, this.currentLine());
+                }
+                commit.footer = appendLine(commit.footer, this.currentLine());
+                this.nextLine();
+                if (isFooterToken) {
+                    break;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+    parseBodyAndFooter(isBody) {
+        const { commit, regexes } = this;
+        if (!this.isLineAvailable()) {
+            return isBody;
+        }
+        const isFooterToken = regexes.footerToken.test(this.currentLine());
+        const isStillBody = !isFooterToken && isBody;
+        commit.references.push(...this.parseReferences(this.currentLine()));
+        if (isStillBody) {
+            commit.body = appendLine(commit.body, this.currentLine());
+        }
+        else {
+            commit.footer = appendLine(commit.footer, this.currentLine());
+        }
+        this.nextLine();
+        return isStillBody;
+    }
+    parseBreakingHeader() {
+        const { commit, options } = this;
+        if (!options.breakingHeaderPattern || commit.notes.length || !commit.header) {
+            return;
+        }
+        const matches = commit.header.match(options.breakingHeaderPattern);
+        if (matches) {
+            commit.notes.push({
+                title: 'BREAKING CHANGE',
+                text: matches[3]
+            });
+        }
+    }
+    parseMentions(input) {
+        const { commit, regexes } = this;
+        let matches;
+        for (;;) {
+            matches = regexes.mentions.exec(input);
+            if (!matches) {
+                break;
+            }
+            commit.mentions.push(matches[1]);
+        }
+    }
+    parseRevert(input) {
+        const { commit, options } = this;
+        const correspondence = options.revertCorrespondence || [];
+        const matches = options.revertPattern
+            ? input.match(options.revertPattern)
+            : null;
+        if (matches) {
+            commit.revert = assignMatchedCorrespondence({}, matches, correspondence);
+        }
+    }
+    cleanupCommit() {
+        const { commit } = this;
+        commit.body &&= trimNewLines(commit.body);
+        commit.footer &&= trimNewLines(commit.footer);
+        commit.notes.forEach((note) => {
+            note.text = trimNewLines(note.text);
+        });
+        const referencesSet = new Set();
+        commit.references = commit.references.filter((reference) => {
+            const uid = `${reference.action} ${reference.raw}`.toLocaleLowerCase();
+            const ok = !referencesSet.has(uid);
+            if (ok) {
+                referencesSet.add(uid);
+            }
+            return ok;
+        });
+    }
+    /**
+     * Parse commit message string into an object.
+     * @param input - Commit message string.
+     * @returns Commit object.
+     */
+    parse(input) {
+        if (!input.trim()) {
+            throw new TypeError('Expected a raw commit');
+        }
+        const { commentChar } = this.options;
+        const commentFilter = getCommentFilter(commentChar);
+        const rawLines = trimNewLines(input).split(/\r?\n/);
+        const lines = commentChar
+            ? truncateToScissor(rawLines, commentChar).filter(line => commentFilter(line) && gpgFilter(line))
+            : rawLines.filter(line => gpgFilter(line));
+        const commit = createCommitObject();
+        this.lines = lines;
+        this.lineIndex = 0;
+        this.commit = commit;
+        const isMergeCommit = this.parseMerge();
+        this.parseHeader(isMergeCommit);
+        if (commit.header) {
+            commit.references = this.parseReferences(commit.header);
+        }
+        let isBody = true;
+        while (this.isLineAvailable()) {
+            this.parseMeta();
+            if (this.parseNotes()) {
+                isBody = false;
+            }
+            if (!this.parseBodyAndFooter(isBody)) {
+                isBody = false;
+            }
+        }
+        this.parseBreakingHeader();
+        this.parseMentions(input);
+        this.parseRevert(input);
+        this.cleanupCommit();
+        return commit;
+    }
+}
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiQ29tbWl0UGFyc2VyLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiLi4vc3JjL0NvbW1pdFBhcnNlci50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFPQSxPQUFPLEVBQUUsZ0JBQWdCLEVBQUUsTUFBTSxZQUFZLENBQUE7QUFDN0MsT0FBTyxFQUNMLFlBQVksRUFDWixVQUFVLEVBQ1YsZ0JBQWdCLEVBQ2hCLFNBQVMsRUFDVCxpQkFBaUIsRUFDakIsMkJBQTJCLEVBQzVCLE1BQU0sWUFBWSxDQUFBO0FBQ25CLE9BQU8sRUFBRSxjQUFjLEVBQUUsTUFBTSxjQUFjLENBQUE7QUFFN0M7Ozs7R0FJRztBQUNILE1BQU0sVUFBVSxrQkFBa0IsQ0FBQyxXQUFXLEdBQW9CLEVBQUU7SUFDbEUsa0pBQWtKO0lBQ2xKLE9BQU87UUFDTCxLQUFLLEVBQUUsSUFBSTtRQUNYLE1BQU0sRUFBRSxJQUFJO1FBQ1osTUFBTSxFQUFFLElBQUk7UUFDWixJQUFJLEVBQUUsSUFBSTtRQUNWLE1BQU0sRUFBRSxJQUFJO1FBQ1osS0FBSyxFQUFFLEVBQUU7UUFDVCxRQUFRLEVBQUUsRUFBRTtRQUNaLFVBQVUsRUFBRSxFQUFFO1FBQ2QsR0FBRyxXQUFXO0tBQ2YsQ0FBQTtBQUNILENBQUM7QUFFRDs7R0FFRztBQUNILE1BQU0sT0FBTyxZQUFZO0lBQ04sT0FBTyxDQUFlO0lBQ3RCLE9BQU8sQ0FBZTtJQUMvQixLQUFLLEdBQWEsRUFBRSxDQUFBO0lBQ3BCLFNBQVMsR0FBRyxDQUFDLENBQUE7SUFDYixNQUFNLEdBQUcsa0JBQWtCLEVBQUUsQ0FBQTtJQUVyQyxZQUFZLE9BQU8sR0FBa0IsRUFBRTtRQUNyQyxJQUFJLENBQUMsT0FBTyxHQUFHO1lBQ2IsR0FBRyxjQUFjO1lBQ2pCLEdBQUcsT0FBTztTQUNYLENBQUE7UUFDRCxJQUFJLENBQUMsT0FBTyxHQUFHLGdCQUFnQixDQUFDLElBQUksQ0FBQyxPQUFPLENBQUMsQ0FBQTtJQUMvQyxDQUFDO0lBRU8sV0FBVztRQUNq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
+;// CONCATENATED MODULE: external "stream"
+const external_stream_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("stream");
+;// CONCATENATED MODULE: ./node_modules/.pnpm/conventional-commits-parser@7.1.2/node_modules/conventional-commits-parser/dist/stream.js
+
+
+/**
+ * Create async generator function to parse async iterable of raw commits.
+ * @param options - CommitParser options.
+ * @returns Async generator function to parse async iterable of raw commits.
+ */
+function parseCommits(options = {}) {
+    const warnOption = options.warn;
+    const warn = warnOption === true
+        ? (err) => {
+            throw err;
+        }
+        : warnOption
+            ? (err) => warnOption(err.toString())
+            : () => { };
+    return async function* parse(rawCommits) {
+        const parser = new CommitParser(options);
+        let rawCommit;
+        for await (rawCommit of rawCommits) {
+            try {
+                yield parser.parse(rawCommit.toString());
+            }
+            catch (err) {
+                warn(err);
+            }
+        }
+    };
+}
+/**
+ * Create stream to parse commits.
+ * @param options - CommitParser options.
+ * @returns Stream of parsed commits.
+ */
+function parseCommitsStream(options = {}) {
+    return Transform.from(parseCommits(options));
+}
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoic3RyZWFtLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiLi4vc3JjL3N0cmVhbS50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFBQSxPQUFPLEVBQUUsU0FBUyxFQUFFLE1BQU0sUUFBUSxDQUFBO0FBRWxDLE9BQU8sRUFBRSxZQUFZLEVBQUUsTUFBTSxtQkFBbUIsQ0FBQTtBQUVoRDs7OztHQUlHO0FBQ0gsTUFBTSxVQUFVLFlBQVksQ0FDMUIsT0FBTyxHQUF3QixFQUFFO0lBRWpDLE1BQU0sVUFBVSxHQUFHLE9BQU8sQ0FBQyxJQUFJLENBQUE7SUFDL0IsTUFBTSxJQUFJLEdBQUcsVUFBVSxLQUFLLElBQUk7UUFDOUIsQ0FBQyxDQUFDLENBQUMsR0FBVSxFQUFFLEVBQUU7WUFDZixNQUFNLEdBQUcsQ0FBQTtRQUNYLENBQUM7UUFDRCxDQUFDLENBQUMsVUFBVTtZQUNWLENBQUMsQ0FBQyxDQUFDLEdBQVUsRUFBRSxFQUFFLENBQUMsVUFBVSxDQUFDLEdBQUcsQ0FBQyxRQUFRLEVBQUUsQ0FBQztZQUM1QyxDQUFDLENBQUMsR0FBRyxFQUFFLEdBQWMsQ0FBQyxDQUFBO0lBRTFCLE9BQU8sS0FBSyxTQUFTLENBQUMsQ0FBQyxLQUFLLENBQzFCLFVBQXNFO1FBRXRFLE1BQU0sTUFBTSxHQUFHLElBQUksWUFBWSxDQUFDLE9BQU8sQ0FBQyxDQUFBO1FBQ3hDLElBQUksU0FBMEIsQ0FBQTtRQUU5QixJQUFJLEtBQUssRUFBRSxTQUFTLElBQUksVUFBVSxFQUFFLENBQUM7WUFDbkMsSUFBSSxDQUFDO2dCQUNILE1BQU0sTUFBTSxDQUFDLEtBQUssQ0FBQyxTQUFTLENBQUMsUUFBUSxFQUFFLENBQUMsQ0FBQTtZQUMxQyxDQUFDO1lBQUMsT0FBTyxHQUFHLEVBQUUsQ0FBQztnQkFDYixJQUFJLENBQUMsR0FBWSxDQUFDLENBQUE7WUFDcEIsQ0FBQztRQUNILENBQUM7SUFDSCxDQUFDLENBQUE7QUFDSCxDQUFDO0FBRUQ7Ozs7R0FJRztBQUNILE1BQU0sVUFBVSxrQkFBa0IsQ0FBQyxPQUFPLEdBQXdCLEVBQUU7SUFDbEUsT0FBTyxTQUFTLENBQUMsSUFBSSxDQUFDLFlBQVksQ0FBQyxPQUFPLENBQUMsQ0FBQyxDQUFBO0FBQzlDLENBQUMifQ==
+;// CONCATENATED MODULE: ./node_modules/.pnpm/conventional-commits-parser@7.1.2/node_modules/conventional-commits-parser/dist/index.js
+
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaW5kZXguanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi9zcmMvaW5kZXgudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQ0EsY0FBYyxtQkFBbUIsQ0FBQTtBQUNqQyxjQUFjLGFBQWEsQ0FBQSJ9
+;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@1.0.0/node_modules/all-contributors-for-repository/lib/collect/parsing/parseMergedPullType.js
+
+//#region src/collect/parsing/parseMergedPullType.ts
+const allContributorsTypes = /* @__PURE__ */ new Map([
+	["build", "infra"],
+	["ci", "infra"],
+	["docs", "doc"],
+	["test", "test"]
+]);
+const parser = new CommitParser_CommitParser();
+function parseMergedPullType(title) {
+	const { type } = parser.parse(title);
+	return (type && allContributorsTypes.get(type)) ?? "code";
+}
+//#endregion
+
+
+//# sourceMappingURL=parseMergedPullType.js.map
+;// CONCATENATED MODULE: ./node_modules/.pnpm/cached-factory@0.1.0/node_modules/cached-factory/lib/index.js
+class CachedFactory {
+  #cache = /* @__PURE__ */ new Map();
+  #getter;
+  constructor(factory) {
+    this.#getter = factory;
+  }
+  clear() {
+    this.#cache.clear();
+  }
+  entries() {
+    return this.#cache.entries();
+  }
+  get(key) {
+    const existing = this.#cache.get(key);
+    if (existing) {
+      return existing;
+    }
+    const value = this.#getter(key);
+    this.#cache.set(key, value);
+    return value;
+  }
 }
 
-
+//# sourceMappingURL=index.js.map
 // EXTERNAL MODULE: ./node_modules/.pnpm/@octokit+core@7.0.8/node_modules/@octokit/core/dist-src/index.js + 7 modules
 var dist_src = __nccwpck_require__(4504);
 // EXTERNAL MODULE: ./node_modules/.pnpm/@octokit+plugin-paginate-rest@14.0.0_@octokit+core@7.0.8/node_modules/@octokit/plugin-paginate-rest/dist-bundle/index.js
@@ -44592,663 +45217,6 @@ var dist_bundle_OAuthApp = OAuthApp.defaults({ Octokit: dist_bundle_Octokit });
 
 /* v8 ignore next no need to test internals of the throttle plugin -- @preserve */
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/octokit-from-auth@0.3.2/node_modules/octokit-from-auth/lib/octokitFromAuthSafe.js
-
-
-async function octokitFromAuthSafe(options) {
-  const auth = await retrieveAuthSafe(options?.auth);
-  return new dist_bundle_Octokit({ ...options, auth });
-}
-async function retrieveAuthSafe(provided) {
-  if (provided) {
-    return provided;
-  }
-  if (provided === "") {
-    return void 0;
-  }
-  const auth = await getGitHubAuthToken_getGitHubAuthToken();
-  if (auth.succeeded) {
-    return auth.token;
-  }
-  return void 0;
-}
-
-
-;// CONCATENATED MODULE: ./node_modules/.pnpm/octokit-from-auth@0.3.2/node_modules/octokit-from-auth/lib/index.js
-
-
-
-;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.6.1/node_modules/all-contributors-for-repository/lib/collect/api.js
-
-//#region src/collect/api.ts
-const maxPages = 10;
-const perPage = 100;
-async function createOctokit(auth) {
-	return await octokitFromAuthSafe({
-		auth,
-		headers: { "X-GitHub-Api-Version": "2022-11-28" }
-	});
-}
-async function api_paginate(pages) {
-	const items = [];
-	let requested = 0;
-	for await (const page of pages) {
-		items.push(...page.data);
-		requested += 1;
-		if (requested >= maxPages) break;
-	}
-	return items;
-}
-//#endregion
-
-
-//# sourceMappingURL=api.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.6.1/node_modules/all-contributors-for-repository/lib/collect/collecting/collectPullFiles.js
-
-//#region src/collect/collecting/collectPullFiles.ts
-async function collectPullFiles(defaults, octokit, pullNumber) {
-	return await api_paginate(octokit.paginate.iterator("GET /repos/{owner}/{repo}/pulls/{pull_number}/files", {
-		...defaults,
-		per_page: 100,
-		pull_number: pullNumber
-	}));
-}
-//#endregion
-
-
-//# sourceMappingURL=collectPullFiles.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.6.1/node_modules/all-contributors-for-repository/lib/collect/parsing/parseMergedPullAuthors.js
-
-//#region src/collect/parsing/parseMergedPullAuthors.ts
-async function parseMergedPullAuthors(mergedPull, cachingCoAuthorToUsername) {
-	const authors = [];
-	authors.push(mergedPull.user?.login);
-	if (mergedPull.body) {
-		const coAuthors = descriptionToCoAuthors(mergedPull.body);
-		for (const coAuthor of coAuthors) authors.push(await cachingCoAuthorToUsername(coAuthor));
-	}
-	return Array.from(new Set(authors.filter((author) => !!author)));
-}
-//#endregion
-
-
-//# sourceMappingURL=parseMergedPullAuthors.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/conventional-commits-parser@7.1.2/node_modules/conventional-commits-parser/dist/regex.js
-const nomatchRegex = /(?!.*)/;
-function regex_escape(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-function joinOr(parts) {
-    return parts
-        .map(val => (typeof val === 'string' ? regex_escape(val.trim()) : val.source))
-        .filter(Boolean)
-        .join('|');
-}
-function getNotesRegex(noteKeywords, notesPattern) {
-    if (!noteKeywords) {
-        return nomatchRegex;
-    }
-    const noteKeywordsSelection = joinOr(noteKeywords);
-    if (!notesPattern) {
-        return new RegExp(`^(?:\\*\\s+)?(${noteKeywordsSelection}):\\s*(.*)`, 'i');
-    }
-    return notesPattern(noteKeywordsSelection);
-}
-function getReferencePartsRegex(issuePrefixes, issuePrefixesCaseSensitive) {
-    if (!issuePrefixes) {
-        return nomatchRegex;
-    }
-    const flags = issuePrefixesCaseSensitive ? 'g' : 'gi';
-    return new RegExp(`(?:.*?)??\\s*([\\w-\\.\\/]*?)??(${joinOr(issuePrefixes)})([\\w-]+)(?=\\s|$|[,;.)\\]])`, flags);
-}
-function getReferencesRegex(referenceActions) {
-    if (!referenceActions) {
-        // matches everything
-        return /()(.+)/gi;
-    }
-    const joinedKeywords = joinOr(referenceActions);
-    return new RegExp(`(${joinedKeywords})(?:\\s+(.*?))(?=(?:${joinedKeywords})|$)`, 'gi');
-}
-function getFooterTokenRegex(issuePrefixes) {
-    const issuePrefixSeparator = issuePrefixes
-        ? `|\\s+(?:${joinOr(issuePrefixes)})`
-        : '';
-    // Footers follow the git trailer convention: the token starts at the
-    // beginning of the line, indented `key: value` lines are not footers.
-    return new RegExp(`^(?:BREAKING CHANGE|[\\w-]+)(?::\\s+${issuePrefixSeparator}).+`, 'i');
-}
-/**
- * Make the regexes used to parse a commit.
- * @param options
- * @returns Regexes.
- */
-function getParserRegexes(options = {}) {
-    const notes = getNotesRegex(options.noteKeywords, options.notesPattern);
-    const referenceParts = getReferencePartsRegex(options.issuePrefixes, options.issuePrefixesCaseSensitive);
-    const references = getReferencesRegex(options.referenceActions);
-    const footerToken = getFooterTokenRegex(options.issuePrefixes);
-    return {
-        notes,
-        referenceParts,
-        references,
-        footerToken,
-        mentions: /@([\w-]+)/g,
-        url: /\b(?:https?):\/\/(?:www\.)?([-a-zA-Z0-9@:%_+.~#?&//=])+\b/
-    };
-}
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoicmVnZXguanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi9zcmMvcmVnZXgudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBS0EsTUFBTSxZQUFZLEdBQUcsUUFBUSxDQUFBO0FBRTdCLFNBQVMsTUFBTSxDQUFDLE1BQWM7SUFDNUIsT0FBTyxNQUFNLENBQUMsT0FBTyxDQUFDLHFCQUFxQixFQUFFLE1BQU0sQ0FBQyxDQUFBO0FBQ3RELENBQUM7QUFFRCxTQUFTLE1BQU0sQ0FBQyxLQUEwQjtJQUN4QyxPQUFPLEtBQUs7U0FDVCxHQUFHLENBQUMsR0FBRyxDQUFDLEVBQUUsQ0FBQyxDQUFDLE9BQU8sR0FBRyxLQUFLLFFBQVEsQ0FBQyxDQUFDLENBQUMsTUFBTSxDQUFDLEdBQUcsQ0FBQyxJQUFJLEVBQUUsQ0FBQyxDQUFDLENBQUMsQ0FBQyxHQUFHLENBQUMsTUFBTSxDQUFDLENBQUM7U0FDdkUsTUFBTSxDQUFDLE9BQU8sQ0FBQztTQUNmLElBQUksQ0FBQyxHQUFHLENBQUMsQ0FBQTtBQUNkLENBQUM7QUFFRCxTQUFTLGFBQWEsQ0FDcEIsWUFBNkMsRUFDN0MsWUFBb0Q7SUFFcEQsSUFBSSxDQUFDLFlBQVksRUFBRSxDQUFDO1FBQ2xCLE9BQU8sWUFBWSxDQUFBO0lBQ3JCLENBQUM7SUFFRCxNQUFNLHFCQUFxQixHQUFHLE1BQU0sQ0FBQyxZQUFZLENBQUMsQ0FBQTtJQUVsRCxJQUFJLENBQUMsWUFBWSxFQUFFLENBQUM7UUFDbEIsT0FBTyxJQUFJLE1BQU0sQ0FBQyxpQkFBaUIscUJBQXFCLFlBQVksRUFBRSxHQUFHLENBQUMsQ0FBQTtJQUM1RSxDQUFDO0lBRUQsT0FBTyxZQUFZLENBQUMscUJBQXFCLENBQUMsQ0FBQTtBQUM1QyxDQUFDO0FBRUQsU0FBUyxzQkFBc0IsQ0FDN0IsYUFBOEMsRUFDOUMsMEJBQStDO0lBRS9DLElBQUksQ0FBQyxhQUFhLEVBQUUsQ0FBQztRQUNuQixPQUFPLFlBQVksQ0FBQTtJQUNyQixDQUFDO0lBRUQsTUFBTSxLQUFLLEdBQUcsMEJBQTBCLENBQUMsQ0FBQyxDQUFDLEdBQUcsQ0FBQyxDQUFDLENBQUMsSUFBSSxDQUFBO0lBRXJELE9BQU8sSUFBSSxNQUFNLENBQUMsbUNBQW1DLE1BQU0sQ0FBQyxhQUFhLENBQUMsK0JBQStCLEVBQUUsS0FBSyxDQUFDLENBQUE7QUFDbkgsQ0FBQztBQUVELFNBQVMsa0JBQWtCLENBQ3pCLGdCQUFpRDtJQUVqRCxJQUFJLENBQUMsZ0JBQWdCLEVBQUUsQ0FBQztRQUN0QixxQkFBcUI7UUFDckIsT0FBTyxVQUFVLENBQUE7SUFDbkIsQ0FBQztJQUVELE1BQU0sY0FBYyxHQUFHLE1BQU0sQ0FBQyxnQkFBZ0IsQ0FBQyxDQUFBO0lBRS9DLE9BQU8sSUFBSSxNQUFNLENBQUMsSUFBSSxjQUFjLHVCQUF1QixjQUFjLE1BQU0sRUFBRSxJQUFJLENBQUMsQ0FBQTtBQUN4RixDQUFDO0FBRUQsU0FBUyxtQkFBbUIsQ0FDMUIsYUFBOEM7SUFFOUMsTUFBTSxvQkFBb0IsR0FBRyxhQUFhO1FBQ3hDLENBQUMsQ0FBQyxXQUFXLE1BQU0sQ0FBQyxhQUFhLENBQUMsR0FBRztRQUNyQyxDQUFDLENBQUMsRUFBRSxDQUFBO0lBRU4scUVBQXFFO0lBQ3JFLHNFQUFzRTtJQUN0RSxPQUFPLElBQUksTUFBTSxDQUFDLHVDQUF1QyxvQkFBb0IsS0FBSyxFQUFFLEdBQUcsQ0FBQyxDQUFBO0FBQzFGLENBQUM7QUFFRDs7OztHQUlHO0FBQ0gsTUFBTSxVQUFVLGdCQUFnQixDQUM5QixPQUFPLEdBQStILEVBQUU7SUFFeEksTUFBTSxLQUFLLEdBQUcsYUFBYSxDQUFDLE9BQU8sQ0FBQyxZQUFZLEVBQUUsT0FBTyxDQUFDLFlBQVksQ0FBQyxDQUFBO0lBQ3ZFLE1BQU0sY0FBYyxHQUFHLHNCQUFzQixDQUFDLE9BQU8sQ0FBQyxhQUFhLEVBQUUsT0FBTyxDQUFDLDBCQUEwQixDQUFDLENBQUE7SUFDeEcsTUFBTSxVQUFVLEdBQUcsa0JBQWtCLENBQUMsT0FBTyxDQUFDLGdCQUFnQixDQUFDLENBQUE7SUFDL0QsTUFBTSxXQUFXLEdBQUcsbUJBQW1CLENBQUMsT0FBTyxDQUFDLGFBQWEsQ0FBQyxDQUFBO0lBRTlELE9BQU87UUFDTCxLQUFLO1FBQ0wsY0FBYztRQUNkLFVBQVU7UUFDVixXQUFXO1FBQ1gsUUFBUSxFQUFFLFlBQVk7UUFDdEIsR0FBRyxFQUFFLDJEQUEyRDtLQUNqRSxDQUFBO0FBQ0gsQ0FBQyJ9
-;// CONCATENATED MODULE: ./node_modules/.pnpm/conventional-commits-parser@7.1.2/node_modules/conventional-commits-parser/dist/utils.js
-const SCISSOR = '------------------------ >8 ------------------------';
-/**
- * Remove leading and trailing newlines.
- * @param input
- * @returns String without leading and trailing newlines.
- */
-function trimNewLines(input) {
-    // To escape ReDos we should escape String#replace with regex.
-    const matches = input.match(/[^\r\n]/);
-    if (typeof matches?.index !== 'number') {
-        return '';
-    }
-    const firstIndex = matches.index;
-    let lastIndex = input.length - 1;
-    while (input[lastIndex] === '\r' || input[lastIndex] === '\n') {
-        lastIndex--;
-    }
-    return input.substring(firstIndex, lastIndex + 1);
-}
-/**
- * Append a newline to a string.
- * @param src
- * @param line
- * @returns String with appended newline.
- */
-function appendLine(src, line) {
-    return src ? `${src}\n${line || ''}` : line || '';
-}
-/**
- * Creates a function that filters out comments lines.
- * @param char
- * @returns Comment filter function.
- */
-function getCommentFilter(char) {
-    return char
-        ? (line) => !line.startsWith(char)
-        : () => true;
-}
-/**
- * Select lines before the scissor.
- * @param lines
- * @param commentChar
- * @returns Lines before the scissor.
- */
-function truncateToScissor(lines, commentChar) {
-    const scissorIndex = lines.indexOf(`${commentChar} ${SCISSOR}`);
-    if (scissorIndex === -1) {
-        return lines;
-    }
-    return lines.slice(0, scissorIndex);
-}
-/**
- * Filter out GPG sign lines.
- * @param line
- * @returns True if the line is not a GPG sign line.
- */
-function gpgFilter(line) {
-    return !line.match(/^\s*gpg:/);
-}
-/**
- * Assign matched correspondence to the target object.
- * @param target - The target object to assign values to.
- * @param matches - The RegExp match array containing the matched groups.
- * @param correspondence - An array of keys that correspond to the matched groups.
- * @returns The target object with assigned values.
- */
-function assignMatchedCorrespondence(target, matches, correspondence) {
-    const { groups } = matches;
-    for (let i = 0, len = correspondence.length, key; i < len; i++) {
-        key = correspondence[i];
-        target[key] = (groups ? groups[key] : matches[i + 1]) || null;
-    }
-    return target;
-}
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoidXRpbHMuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi9zcmMvdXRpbHMudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUEsTUFBTSxPQUFPLEdBQUcsc0RBQXNELENBQUE7QUFFdEU7Ozs7R0FJRztBQUNILE1BQU0sVUFBVSxZQUFZLENBQUMsS0FBYTtJQUN4Qyw4REFBOEQ7SUFFOUQsTUFBTSxPQUFPLEdBQUcsS0FBSyxDQUFDLEtBQUssQ0FBQyxTQUFTLENBQUMsQ0FBQTtJQUV0QyxJQUFJLE9BQU8sT0FBTyxFQUFFLEtBQUssS0FBSyxRQUFRLEVBQUUsQ0FBQztRQUN2QyxPQUFPLEVBQUUsQ0FBQTtJQUNYLENBQUM7SUFFRCxNQUFNLFVBQVUsR0FBRyxPQUFPLENBQUMsS0FBSyxDQUFBO0lBQ2hDLElBQUksU0FBUyxHQUFHLEtBQUssQ0FBQyxNQUFNLEdBQUcsQ0FBQyxDQUFBO0lBRWhDLE9BQU8sS0FBSyxDQUFDLFNBQVMsQ0FBQyxLQUFLLElBQUksSUFBSSxLQUFLLENBQUMsU0FBUyxDQUFDLEtBQUssSUFBSSxFQUFFLENBQUM7UUFDOUQsU0FBUyxFQUFFLENBQUE7SUFDYixDQUFDO0lBRUQsT0FBTyxLQUFLLENBQUMsU0FBUyxDQUFDLFVBQVUsRUFBRSxTQUFTLEdBQUcsQ0FBQyxDQUFDLENBQUE7QUFDbkQsQ0FBQztBQUVEOzs7OztHQUtHO0FBQ0gsTUFBTSxVQUFVLFVBQVUsQ0FBQyxHQUFrQixFQUFFLElBQXdCO0lBQ3JFLE9BQU8sR0FBRyxDQUFDLENBQUMsQ0FBQyxHQUFHLEdBQUcsS0FBSyxJQUFJLElBQUksRUFBRSxFQUFFLENBQUMsQ0FBQyxDQUFDLElBQUksSUFBSSxFQUFFLENBQUE7QUFDbkQsQ0FBQztBQUVEOzs7O0dBSUc7QUFDSCxNQUFNLFVBQVUsZ0JBQWdCLENBQUMsSUFBd0I7SUFDdkQsT0FBTyxJQUFJO1FBQ1QsQ0FBQyxDQUFDLENBQUMsSUFBWSxFQUFFLEVBQUUsQ0FBQyxDQUFDLElBQUksQ0FBQyxVQUFVLENBQUMsSUFBSSxDQUFDO1FBQzFDLENBQUMsQ0FBQyxHQUFHLEVBQUUsQ0FBQyxJQUFJLENBQUE7QUFDaEIsQ0FBQztBQUVEOzs7OztHQUtHO0FBQ0gsTUFBTSxVQUFVLGlCQUFpQixDQUMvQixLQUFlLEVBQ2YsV0FBbUI7SUFFbkIsTUFBTSxZQUFZLEdBQUcsS0FBSyxDQUFDLE9BQU8sQ0FBQyxHQUFHLFdBQVcsSUFBSSxPQUFPLEVBQUUsQ0FBQyxDQUFBO0lBRS9ELElBQUksWUFBWSxLQUFLLENBQUMsQ0FBQyxFQUFFLENBQUM7UUFDeEIsT0FBTyxLQUFLLENBQUE7SUFDZCxDQUFDO0lBRUQsT0FBTyxLQUFLLENBQUMsS0FBSyxDQUFDLENBQUMsRUFBRSxZQUFZLENBQUMsQ0FBQTtBQUNyQyxDQUFDO0FBRUQ7Ozs7R0FJRztBQUNILE1BQU0sVUFBVSxTQUFTLENBQUMsSUFBWTtJQUNwQyxPQUFPLENBQUMsSUFBSSxDQUFDLEtBQUssQ0FBQyxVQUFVLENBQUMsQ0FBQTtBQUNoQyxDQUFDO0FBRUQ7Ozs7OztHQU1HO0FBQ0gsTUFBTSxVQUFVLDJCQUEyQixDQUN6QyxNQUFxQyxFQUNyQyxPQUF5QixFQUN6QixjQUF3QjtJQUV4QixNQUFNLEVBQUUsTUFBTSxFQUFFLEdBQUcsT0FBTyxDQUFBO0lBRTFCLEtBQUssSUFBSSxDQUFDLEdBQUcsQ0FBQyxFQUFFLEdBQUcsR0FBRyxjQUFjLENBQUMsTUFBTSxFQUFFLEdBQUcsRUFBRSxDQUFDLEdBQUcsR0FBRyxFQUFFLENBQUMsRUFBRSxFQUFFLENBQUM7UUFDL0QsR0FBRyxHQUFHLGNBQWMsQ0FBQyxDQUFDLENBQUMsQ0FBQTtRQUN2QixNQUFNLENBQUMsR0FBRyxDQUFDLEdBQUcsQ0FBQyxNQUFNLENBQUMsQ0FBQyxDQUFDLE1BQU0sQ0FBQyxHQUFHLENBQUMsQ0FBQyxDQUFDLENBQUMsT0FBTyxDQUFDLENBQUMsR0FBRyxDQUFDLENBQUMsQ0FBQyxJQUFJLElBQUksQ0FBQTtJQUMvRCxDQUFDO0lBRUQsT0FBTyxNQUFNLENBQUE7QUFDZixDQUFDIn0=
-;// CONCATENATED MODULE: ./node_modules/.pnpm/conventional-commits-parser@7.1.2/node_modules/conventional-commits-parser/dist/options.js
-const defaultOptions = {
-    noteKeywords: ['BREAKING CHANGE', 'BREAKING-CHANGE'],
-    issuePrefixes: ['#'],
-    referenceActions: [
-        'close',
-        'closes',
-        'closed',
-        'fix',
-        'fixes',
-        'fixed',
-        'resolve',
-        'resolves',
-        'resolved'
-    ],
-    headerPattern: /^(\w*)(?:\(([\w$@.\-*/ ]*)\))?: (.*)$/,
-    headerCorrespondence: [
-        'type',
-        'scope',
-        'subject'
-    ],
-    revertPattern: /^Revert\s"([\s\S]*)"\s*This reverts commit (\w*)\.?/,
-    revertCorrespondence: ['header', 'hash'],
-    // The field name must contain at least one word character so that
-    // YAML document markers like `---` are not treated as field markers.
-    fieldPattern: /^-(?=.*\w)(.*?)-$/
-};
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoib3B0aW9ucy5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uL3NyYy9vcHRpb25zLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQUVBLE1BQU0sQ0FBQyxNQUFNLGNBQWMsR0FBa0I7SUFDM0MsWUFBWSxFQUFFLENBQUMsaUJBQWlCLEVBQUUsaUJBQWlCLENBQUM7SUFDcEQsYUFBYSxFQUFFLENBQUMsR0FBRyxDQUFDO0lBQ3BCLGdCQUFnQixFQUFFO1FBQ2hCLE9BQU87UUFDUCxRQUFRO1FBQ1IsUUFBUTtRQUNSLEtBQUs7UUFDTCxPQUFPO1FBQ1AsT0FBTztRQUNQLFNBQVM7UUFDVCxVQUFVO1FBQ1YsVUFBVTtLQUNYO0lBQ0QsYUFBYSxFQUFFLHVDQUF1QztJQUN0RCxvQkFBb0IsRUFBRTtRQUNwQixNQUFNO1FBQ04sT0FBTztRQUNQLFNBQVM7S0FDVjtJQUNELGFBQWEsRUFBRSxxREFBcUQ7SUFDcEUsb0JBQW9CLEVBQUUsQ0FBQyxRQUFRLEVBQUUsTUFBTSxDQUFDO0lBQ3hDLGtFQUFrRTtJQUNsRSxxRUFBcUU7SUFDckUsWUFBWSxFQUFFLG1CQUFtQjtDQUNsQyxDQUFBIn0=
-;// CONCATENATED MODULE: ./node_modules/.pnpm/conventional-commits-parser@7.1.2/node_modules/conventional-commits-parser/dist/CommitParser.js
-
-
-
-/**
- * Helper to create commit object.
- * @param initialData - Initial commit data.
- * @returns Commit object with empty data.
- */
-function createCommitObject(initialData = {}) {
-    // @ts-expect-error: You can read properties from `Commit` without problems, but you can't assign object to this type. So here is helper for that.
-    return {
-        merge: null,
-        revert: null,
-        header: null,
-        body: null,
-        footer: null,
-        notes: [],
-        mentions: [],
-        references: [],
-        ...initialData
-    };
-}
-/**
- * Commit message parser.
- */
-class CommitParser_CommitParser {
-    options;
-    regexes;
-    lines = [];
-    lineIndex = 0;
-    commit = createCommitObject();
-    constructor(options = {}) {
-        this.options = {
-            ...defaultOptions,
-            ...options
-        };
-        this.regexes = getParserRegexes(this.options);
-    }
-    currentLine() {
-        return this.lines[this.lineIndex];
-    }
-    nextLine() {
-        return this.lines[this.lineIndex++];
-    }
-    isLineAvailable() {
-        return this.lineIndex < this.lines.length;
-    }
-    parseReference(input, action) {
-        const { regexes } = this;
-        if (regexes.url.test(input)) {
-            return null;
-        }
-        const matches = regexes.referenceParts.exec(input);
-        if (!matches) {
-            return null;
-        }
-        let [raw, repository = null, prefix, issue] = matches;
-        let owner = null;
-        if (repository) {
-            const slashIndex = repository.indexOf('/');
-            if (slashIndex !== -1) {
-                owner = repository.slice(0, slashIndex);
-                repository = repository.slice(slashIndex + 1);
-            }
-        }
-        return {
-            raw,
-            action,
-            owner,
-            repository,
-            prefix,
-            issue
-        };
-    }
-    parseReferences(input) {
-        const { regexes } = this;
-        const regex = input.match(regexes.references)
-            ? regexes.references
-            : /()(.+)/gi;
-        const references = [];
-        let matches;
-        let action;
-        let sentence;
-        let reference;
-        while (true) {
-            matches = regex.exec(input);
-            if (!matches) {
-                break;
-            }
-            action = matches[1] || null;
-            sentence = matches[2] || '';
-            while (true) {
-                reference = this.parseReference(sentence, action);
-                if (!reference) {
-                    break;
-                }
-                references.push(reference);
-            }
-        }
-        return references;
-    }
-    skipEmptyLines() {
-        let line = this.currentLine();
-        while (line !== undefined && !line.trim()) {
-            this.nextLine();
-            line = this.currentLine();
-        }
-    }
-    parseMerge() {
-        const { commit, options } = this;
-        const correspondence = options.mergeCorrespondence || [];
-        const merge = this.currentLine();
-        const matches = merge && options.mergePattern
-            ? merge.match(options.mergePattern)
-            : null;
-        if (matches) {
-            this.nextLine();
-            commit.merge = matches[0] || null;
-            assignMatchedCorrespondence(commit, matches, correspondence);
-            return true;
-        }
-        return false;
-    }
-    parseHeader(isMergeCommit) {
-        if (isMergeCommit) {
-            this.skipEmptyLines();
-        }
-        const { commit, options } = this;
-        const correspondence = options.headerCorrespondence || [];
-        const header = commit.header ?? this.nextLine();
-        let matches = null;
-        if (header) {
-            if (options.breakingHeaderPattern) {
-                matches = header.match(options.breakingHeaderPattern);
-            }
-            if (!matches && options.headerPattern) {
-                matches = header.match(options.headerPattern);
-            }
-        }
-        if (header) {
-            commit.header = header;
-        }
-        if (matches) {
-            assignMatchedCorrespondence(commit, matches, correspondence);
-        }
-    }
-    parseMeta() {
-        const { options, commit } = this;
-        if (!options.fieldPattern || !this.isLineAvailable()) {
-            return false;
-        }
-        let matches;
-        let field = null;
-        let parsed = false;
-        while (this.isLineAvailable()) {
-            matches = this.currentLine().match(options.fieldPattern);
-            if (matches) {
-                field = matches[1] || null;
-                this.nextLine();
-                continue;
-            }
-            if (field) {
-                parsed = true;
-                commit[field] = appendLine(commit[field], this.currentLine());
-                this.nextLine();
-            }
-            else {
-                break;
-            }
-        }
-        return parsed;
-    }
-    parseNotes() {
-        const { regexes, commit } = this;
-        if (!this.isLineAvailable()) {
-            return false;
-        }
-        const matches = this.currentLine().match(regexes.notes);
-        let isFooterToken;
-        if (matches) {
-            const note = {
-                title: matches[1],
-                text: matches[2]
-            };
-            commit.notes.push(note);
-            commit.footer = appendLine(commit.footer, this.currentLine());
-            this.nextLine();
-            while (this.isLineAvailable()) {
-                if (this.parseMeta()) {
-                    return true;
-                }
-                if (this.parseNotes()) {
-                    return true;
-                }
-                isFooterToken = regexes.footerToken.test(this.currentLine());
-                commit.references.push(...this.parseReferences(this.currentLine()));
-                if (!isFooterToken) {
-                    note.text = appendLine(note.text, this.currentLine());
-                }
-                commit.footer = appendLine(commit.footer, this.currentLine());
-                this.nextLine();
-                if (isFooterToken) {
-                    break;
-                }
-            }
-            return true;
-        }
-        return false;
-    }
-    parseBodyAndFooter(isBody) {
-        const { commit, regexes } = this;
-        if (!this.isLineAvailable()) {
-            return isBody;
-        }
-        const isFooterToken = regexes.footerToken.test(this.currentLine());
-        const isStillBody = !isFooterToken && isBody;
-        commit.references.push(...this.parseReferences(this.currentLine()));
-        if (isStillBody) {
-            commit.body = appendLine(commit.body, this.currentLine());
-        }
-        else {
-            commit.footer = appendLine(commit.footer, this.currentLine());
-        }
-        this.nextLine();
-        return isStillBody;
-    }
-    parseBreakingHeader() {
-        const { commit, options } = this;
-        if (!options.breakingHeaderPattern || commit.notes.length || !commit.header) {
-            return;
-        }
-        const matches = commit.header.match(options.breakingHeaderPattern);
-        if (matches) {
-            commit.notes.push({
-                title: 'BREAKING CHANGE',
-                text: matches[3]
-            });
-        }
-    }
-    parseMentions(input) {
-        const { commit, regexes } = this;
-        let matches;
-        for (;;) {
-            matches = regexes.mentions.exec(input);
-            if (!matches) {
-                break;
-            }
-            commit.mentions.push(matches[1]);
-        }
-    }
-    parseRevert(input) {
-        const { commit, options } = this;
-        const correspondence = options.revertCorrespondence || [];
-        const matches = options.revertPattern
-            ? input.match(options.revertPattern)
-            : null;
-        if (matches) {
-            commit.revert = assignMatchedCorrespondence({}, matches, correspondence);
-        }
-    }
-    cleanupCommit() {
-        const { commit } = this;
-        commit.body &&= trimNewLines(commit.body);
-        commit.footer &&= trimNewLines(commit.footer);
-        commit.notes.forEach((note) => {
-            note.text = trimNewLines(note.text);
-        });
-        const referencesSet = new Set();
-        commit.references = commit.references.filter((reference) => {
-            const uid = `${reference.action} ${reference.raw}`.toLocaleLowerCase();
-            const ok = !referencesSet.has(uid);
-            if (ok) {
-                referencesSet.add(uid);
-            }
-            return ok;
-        });
-    }
-    /**
-     * Parse commit message string into an object.
-     * @param input - Commit message string.
-     * @returns Commit object.
-     */
-    parse(input) {
-        if (!input.trim()) {
-            throw new TypeError('Expected a raw commit');
-        }
-        const { commentChar } = this.options;
-        const commentFilter = getCommentFilter(commentChar);
-        const rawLines = trimNewLines(input).split(/\r?\n/);
-        const lines = commentChar
-            ? truncateToScissor(rawLines, commentChar).filter(line => commentFilter(line) && gpgFilter(line))
-            : rawLines.filter(line => gpgFilter(line));
-        const commit = createCommitObject();
-        this.lines = lines;
-        this.lineIndex = 0;
-        this.commit = commit;
-        const isMergeCommit = this.parseMerge();
-        this.parseHeader(isMergeCommit);
-        if (commit.header) {
-            commit.references = this.parseReferences(commit.header);
-        }
-        let isBody = true;
-        while (this.isLineAvailable()) {
-            this.parseMeta();
-            if (this.parseNotes()) {
-                isBody = false;
-            }
-            if (!this.parseBodyAndFooter(isBody)) {
-                isBody = false;
-            }
-        }
-        this.parseBreakingHeader();
-        this.parseMentions(input);
-        this.parseRevert(input);
-        this.cleanupCommit();
-        return commit;
-    }
-}
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiQ29tbWl0UGFyc2VyLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiLi4vc3JjL0NvbW1pdFBhcnNlci50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFPQSxPQUFPLEVBQUUsZ0JBQWdCLEVBQUUsTUFBTSxZQUFZLENBQUE7QUFDN0MsT0FBTyxFQUNMLFlBQVksRUFDWixVQUFVLEVBQ1YsZ0JBQWdCLEVBQ2hCLFNBQVMsRUFDVCxpQkFBaUIsRUFDakIsMkJBQTJCLEVBQzVCLE1BQU0sWUFBWSxDQUFBO0FBQ25CLE9BQU8sRUFBRSxjQUFjLEVBQUUsTUFBTSxjQUFjLENBQUE7QUFFN0M7Ozs7R0FJRztBQUNILE1BQU0sVUFBVSxrQkFBa0IsQ0FBQyxXQUFXLEdBQW9CLEVBQUU7SUFDbEUsa0pBQWtKO0lBQ2xKLE9BQU87UUFDTCxLQUFLLEVBQUUsSUFBSTtRQUNYLE1BQU0sRUFBRSxJQUFJO1FBQ1osTUFBTSxFQUFFLElBQUk7UUFDWixJQUFJLEVBQUUsSUFBSTtRQUNWLE1BQU0sRUFBRSxJQUFJO1FBQ1osS0FBSyxFQUFFLEVBQUU7UUFDVCxRQUFRLEVBQUUsRUFBRTtRQUNaLFVBQVUsRUFBRSxFQUFFO1FBQ2QsR0FBRyxXQUFXO0tBQ2YsQ0FBQTtBQUNILENBQUM7QUFFRDs7R0FFRztBQUNILE1BQU0sT0FBTyxZQUFZO0lBQ04sT0FBTyxDQUFlO0lBQ3RCLE9BQU8sQ0FBZTtJQUMvQixLQUFLLEdBQWEsRUFBRSxDQUFBO0lBQ3BCLFNBQVMsR0FBRyxDQUFDLENBQUE7SUFDYixNQUFNLEdBQUcsa0JBQWtCLEVBQUUsQ0FBQTtJQUVyQyxZQUFZLE9BQU8sR0FBa0IsRUFBRTtRQUNyQyxJQUFJLENBQUMsT0FBTyxHQUFHO1lBQ2IsR0FBRyxjQUFjO1lBQ2pCLEdBQUcsT0FBTztTQUNYLENBQUE7UUFDRCxJQUFJLENBQUMsT0FBTyxHQUFHLGdCQUFnQixDQUFDLElBQUksQ0FBQyxPQUFPLENBQUMsQ0FBQTtJQUMvQyxDQUFDO0lBRU8sV0FBVztRQUNq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
-;// CONCATENATED MODULE: external "stream"
-const external_stream_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("stream");
-;// CONCATENATED MODULE: ./node_modules/.pnpm/conventional-commits-parser@7.1.2/node_modules/conventional-commits-parser/dist/stream.js
-
-
-/**
- * Create async generator function to parse async iterable of raw commits.
- * @param options - CommitParser options.
- * @returns Async generator function to parse async iterable of raw commits.
- */
-function parseCommits(options = {}) {
-    const warnOption = options.warn;
-    const warn = warnOption === true
-        ? (err) => {
-            throw err;
-        }
-        : warnOption
-            ? (err) => warnOption(err.toString())
-            : () => { };
-    return async function* parse(rawCommits) {
-        const parser = new CommitParser(options);
-        let rawCommit;
-        for await (rawCommit of rawCommits) {
-            try {
-                yield parser.parse(rawCommit.toString());
-            }
-            catch (err) {
-                warn(err);
-            }
-        }
-    };
-}
-/**
- * Create stream to parse commits.
- * @param options - CommitParser options.
- * @returns Stream of parsed commits.
- */
-function parseCommitsStream(options = {}) {
-    return Transform.from(parseCommits(options));
-}
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoic3RyZWFtLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiLi4vc3JjL3N0cmVhbS50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFBQSxPQUFPLEVBQUUsU0FBUyxFQUFFLE1BQU0sUUFBUSxDQUFBO0FBRWxDLE9BQU8sRUFBRSxZQUFZLEVBQUUsTUFBTSxtQkFBbUIsQ0FBQTtBQUVoRDs7OztHQUlHO0FBQ0gsTUFBTSxVQUFVLFlBQVksQ0FDMUIsT0FBTyxHQUF3QixFQUFFO0lBRWpDLE1BQU0sVUFBVSxHQUFHLE9BQU8sQ0FBQyxJQUFJLENBQUE7SUFDL0IsTUFBTSxJQUFJLEdBQUcsVUFBVSxLQUFLLElBQUk7UUFDOUIsQ0FBQyxDQUFDLENBQUMsR0FBVSxFQUFFLEVBQUU7WUFDZixNQUFNLEdBQUcsQ0FBQTtRQUNYLENBQUM7UUFDRCxDQUFDLENBQUMsVUFBVTtZQUNWLENBQUMsQ0FBQyxDQUFDLEdBQVUsRUFBRSxFQUFFLENBQUMsVUFBVSxDQUFDLEdBQUcsQ0FBQyxRQUFRLEVBQUUsQ0FBQztZQUM1QyxDQUFDLENBQUMsR0FBRyxFQUFFLEdBQWMsQ0FBQyxDQUFBO0lBRTFCLE9BQU8sS0FBSyxTQUFTLENBQUMsQ0FBQyxLQUFLLENBQzFCLFVBQXNFO1FBRXRFLE1BQU0sTUFBTSxHQUFHLElBQUksWUFBWSxDQUFDLE9BQU8sQ0FBQyxDQUFBO1FBQ3hDLElBQUksU0FBMEIsQ0FBQTtRQUU5QixJQUFJLEtBQUssRUFBRSxTQUFTLElBQUksVUFBVSxFQUFFLENBQUM7WUFDbkMsSUFBSSxDQUFDO2dCQUNILE1BQU0sTUFBTSxDQUFDLEtBQUssQ0FBQyxTQUFTLENBQUMsUUFBUSxFQUFFLENBQUMsQ0FBQTtZQUMxQyxDQUFDO1lBQUMsT0FBTyxHQUFHLEVBQUUsQ0FBQztnQkFDYixJQUFJLENBQUMsR0FBWSxDQUFDLENBQUE7WUFDcEIsQ0FBQztRQUNILENBQUM7SUFDSCxDQUFDLENBQUE7QUFDSCxDQUFDO0FBRUQ7Ozs7R0FJRztBQUNILE1BQU0sVUFBVSxrQkFBa0IsQ0FBQyxPQUFPLEdBQXdCLEVBQUU7SUFDbEUsT0FBTyxTQUFTLENBQUMsSUFBSSxDQUFDLFlBQVksQ0FBQyxPQUFPLENBQUMsQ0FBQyxDQUFBO0FBQzlDLENBQUMifQ==
-;// CONCATENATED MODULE: ./node_modules/.pnpm/conventional-commits-parser@7.1.2/node_modules/conventional-commits-parser/dist/index.js
-
-
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaW5kZXguanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi9zcmMvaW5kZXgudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQ0EsY0FBYyxtQkFBbUIsQ0FBQTtBQUNqQyxjQUFjLGFBQWEsQ0FBQSJ9
-;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.6.1/node_modules/all-contributors-for-repository/lib/collect/parsing/parseMergedPullType.js
-
-//#region src/collect/parsing/parseMergedPullType.ts
-const allContributorsTypes = /* @__PURE__ */ new Map([
-	["build", "infra"],
-	["ci", "infra"],
-	["docs", "doc"],
-	["test", "test"]
-]);
-const parser = new CommitParser_CommitParser();
-function parseMergedPullType(title) {
-	const { type } = parser.parse(title);
-	return (type && allContributorsTypes.get(type)) ?? "code";
-}
-//#endregion
-
-
-//# sourceMappingURL=parseMergedPullType.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/cached-factory@0.1.0/node_modules/cached-factory/lib/index.js
-class CachedFactory {
-  #cache = /* @__PURE__ */ new Map();
-  #getter;
-  constructor(factory) {
-    this.#getter = factory;
-  }
-  clear() {
-    this.#cache.clear();
-  }
-  entries() {
-    return this.#cache.entries();
-  }
-  get(key) {
-    const existing = this.#cache.get(key);
-    if (existing) {
-      return existing;
-    }
-    const value = this.#getter(key);
-    this.#cache.set(key, value);
-    return value;
-  }
-}
-
-//# sourceMappingURL=index.js.map
 ;// CONCATENATED MODULE: ./node_modules/.pnpm/co-author-to-username@0.1.3/node_modules/co-author-to-username/lib/collectUserByEmail.js
 
 async function collectUserByEmail(email, fetcher) {
@@ -45286,40 +45254,148 @@ function createCachingCoAuthorToUsername({
 }
 
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.6.1/node_modules/all-contributors-for-repository/lib/collect/adding/addMergedPulls.js
-
+;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@1.0.0/node_modules/all-contributors-for-repository/lib/collect/adding/addMergedPulls.js
 
 
 
 //#region src/collect/adding/addMergedPulls.ts
-async function addMergedPulls(mergedPulls, contributors, octokit, options) {
+async function addMergedPulls(mergedPulls, contributors, octokit) {
 	const cachingCoAuthorToUsername = createCachingCoAuthorToUsername({ fetcher: octokit });
-	const defaults = {
-		owner: options.owner,
-		repo: options.repo
-	};
 	for (const mergedPull of mergedPulls) {
 		const authors = await parseMergedPullAuthors(mergedPull, cachingCoAuthorToUsername);
-		const types = [parseMergedPullType(mergedPull.title)];
-		if (!types.includes("test") && options.testFiles.length && await touchesTestFiles(mergedPull.number)) types.push("test");
-		for (const author of authors) for (const type of types) contributors.add(author, mergedPull.number, type);
-	}
-	async function touchesTestFiles(pullNumber) {
-		return (await collectPullFiles(defaults, octokit, pullNumber)).some((file) => options.testFiles.some((pattern) => pattern.test(file.filename)));
+		const type = parseMergedPullType(mergedPull.title);
+		for (const author of authors) contributors.add(author, mergedPull.number, type);
 	}
 }
 //#endregion
 
 
 //# sourceMappingURL=addMergedPulls.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.6.1/node_modules/all-contributors-for-repository/lib/collect/collecting/collectAcceptedIssues.js
+// EXTERNAL MODULE: external "node:child_process"
+var external_node_child_process_ = __nccwpck_require__(1421);
+// EXTERNAL MODULE: external "node:util"
+var external_node_util_ = __nccwpck_require__(7975);
+;// CONCATENATED MODULE: ./node_modules/.pnpm/get-github-auth-token@0.1.2/node_modules/get-github-auth-token/lib/getGitHubAuthToken.js
+
+
+async function getGitHubAuthToken_getGitHubAuthToken() {
+  if (process.env.GH_TOKEN) {
+    return { succeeded: true, token: process.env.GH_TOKEN };
+  }
+  const exec = external_node_util_.promisify(external_node_child_process_.exec);
+  const token = await exec("gh auth token").catch(
+    () => ({})
+  );
+  if (token.stdout) {
+    return { succeeded: true, token: token.stdout };
+  }
+  const help = await exec("gh").catch((error) => ({
+    stderr: error
+  }));
+  return {
+    error: help.stderr && `Could not run \`gh\`: ${help.stderr}` || // If stderr is "", we still ignore it and set to undefined
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    token.stderr || void 0,
+    succeeded: false
+  };
+}
+
+
+;// CONCATENATED MODULE: ./node_modules/.pnpm/get-github-auth-token@0.1.2/node_modules/get-github-auth-token/lib/index.js
+
+
+
+;// CONCATENATED MODULE: ./node_modules/.pnpm/octokit-from-auth@0.3.2/node_modules/octokit-from-auth/lib/octokitFromAuth.js
+
+
+async function octokitFromAuth(options) {
+  const auth = await retrieveAuth(options?.auth);
+  return new Octokit({ ...options, auth });
+}
+async function retrieveAuth(provided) {
+  if (provided) {
+    return provided;
+  }
+  if (provided === "") {
+    throw new Error("Invalid auth provided: an empty string ('').");
+  }
+  const auth = await getGitHubAuthToken();
+  if (auth.succeeded) {
+    return auth.token;
+  }
+  throw new Error(
+    "Please provide an auth token (process.env.GH_TOKEN) or log in with the GitHub CLI (gh).",
+    {
+      cause: auth.error
+    }
+  );
+}
+
+
+;// CONCATENATED MODULE: ./node_modules/.pnpm/octokit-from-auth@0.3.2/node_modules/octokit-from-auth/lib/octokitFromAuthSafe.js
+
+
+async function octokitFromAuthSafe(options) {
+  const auth = await retrieveAuthSafe(options?.auth);
+  return new dist_bundle_Octokit({ ...options, auth });
+}
+async function retrieveAuthSafe(provided) {
+  if (provided) {
+    return provided;
+  }
+  if (provided === "") {
+    return void 0;
+  }
+  const auth = await getGitHubAuthToken_getGitHubAuthToken();
+  if (auth.succeeded) {
+    return auth.token;
+  }
+  return void 0;
+}
+
+
+;// CONCATENATED MODULE: ./node_modules/.pnpm/octokit-from-auth@0.3.2/node_modules/octokit-from-auth/lib/index.js
+
+
+
+;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@1.0.0/node_modules/all-contributors-for-repository/lib/collect/api.js
+
+//#region src/collect/api.ts
+const maxPages = 10;
+const perPage = 100;
+async function createOctokit(auth) {
+	return await octokitFromAuthSafe({
+		auth,
+		headers: { "X-GitHub-Api-Version": "2022-11-28" }
+	});
+}
+async function api_paginate(pages, { since, timestampOf } = {}) {
+	const items = [];
+	let requested = 0;
+	for await (const page of pages) {
+		const pageItems = since && timestampOf ? page.data.filter((item) => !isBefore(timestampOf(item), since)) : page.data;
+		items.push(...pageItems);
+		requested += 1;
+		if (requested >= maxPages || pageItems.length < page.data.length) break;
+	}
+	return items;
+}
+function isBefore(timestamp, since) {
+	return !!timestamp && new Date(timestamp) < since;
+}
+//#endregion
+
+
+//# sourceMappingURL=api.js.map
+;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@1.0.0/node_modules/all-contributors-for-repository/lib/collect/collecting/collectAcceptedIssues.js
 
 //#region src/collect/collecting/collectAcceptedIssues.ts
-async function collectAcceptedIssues(defaults, octokit, labelAcceptingPrs) {
+async function collectAcceptedIssues(defaults, octokit, labelAcceptingPrs, since) {
 	return await api_paginate(octokit.paginate.iterator("GET /repos/{owner}/{repo}/issues", {
 		...defaults,
 		labels: labelAcceptingPrs,
 		per_page: 100,
+		...since && { since: since.toISOString() },
 		state: "all"
 	}));
 }
@@ -45327,7 +45403,7 @@ async function collectAcceptedIssues(defaults, octokit, labelAcceptingPrs) {
 
 
 //# sourceMappingURL=collectAcceptedIssues.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.6.1/node_modules/all-contributors-for-repository/lib/collect/collecting/collectIssueEvents.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@1.0.0/node_modules/all-contributors-for-repository/lib/collect/collecting/collectIssueEvents.js
 
 //#region src/collect/collecting/collectIssueEvents.ts
 const relevantIssueEvents = /* @__PURE__ */ new Set([
@@ -45337,43 +45413,55 @@ const relevantIssueEvents = /* @__PURE__ */ new Set([
 	"pinned",
 	"unlocked"
 ]);
-async function collectIssueEvents(defaults, octokit) {
+async function collectIssueEvents(defaults, octokit, since) {
 	return (await api_paginate(octokit.paginate.iterator("GET /repos/{owner}/{repo}/issues/events", {
 		...defaults,
 		per_page: 100
-	}))).filter((issueEvent) => relevantIssueEvents.has(issueEvent.event));
+	}), {
+		since,
+		timestampOf: (issueEvent) => issueEvent.created_at
+	})).filter((issueEvent) => relevantIssueEvents.has(issueEvent.event));
 }
 //#endregion
 
 
 //# sourceMappingURL=collectIssueEvents.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.6.1/node_modules/all-contributors-for-repository/lib/collect/collecting/collectMergedPulls.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@1.0.0/node_modules/all-contributors-for-repository/lib/collect/collecting/collectMergedPulls.js
 
 //#region src/collect/collecting/collectMergedPulls.ts
-async function collectMergedPulls(defaults, octokit) {
+async function collectMergedPulls(defaults, octokit, since) {
+	const qualifiers = [
+		`repo:${defaults.owner}/${defaults.repo}`,
+		"is:pr",
+		"is:merged",
+		...since ? [`merged:>=${since.toISOString()}`] : []
+	];
 	return await api_paginate(octokit.paginate.iterator("GET /search/issues", {
 		per_page: 100,
-		q: `repo:${defaults.owner}/${defaults.repo}+is:pr+is:merged`
+		q: qualifiers.join("+")
 	}));
 }
 //#endregion
 
 
 //# sourceMappingURL=collectMergedPulls.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.6.1/node_modules/all-contributors-for-repository/lib/collect/collecting/collectRepoEvents.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@1.0.0/node_modules/all-contributors-for-repository/lib/collect/collecting/collectRepoEvents.js
 
 //#region src/collect/collecting/collectRepoEvents.ts
-async function collectRepoEvents(defaults, octokit) {
+async function collectRepoEvents(defaults, octokit, since) {
 	return await api_paginate(octokit.paginate.iterator("GET /repos/{owner}/{repo}/events", {
 		...defaults,
 		per_page: 100
-	}));
+	}), {
+		since,
+		timestampOf: (repoEvent) => repoEvent.created_at
+	});
 }
 //#endregion
 
 
 //# sourceMappingURL=collectRepoEvents.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.6.1/node_modules/all-contributors-for-repository/lib/Contributor.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@1.0.0/node_modules/all-contributors-for-repository/lib/Contributor.js
 //#region src/Contributor.ts
 var Contributor = class {
 	contributions = {};
@@ -45385,7 +45473,7 @@ var Contributor = class {
 
 
 //# sourceMappingURL=Contributor.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.6.1/node_modules/all-contributors-for-repository/lib/ContributorsCollection.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@1.0.0/node_modules/all-contributors-for-repository/lib/ContributorsCollection.js
 
 //#region src/ContributorsCollection.ts
 var ContributorsCollection = class {
@@ -45408,7 +45496,7 @@ var ContributorsCollection = class {
 
 
 //# sourceMappingURL=ContributorsCollection.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.6.1/node_modules/all-contributors-for-repository/lib/collect/processing/repoEventIsPullRequestReviewEvent.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@1.0.0/node_modules/all-contributors-for-repository/lib/collect/processing/repoEventIsPullRequestReviewEvent.js
 //#region src/collect/processing/repoEventIsPullRequestReviewEvent.ts
 function repoEventIsPullRequestReviewEvent(repoEvent) {
 	return repoEvent.type === "PullRequestReviewEvent" && !!repoEvent.issue?.number;
@@ -45417,7 +45505,7 @@ function repoEventIsPullRequestReviewEvent(repoEvent) {
 
 
 //# sourceMappingURL=repoEventIsPullRequestReviewEvent.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.6.1/node_modules/all-contributors-for-repository/lib/collect/processing/processContributors.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@1.0.0/node_modules/all-contributors-for-repository/lib/collect/processing/processContributors.js
 
 
 //#region src/collect/processing/processContributors.ts
@@ -45441,7 +45529,7 @@ function getMaintainerLogin(issueEvent) {
 
 
 //# sourceMappingURL=processContributors.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.6.1/node_modules/all-contributors-for-repository/lib/collect/index.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@1.0.0/node_modules/all-contributors-for-repository/lib/collect/index.js
 
 
 
@@ -45458,21 +45546,21 @@ async function collect(options) {
 	};
 	const octokit = await createOctokit(options.auth);
 	const [acceptedIssues, issueEvents, mergedPulls, repoEvents] = await Promise.all([
-		collectAcceptedIssues(defaults, octokit, options.labelAcceptingPrs),
-		collectIssueEvents(defaults, octokit),
-		collectMergedPulls(defaults, octokit),
-		collectRepoEvents(defaults, octokit)
+		collectAcceptedIssues(defaults, octokit, options.labelAcceptingPrs, options.since),
+		collectIssueEvents(defaults, octokit, options.since),
+		collectMergedPulls(defaults, octokit, options.since),
+		collectRepoEvents(defaults, octokit, options.since)
 	]);
 	const contributors = processContributors(issueEvents, repoEvents, options);
 	addAcceptedIssues(Object.values(acceptedIssues), contributors, options);
-	await addMergedPulls(mergedPulls, contributors, octokit, options);
+	await addMergedPulls(mergedPulls, contributors, octokit);
 	return contributors.collect();
 }
 //#endregion
 
 
 //# sourceMappingURL=index.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.6.1/node_modules/all-contributors-for-repository/lib/options.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@1.0.0/node_modules/all-contributors-for-repository/lib/options.js
 //#region src/options.ts
 const options_defaultOptions = {
 	ignoredLogins: [
@@ -45487,8 +45575,7 @@ const options_defaultOptions = {
 	labelTypeBug: "type: bug",
 	labelTypeDocs: "type: documentation",
 	labelTypeIdeas: "type: feature",
-	labelTypeTool: "area: tooling",
-	testFiles: [/\.(spec|test)\.[^/]+$/i, /(^|\/)(__tests__|tests?)\//i]
+	labelTypeTool: "area: tooling"
 };
 function fillInOptions(rawOptions) {
 	return {
@@ -45501,14 +45588,14 @@ function fillInOptions(rawOptions) {
 		labelTypeTool: rawOptions.labelTypeTool ?? options_defaultOptions.labelTypeTool,
 		owner: rawOptions.owner,
 		repo: rawOptions.repo,
-		testFiles: rawOptions.testFiles ?? options_defaultOptions.testFiles
+		since: rawOptions.since
 	};
 }
 //#endregion
 
 
 //# sourceMappingURL=options.js.map
-;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@0.6.1/node_modules/all-contributors-for-repository/lib/getAllContributorsForRepository.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/all-contributors-for-repository@1.0.0/node_modules/all-contributors-for-repository/lib/getAllContributorsForRepository.js
 
 
 //#region src/getAllContributorsForRepository.ts

@@ -1,4 +1,4 @@
-import { getMultilineInput } from "@actions/core";
+import { getInput, getMultilineInput } from "@actions/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const getAllContributorsForRepositorySpy = vi.fn();
@@ -10,6 +10,18 @@ const mockRepo = "test-repository";
 
 const mockRequest = vi.fn((route: string) => {
 	switch (route) {
+		case "GET /repos/{owner}/{repo}/actions/runs/{run_id}":
+			return {
+				data: { workflow_id: 456 },
+			};
+
+		case "GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs":
+			return {
+				data: {
+					workflow_runs: [{ created_at: "2026-01-07T00:00:00Z", id: 122 }],
+				},
+			};
+
 		case "GET /repos/{owner}/{repo}/contents/{path}":
 			return {
 				data: {
@@ -46,7 +58,9 @@ const mockOctokit = {
 
 vi.mock("@actions/core", () => ({
 	debug: vi.fn(),
+	getInput: vi.fn(),
 	getMultilineInput: vi.fn(),
+	info: vi.fn(),
 }));
 
 vi.mock("@actions/github", () => ({
@@ -55,6 +69,7 @@ vi.mock("@actions/github", () => ({
 			owner: "Mock-Owner",
 			repo: mockRepo,
 		},
+		runId: 123,
 	},
 	getOctokit: () => mockOctokit,
 }));
@@ -72,6 +87,8 @@ describe("end-to-end", () => {
 	beforeEach(() => {
 		vi.resetModules();
 		getAllContributorsForRepositorySpy.mockClear();
+		mockRequest.mockClear();
+		vi.mocked(getInput).mockReturnValue("all");
 		vi.mocked(getMultilineInput).mockReturnValue([]);
 	});
 
@@ -171,6 +188,32 @@ describe("end-to-end", () => {
 		expect(getAllContributorsForRepositorySpy).toHaveBeenCalledWith(
 			expect.objectContaining({
 				ignoredLogins: expect.arrayContaining([expectedIgnoredLogins]),
+			}),
+		);
+	});
+
+	it("should not pass since when the since input is 'all'", async () => {
+		process.env.GITHUB_TOKEN = "gh_abc123";
+		process.env.GITHUB_REPOSITORY = mockRepo;
+
+		await import("./index.js");
+
+		expect(getAllContributorsForRepositorySpy).toHaveBeenCalledWith(
+			expect.not.objectContaining({ since: expect.anything() }),
+		);
+	});
+
+	it("should pass the previous run's time as since when the since input is 'auto'", async () => {
+		vi.mocked(getInput).mockReturnValue("auto");
+
+		process.env.GITHUB_TOKEN = "gh_abc123";
+		process.env.GITHUB_REPOSITORY = mockRepo;
+
+		await import("./index.js");
+
+		expect(getAllContributorsForRepositorySpy).toHaveBeenCalledWith(
+			expect.objectContaining({
+				since: new Date("2026-01-07T00:00:00.000Z"),
 			}),
 		);
 	});
