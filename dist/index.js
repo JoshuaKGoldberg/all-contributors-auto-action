@@ -30692,8 +30692,16 @@ function getOctokit(token, options, ...additionalPlugins) {
 //# sourceMappingURL=github.js.map
 ;// CONCATENATED MODULE: ./src/context.ts
 
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const githubToken = process.env.GITHUB_TOKEN;
+function getGithubToken() {
+    const githubToken = process.env.GITHUB_TOKEN;
+    // Octokit would otherwise silently fall back to unauthenticated requests,
+    // which fail later with a confusing rate limit error
+    if (!githubToken) {
+        throw new Error("The GITHUB_TOKEN environment variable must be set. See https://github.com/JoshuaKGoldberg/all-contributors-auto-action#token-and-permissions.");
+    }
+    return githubToken;
+}
+const githubToken = getGithubToken();
 const { repo: locator } = github_context;
 const octokit = getOctokit(githubToken);
 
