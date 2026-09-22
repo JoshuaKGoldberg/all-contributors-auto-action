@@ -48,7 +48,7 @@ jobs:
   contributors:
     runs-on: ubuntu-latest
     steps:
-      - uses: JoshuaKGoldberg/all-contributors-auto-action@v0.3.2
+      - uses: JoshuaKGoldberg/all-contributors-auto-action@v0.7.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -96,7 +96,7 @@ A classic personal access token needs the `public_repo` scope for public reposit
 Then pass it to the action instead of `secrets.GITHUB_TOKEN`:
 
 ```yml
-- uses: JoshuaKGoldberg/all-contributors-auto-action@v0.3.2
+- uses: JoshuaKGoldberg/all-contributors-auto-action@v0.7.0
   env:
     GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
 ```
@@ -128,7 +128,7 @@ jobs:
   contributors:
     runs-on: ubuntu-latest
     steps:
-      - uses: JoshuaKGoldberg/all-contributors-auto-action@v0.3.2
+      - uses: JoshuaKGoldberg/all-contributors-auto-action@v0.7.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -175,7 +175,7 @@ jobs:
   contributors:
     runs-on: ubuntu-latest
     steps:
-      - uses: JoshuaKGoldberg/all-contributors-auto-action@v0.3.2
+      - uses: JoshuaKGoldberg/all-contributors-auto-action@v0.7.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
