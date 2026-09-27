@@ -261,8 +261,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(prettier@3.9.0)
       prettier-plugin-sh:
-        specifier: 0.19.0
-        version: 0.19.0(prettier@3.9.0)
+        specifier: 0.20.0
+        version: 0.20.0(prettier@3.9.0)
       sentences-per-line:
         specifier: 0.3.0
         version: 0.3.0
@@ -2763,8 +2763,8 @@ packages:
       prettier:
         optional: true
 
-  prettier-plugin-sh@0.19.0:
-    resolution: {integrity: sha512-39VXFZH/cOGtcuu8aeSvqp/hhwomOR4QroZUj+jBz2cNb3os9s0sqFZSNlYts6jdtLLDU7D2YT3Z1+abtb7adQ==}
+  prettier-plugin-sh@0.20.0:
+    resolution: {integrity: sha512-z2LxwlQWP5qon1d16tAWjIKuMNeEiT6CjkG4lCBAxnRS0SmDkw2463wVxNGlbnpDfq0OTcB77T3bI91uTv9xmA==}
     engines: {node: '>=16.0.0'}
     peerDependencies:
       prettier: ^3.6.0
@@ -2880,8 +2880,8 @@ packages:
     engines: {node: '>=18.3.0'}
     hasBin: true
 
-  sh-syntax@0.6.0:
-    resolution: {integrity: sha512-52VK6z/cdZHv7UURjIcwfBUQZrAhIEEe0bY4lrkfypjnFIKsDZdD3Uaz/dBiw/sF8BeX0Mssv140s8EnrsJ9dQ==}
+  sh-syntax@0.7.0:
+    resolution: {integrity: sha512-sgMyAxpHiGgAaNg+gD3ad41vha24CzIjjghD4mdiON1lUafZPLJNYknyjcXmU4geilPstd69zCKkpccY0YvajA==}
     engines: {node: '>=16.0.0'}
 
   shebang-command@2.0.0:
@@ -6050,11 +6050,11 @@ snapshots:
     optionalDependencies:
       prettier: 3.9.0
 
-  prettier-plugin-sh@0.19.0(prettier@3.9.0):
+  prettier-plugin-sh@0.20.0(prettier@3.9.0):
     dependencies:
       '@reteps/dockerfmt': 0.5.4
       prettier: 3.9.0
-      sh-syntax: 0.6.0
+      sh-syntax: 0.7.0
 
   prettier@3.9.0: {}
 
@@ -6172,7 +6172,7 @@ snapshots:
       throttled-queue: 2.1.4
       zod: 3.25.76
 
-  sh-syntax@0.6.0: {}
+  sh-syntax@0.7.0: {}
 
   shebang-command@2.0.0:
     dependencies:
