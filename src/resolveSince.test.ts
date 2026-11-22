@@ -10,6 +10,7 @@ vi.mock("./getPreviousRunTime.ts", () => ({
 	},
 }));
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-class-instance-assignment -- test fake
 const mockOctokit = {} as Parameters<typeof resolveSince>[1];
 
 const locator = {
