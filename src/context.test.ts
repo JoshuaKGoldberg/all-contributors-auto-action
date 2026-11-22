@@ -29,7 +29,7 @@ describe("context", () => {
 			succeeded: false,
 		});
 
-		await expect(import("./context.js")).rejects.toThrow(
+		await expect(import("./context.ts")).rejects.toThrow(
 			expect.objectContaining({
 				cause: "Could not run `gh`: oh no",
 				message: expect.stringContaining("Could not find a GitHub token."),
@@ -44,7 +44,7 @@ describe("context", () => {
 			token: "gh_abc123",
 		});
 
-		const { githubToken } = await import("./context.js");
+		const { githubToken } = await import("./context.ts");
 
 		expect(githubToken).toBe("gh_abc123");
 		expect(mockGetOctokit).toHaveBeenCalledWith("gh_abc123");

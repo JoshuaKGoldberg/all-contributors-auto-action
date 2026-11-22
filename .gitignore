@@ -1,3 +1,5 @@
 /coverage
+/dist/**/*.d.ts
+/dist/**/*.d.ts.map
 /lib
 /node_modules

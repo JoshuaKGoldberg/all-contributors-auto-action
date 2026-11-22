@@ -1,15 +1,15 @@
 body:
   - attributes:
       description: If any of these required steps are not taken, we may not be able to review your issue. Help us to help you!
-      label: Feature Request Checklist
+      label: Documentation Report Checklist
       options:
-        - label: I have pulled the latest `main` branch of the repository.
+        - label: I have looked at the latest `main` branch of the repository.
           required: true
         - label: I have [searched for related issues](https://github.com/JoshuaKGoldberg/all-contributors-auto-action/issues?q=is%3Aissue) and found none that matched my issue.
           required: true
     type: checkboxes
   - attributes:
-      description: What did you expect to be able to do?
+      description: What would you like to report?
       label: Overview
     type: textarea
     validations:
@@ -18,8 +18,12 @@ body:
       description: Any additional info you'd like to provide.
       label: Additional Info
     type: textarea
-description: Request that a new feature be added or an existing feature improved
+
+description: Report a typo or missing area of documentation
+
 labels:
-  - "type: feature"
-name: 🚀 Feature
-title: "🚀 Feature: <short description of the feature>"
+  - "area: documentation"
+
+name: 📝 Documentation
+
+title: "📝 Documentation: <short description of the request>"

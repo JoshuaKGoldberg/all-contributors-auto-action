@@ -19,7 +19,7 @@ Run [TypeScript](https://typescriptlang.org) locally to type check and build sou
 pnpm build
 ```
 
-Add `--watch` to run the builder in a watch mode that continuously cleans and recreates `lib/` as you save files:
+Add `--watch` to run the builder in a watch mode that rebuilds changed files into `lib/` as you save them:
 
 ```shell
 pnpm build --watch
@@ -27,11 +27,15 @@ pnpm build --watch
 
 ### Building for Release
 
-Run [`@vercel/ncc`](https://github.com/vercel/ncc) to create an output `dist/` to be used in production.
+Run [`@vercel/ncc`](https://github.com/vercel/ncc) to clear and recreate an output `dist/` to be used in production.
 
 ```shell
 pnpm build:release
 ```
+
+CI fails if the committed `dist/` doesn't match what `pnpm build:release` produces, not counting `.d.ts` files.
+If that happens, run `pnpm build:release` and commit the changed files under `dist/`.
+Renovate PRs that update bundled dependencies need the same: rebuild and commit `dist/` on their branch before they can merge.
 
 ## Formatting
 
@@ -49,10 +53,9 @@ pnpm format --write
 This package includes several forms of linting to enforce consistent code quality and styling.
 Each should be shown in VS Code, and can be run manually on the command-line:
 
-- `pnpm lint` ([ESLint](https://eslint.org) with [typescript-eslint](https://typescript-eslint.io)): Lints JavaScript and TypeScript source files
+- `pnpm lint` ([ESLint](https://eslint.org) with [typescript-eslint](https://typescript-eslint.io)): Lints source files, including JavaScript, Markdown, and TypeScript
 - `pnpm lint:knip` ([knip](https://github.com/webpro/knip)): Detects unused files, dependencies, and code exports
-- `pnpm lint:md` ([Markdownlint](https://github.com/DavidAnson/markdownlint)): Checks Markdown source files
-- `pnpm lint:packages` ([pnpm dedupe --check](https://pnpm.io/cli/dedupe)): Checks for unnecessarily duplicated packages in the `pnpm-lock.yml` file
+- `pnpm lint:knip:production` ([knip](https://knip.dev/features/production-mode)): Detects unused files, dependencies, and code exports in production code, not counting usage from tests
 - `pnpm lint:spelling` ([cspell](https://cspell.org)): Spell checks across all source files
 
 Read the individual documentation for each linter to understand how it can be configured and used best.

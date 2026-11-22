@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getExistingContributors } from "./getExistingContributors.js";
+import { getExistingContributors } from "./getExistingContributors.ts";
 
 const mockRequest = vi.fn();
 
@@ -15,7 +15,7 @@ const locator = {
 
 vi.mock("@actions/core");
 
-describe("getExistingContributors", () => {
+describe(getExistingContributors, () => {
 	it("throws an error when the .all-contributorsrc file does not exist", async () => {
 		mockRequest.mockResolvedValueOnce({ data: {} });
 

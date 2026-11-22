@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { postContributorComments } from "./postContributorComments.js";
+import { postContributorComments } from "./postContributorComments.ts";
 
 vi.mock("@actions/core");
 
 const mockPostContributionComment = vi.fn();
 
-vi.mock("./postContributionComment.js", () => ({
+vi.mock("./postContributionComment.ts", () => ({
 	get postContributionComment() {
 		return mockPostContributionComment;
 	},
@@ -14,7 +14,7 @@ vi.mock("./postContributionComment.js", () => ({
 
 const contributor = "Test-Contributor";
 
-describe("postContributorComments", () => {
+describe(postContributorComments, () => {
 	it("doesn't post comments when the contributor is not missing any contributions", async () => {
 		await postContributorComments(contributor, {}, {});
 

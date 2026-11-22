@@ -1,8 +1,8 @@
 import * as core from "@actions/core";
 
-import { commentDisclaimer, commentPrefix } from "./comments.js";
-import { locator, octokit } from "./context.js";
-import { doesPullAlreadyHaveComment } from "./doesPullAlreadyHaveComment.js";
+import { commentDisclaimer, commentPrefix } from "./comments.ts";
+import { locator, octokit } from "./context.ts";
+import { doesPullAlreadyHaveComment } from "./doesPullAlreadyHaveComment.ts";
 
 export async function postContributionComment(
 	contributor: string,

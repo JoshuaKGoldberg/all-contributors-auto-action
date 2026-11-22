@@ -1,9 +1,9 @@
 import * as core from "@actions/core";
 import { ContributorContributions } from "all-contributors-for-repository";
 
-import { ExistingContributions } from "./getExistingContributors.js";
-import { getMissingContributions } from "./getMissingContributions.js";
-import { postContributionComment } from "./postContributionComment.js";
+import { ExistingContributions } from "./getExistingContributors.ts";
+import { getMissingContributions } from "./getMissingContributions.ts";
+import { postContributionComment } from "./postContributionComment.ts";
 
 export async function postContributorComments(
 	contributor: string,

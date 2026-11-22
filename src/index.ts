@@ -2,10 +2,10 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { getAllContributorsForRepository } from "all-contributors-for-repository";
 
-import { githubToken, locator, octokit } from "./context.js";
-import { getExistingContributors } from "./getExistingContributors.js";
-import { postContributorComments } from "./postContributorComments.js";
-import { resolveSince } from "./resolveSince.js";
+import { githubToken, locator, octokit } from "./context.ts";
+import { getExistingContributors } from "./getExistingContributors.ts";
+import { postContributorComments } from "./postContributorComments.ts";
+import { resolveSince } from "./resolveSince.ts";
 
 core.debug("About to retrieve contributors...");
 

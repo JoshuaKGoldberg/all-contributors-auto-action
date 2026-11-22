@@ -2,5 +2,6 @@
 /.husky
 /coverage
 /dist
+/dist
 /lib
 /pnpm-lock.yaml

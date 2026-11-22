@@ -1,3 +1,1 @@
-pnpm build:release
-git add dist
-npx lint-staged
+npx pretty-quick --staged

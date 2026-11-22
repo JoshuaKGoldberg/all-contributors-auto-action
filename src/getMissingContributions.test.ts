@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { getMissingContributions } from "./getMissingContributions.js";
+import { getMissingContributions } from "./getMissingContributions.ts";
 
 const contributor = "abc123";
 
-describe("getMissingContributions", () => {
+describe(getMissingContributions, () => {
 	it("returns the contributions when the contributor doesn't yet exist", () => {
 		const contributions = { bug: [123], tool: [456, 789] };
 

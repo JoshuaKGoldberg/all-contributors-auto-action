@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 
-import { dataIsRepoFile } from "./dataIsRepoFile.js";
-import { AllContributorsConfig, Locator, Octokit } from "./types.js";
+import { dataIsRepoFile } from "./dataIsRepoFile.ts";
+import { AllContributorsConfig, Locator, Octokit } from "./types.ts";
 
 export type ExistingContributions = Record<string, Set<string> | undefined>;
 
