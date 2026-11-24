@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { postContributionComment } from "./postContributionComment.js";
+import { postContributionComment } from "./postContributionComment.ts";
 
 const mockDebug = vi.fn();
 
@@ -12,7 +12,7 @@ vi.mock("@actions/core", () => ({
 
 const mockDoesPullAlreadyHaveComment = vi.fn();
 
-vi.mock("./doesPullAlreadyHaveComment.js", () => ({
+vi.mock("./doesPullAlreadyHaveComment.ts", () => ({
 	get doesPullAlreadyHaveComment() {
 		return mockDoesPullAlreadyHaveComment;
 	},
@@ -22,7 +22,7 @@ const mockRequest = vi.fn(() => ({
 	data: { id: 111 },
 }));
 
-vi.mock("./context.js", () => ({
+vi.mock("./context.ts", () => ({
 	locator: {},
 	get octokit() {
 		return {
@@ -33,7 +33,7 @@ vi.mock("./context.js", () => ({
 
 const contributor = "Test-Contributor";
 
-describe("postContributionComment", () => {
+describe(postContributionComment, () => {
 	it("doesn't post a comment when it already exists", async () => {
 		mockDoesPullAlreadyHaveComment.mockResolvedValueOnce({});
 

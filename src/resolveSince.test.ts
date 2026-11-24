@@ -1,16 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { resolveSince } from "./resolveSince.js";
+import { resolveSince } from "./resolveSince.ts";
 
 const mockGetPreviousRunTime = vi.fn();
 
-vi.mock("./getPreviousRunTime.js", () => ({
+vi.mock("./getPreviousRunTime.ts", () => ({
 	get getPreviousRunTime() {
 		return mockGetPreviousRunTime;
 	},
 }));
 
-const mockOctokit = {} as Parameters<typeof resolveSince>[1];
+const mockOctokit = {} as unknown as Parameters<typeof resolveSince>[1];
 
 const locator = {
 	owner: "",

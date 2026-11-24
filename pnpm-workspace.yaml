@@ -1,2 +1,3 @@
 minimumReleaseAgeExclude:
-  - "all-contributors-for-repository"
+  - all-contributors-for-repository
+  - create-typescript-app@2.87.18

@@ -96,7 +96,7 @@ describe("end-to-end", () => {
 		process.env.GITHUB_TOKEN = "gh_abc123";
 		process.env.GITHUB_REPOSITORY = mockRepo;
 
-		await import("./index.js");
+		await import("./index.ts");
 
 		expect(mockPaginate.mock.calls).toMatchInlineSnapshot(`
 		[
@@ -182,7 +182,7 @@ describe("end-to-end", () => {
 		process.env.GITHUB_TOKEN = "gh_abc123";
 		process.env.GITHUB_REPOSITORY = mockRepo;
 
-		await import("./index.js");
+		await import("./index.ts");
 
 		const expectedIgnoredLogins = /\[bot\]$/i;
 		expect(getAllContributorsForRepositorySpy).toHaveBeenCalledWith(
@@ -196,7 +196,7 @@ describe("end-to-end", () => {
 		process.env.GITHUB_TOKEN = "gh_abc123";
 		process.env.GITHUB_REPOSITORY = mockRepo;
 
-		await import("./index.js");
+		await import("./index.ts");
 
 		expect(getAllContributorsForRepositorySpy).toHaveBeenCalledWith(
 			expect.not.objectContaining({ since: expect.anything() }),
@@ -209,7 +209,7 @@ describe("end-to-end", () => {
 		process.env.GITHUB_TOKEN = "gh_abc123";
 		process.env.GITHUB_REPOSITORY = mockRepo;
 
-		await import("./index.js");
+		await import("./index.ts");
 
 		expect(getAllContributorsForRepositorySpy).toHaveBeenCalledWith(
 			expect.objectContaining({

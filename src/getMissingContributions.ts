@@ -1,6 +1,6 @@
 import type { ContributorContributions } from "all-contributors-for-repository";
 
-import type { ExistingContributions } from "./getExistingContributors.js";
+import type { ExistingContributions } from "./getExistingContributors.ts";
 
 export function getMissingContributions(
 	contributor: string,

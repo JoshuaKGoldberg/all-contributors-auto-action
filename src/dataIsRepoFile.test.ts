@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { dataIsRepoFile } from "./dataIsRepoFile.js";
+import { dataIsRepoFile } from "./dataIsRepoFile.ts";
 
-describe("dataIsRepoFile", () => {
+describe(dataIsRepoFile, () => {
 	it.each([
 		[null, false],
 		[undefined, false],

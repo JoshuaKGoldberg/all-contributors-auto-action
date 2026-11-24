@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { commentPrefix } from "./comments.js";
-import { doesPullAlreadyHaveComment } from "./doesPullAlreadyHaveComment.js";
+import { commentPrefix } from "./comments.ts";
+import { doesPullAlreadyHaveComment } from "./doesPullAlreadyHaveComment.ts";
 
 const mockListComments = vi.fn();
 const mockPaginate = vi.fn();
@@ -13,7 +13,7 @@ const mockOctokit = {
 
 const locator = { owner: "", repo: "" };
 
-describe("doesPullAlreadyHaveComment", () => {
+describe(doesPullAlreadyHaveComment, () => {
 	it("returns undefined when no existing comment body includes the comment prefix", async () => {
 		mockPaginate.mockResolvedValue([{}]);
 

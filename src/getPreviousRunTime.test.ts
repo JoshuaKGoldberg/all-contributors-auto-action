@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getPreviousRunTime } from "./getPreviousRunTime.js";
+import { getPreviousRunTime } from "./getPreviousRunTime.ts";
 
 const mockRequest = vi.fn();
 

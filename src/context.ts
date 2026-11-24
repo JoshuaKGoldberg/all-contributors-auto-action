@@ -1,7 +1,7 @@
 import * as github from "@actions/github";
 import { getGitHubAuthToken } from "get-github-auth-token";
 
-import { Octokit } from "./types.js";
+import { Octokit } from "./types.ts";
 
 const auth = await getGitHubAuthToken();
 

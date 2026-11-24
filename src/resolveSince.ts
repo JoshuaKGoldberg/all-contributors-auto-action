@@ -1,5 +1,5 @@
-import { getPreviousRunTime } from "./getPreviousRunTime.js";
-import { Locator, Octokit } from "./types.js";
+import { getPreviousRunTime } from "./getPreviousRunTime.ts";
+import { Locator, Octokit } from "./types.ts";
 
 const durationMatcher = /^(\d+)\s*([hdw])$/i;
 

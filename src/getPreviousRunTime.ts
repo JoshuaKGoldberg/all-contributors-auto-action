@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 
-import { Locator, Octokit } from "./types.js";
+import { Locator, Octokit } from "./types.ts";
 
 /**
  * Finds when the workflow's most recent successful run before this one started.

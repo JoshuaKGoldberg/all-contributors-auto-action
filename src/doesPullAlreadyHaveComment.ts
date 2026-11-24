@@ -1,5 +1,5 @@
-import { commentPrefix } from "./comments.js";
-import { Locator, Octokit } from "./types.js";
+import { commentPrefix } from "./comments.ts";
+import { Locator, Octokit } from "./types.ts";
 
 export async function doesPullAlreadyHaveComment(
 	octokit: Octokit,

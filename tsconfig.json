@@ -1,12 +1,13 @@
 {
 	"compilerOptions": {
 		"declaration": false,
-		"declarationMap": false,
 		"esModuleInterop": true,
 		"module": "NodeNext",
 		"moduleResolution": "NodeNext",
-		"noEmit": true,
+		"outDir": "lib",
 		"resolveJsonModule": true,
+		"rewriteRelativeImportExtensions": true,
+		"rootDir": "src",
 		"skipLibCheck": true,
 		"strict": true,
 		"target": "ES2022"
